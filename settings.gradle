@@ -1,0 +1,2 @@
+rootProject.name='FindYourAntenna'
+include ':app'

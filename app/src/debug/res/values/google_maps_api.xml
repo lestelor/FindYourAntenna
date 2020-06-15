@@ -1,0 +1,24 @@
+<resources>
+    <!--
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=CB:8D:BB:83:2A:50:34:43:AB:35:E1:EA:F2:C2:B8:84:6C:86:05:E2%3Blestelabs.antenna
+
+    You can also add your credentials to an existing key, using these values:
+
+    Package name:
+    lestelabs.antenna
+
+    SHA-1 certificate fingerprint:
+    CB:8D:BB:83:2A:50:34:43:AB:35:E1:EA:F2:C2:B8:84:6C:86:05:E2
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBcUE7xZuEVp8i5nguYPQllSk7EvC1PaXA</string>
+</resources>
