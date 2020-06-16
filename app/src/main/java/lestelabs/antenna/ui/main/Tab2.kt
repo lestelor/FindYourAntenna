@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
+import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,10 +17,15 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.LatLngBounds
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.Scanner.Device
+import lestelabs.antenna.ui.main.Scanner.LoadCellInfo
 
 
 /**
@@ -45,7 +51,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var fragmentView: View
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
+    private lateinit var telephonyManager: TelephonyManager
 
 
 
@@ -57,6 +63,9 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam2 = arguments!!.getString(ARG_PARAM2)
         }
 
+        var pDevice:Device?
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        pDevice= LoadCellInfo(telephonyManager)
     }
 
     override fun onCreateView(
@@ -142,6 +151,8 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         //MapsInitializer.initialize(context)
 
         mMap = googleMap
+
+
         googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         if(checkPermissions()) {
             mMap.isMyLocationEnabled = true
@@ -150,12 +161,24 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location : Location? ->
                 val centroMapa= location?.let { onLocationChanged(it) }
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centroMapa,9.0f))
+                if (location==null) {
+                } else {
+                    val mapBounds = LatLngBounds(
+                        LatLng(location.latitude-0.3, location.longitude-0.3), LatLng(location.latitude+0.1, location.longitude+0.1)
+                    )
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds,0))
+                }
+
+
+
             }
             .addOnFailureListener { e ->
                 Log.d("MapDemoActivity", "Error trying to get last GPS location")
                 e.printStackTrace()
             }
+        /*mMap.addMarker(MarkerOptions()
+            .position(marcador)
+            .title(llistacoordenades[i].nom)*/
     }
 
     private fun onLocationChanged(location: Location): LatLng {
