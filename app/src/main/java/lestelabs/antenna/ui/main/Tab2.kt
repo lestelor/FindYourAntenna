@@ -1,18 +1,22 @@
 package lestelabs.antenna.ui.main
 
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import lestelabs.antenna.R
@@ -39,18 +43,19 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     // The app build gradle is sync with the maps library
 
     private lateinit var mMap: GoogleMap
-    private lateinit var mapView: MapView
+    private lateinit var fragmentView: View
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
 
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         if (arguments != null) {
             mParam1 = arguments!!.getString(ARG_PARAM1)
             mParam2 = arguments!!.getString(ARG_PARAM2)
         }
-
 
     }
 
@@ -59,9 +64,14 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.map_layout, container, false)
-    }
+    fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
+        val mapFragment =
+            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
 
+        mapFragment!!.getMapAsync(this)
+
+        return fragmentView
+    }
 
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(uri: Uri?) {
@@ -106,6 +116,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
         private const val ARG_PARAM1 = "param1"
         private const val ARG_PARAM2 = "param2"
+        private const val REQUEST_FINE_LOCATION = 1
 
         /**
          * Use this factory method to create a new instance of
@@ -128,21 +139,23 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
 
-        // Here we define the variable as an GoogleMap object resulting from the getMapAsync(this) function
+        //MapsInitializer.initialize(context)
+
         mMap = googleMap
-        // ask for permissions
-        /*if (checkPermissions()) {
+        googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+        if(checkPermissions()) {
             mMap.isMyLocationEnabled = true
-        }*/
-
-
-        // Add a marker in Sydney and move the camera
-
-
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        }
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location : Location? ->
+                val centroMapa= location?.let { onLocationChanged(it) }
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centroMapa,9.0f))
+            }
+            .addOnFailureListener { e ->
+                Log.d("MapDemoActivity", "Error trying to get last GPS location")
+                e.printStackTrace()
+            }
     }
 
     private fun onLocationChanged(location: Location): LatLng {
@@ -153,6 +166,25 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         return latLng
     }
 
+    // Check location permissions, but it is not needed for using google maps
+    private fun checkPermissions(): Boolean {
+        return if (ContextCompat.checkSelfPermission(
+                activity!!,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            true
+        } else {
+            requestPermissions()
+            false
+        }
+    }
 
+    private fun requestPermissions() {
+        ActivityCompat.requestPermissions(
+            activity!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            REQUEST_FINE_LOCATION
+        )
+    }
 
 }

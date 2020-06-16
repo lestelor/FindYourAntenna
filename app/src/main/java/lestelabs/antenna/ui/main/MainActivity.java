@@ -18,9 +18,11 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
         TabLayout tabLayout = (TabLayout)findViewById(R.id.tabs);
-        tabLayout.addTab(tabLayout.newTab().setText("Tab 1"));
-        tabLayout.addTab(tabLayout.newTab().setText("Tab 2"));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_text_1));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_text_2));
 
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
