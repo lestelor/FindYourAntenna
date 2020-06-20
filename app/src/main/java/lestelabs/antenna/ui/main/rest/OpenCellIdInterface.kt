@@ -1,6 +1,10 @@
 package lestelabs.antenna.ui.main.rest
 
+
+
+import lestelabs.antenna.ui.main.rest.models.Towers
 import okhttp3.ResponseBody
+
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -8,7 +12,12 @@ import retrofit2.http.Query
 
 interface OpenCellIdInterface {
 
+    @GET("/geolocation/cell?v=1.1&data=open")
+    fun openCellIdResponse(
+        @Query("mcc") mcc: Int,
+        @Query("mnc") mnc: Int,
+        @Query("cellid") cellid: Int,
+        @Query("lac") lac: Int): Call<Towers>
 
-    @GET("/cell")
-    fun openCellIdResponse(@Query("key") mcc: String="9abd6e867e1cf9"): Call<ResponseBody?>?
+
 }

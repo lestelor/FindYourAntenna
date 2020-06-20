@@ -1,12 +1,9 @@
 package lestelabs.antenna.ui.main
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
@@ -14,10 +11,16 @@ import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
 import lestelabs.antenna.R
 
 class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener,
-    Tab2.OnFragmentInteractionListener {
+    Tab2.OnFragmentInteractionListener , FetchCompleteListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+
+
+
+
+
         val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
         tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_text_1))
         tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_text_2))
@@ -39,17 +42,19 @@ class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener,
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED ) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), PERMISSION_REQUEST_CODE)
-        }
+
+
+
+
     }
 
 
     override fun onFragmentInteraction(uri: Uri?) {
-        TODO("Not yet implemented")
+        //TODO("Not yet implemented")
+
     }
 
     companion object {
-        private const val PERMISSION_REQUEST_CODE = 100
+        private const val PERMISSION_REQUEST_CODE = 1
     }
 }

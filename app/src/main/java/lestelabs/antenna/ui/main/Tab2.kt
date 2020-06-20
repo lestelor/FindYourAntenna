@@ -2,6 +2,7 @@ package lestelabs.antenna.ui.main
 
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -24,8 +25,15 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.Scanner.Device
-import lestelabs.antenna.ui.main.Scanner.LoadCellInfo
+import lestelabs.antenna.ui.main.rest.OpenCellIdInterface
+import lestelabs.antenna.ui.main.rest.models.Towers
+import lestelabs.antenna.ui.main.rest.retrofitFactory
+import lestelabs.antenna.ui.main.scanner.DevicePhone
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.io.IOException
 
 
 /**
@@ -42,7 +50,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private var mParam2: String? = null
     private var mListener: OnFragmentInteractionListener? = null
 
-
     // As indicated in android developers https://developers.google.com/maps/documentation/android-sdk/start
     // Previously it is necessary to get the google API key from the Google Cloud Platform Console
     // (Maps SDK for Android) and store them in the manifest
@@ -52,6 +59,8 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private lateinit var fragmentView: View
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var telephonyManager: TelephonyManager
+    private lateinit var pDevice:DevicePhone
+    private lateinit var openCellIdInterface: OpenCellIdInterface
 
 
 
@@ -59,13 +68,23 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         super.onCreate(savedInstanceState)
 
         if (arguments != null) {
-            mParam1 = arguments!!.getString(ARG_PARAM1)
-            mParam2 = arguments!!.getString(ARG_PARAM2)
+            mParam1 = requireArguments().getString(ARG_PARAM1)
+            mParam2 = requireArguments().getString(ARG_PARAM2)
         }
 
-        var pDevice:Device?
-        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        pDevice= LoadCellInfo(telephonyManager)
+
+        if (checkPermissionsTel() && checkPermissionsNet()) {
+            //telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            //pDevice = loadCellInfo(telephonyManager)
+
+
+            //val text = findCellIdOpenCellId("http://www.opencellid.org/cell/get?key=9abd6e867e1cf9&mcc=214&mnc=3&lac=2426&cellid=12834060")
+        }
+
+
+
+
+
     }
 
     override fun onCreateView(
@@ -118,6 +137,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         fun onFragmentInteraction(uri: Uri?)
+
     }
 
     companion object {
@@ -126,6 +146,8 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         private const val ARG_PARAM1 = "param1"
         private const val ARG_PARAM2 = "param2"
         private const val REQUEST_FINE_LOCATION = 1
+        private const val PERMISSION_REQUEST_CODE = 1
+
 
         /**
          * Use this factory method to create a new instance of
@@ -146,6 +168,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         }
     }
 
+    @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
 
         //MapsInitializer.initialize(context)
@@ -153,22 +176,27 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         mMap = googleMap
 
 
+
+
+
+
         googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-        if(checkPermissions()) {
+        if (checkPermissionsLoc()) {
             mMap.isMyLocationEnabled = true
         }
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         fusedLocationClient.lastLocation
-            .addOnSuccessListener { location : Location? ->
-                val centroMapa= location?.let { onLocationChanged(it) }
-                if (location==null) {
+            .addOnSuccessListener { location: Location? ->
+                val centroMapa = location?.let { onLocationChanged(it) }
+                if (location == null) {
                 } else {
                     val mapBounds = LatLngBounds(
-                        LatLng(location.latitude-0.3, location.longitude-0.3), LatLng(location.latitude+0.1, location.longitude+0.1)
+                        LatLng(location.latitude - 0.3, location.longitude - 0.3),
+                        LatLng(location.latitude + 0.1, location.longitude + 0.1)
                     )
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds,0))
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
                 }
-
 
 
             }
@@ -179,7 +207,40 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         /*mMap.addMarker(MarkerOptions()
             .position(marcador)
             .title(llistacoordenades[i].nom)*/
+
+       val openCellIdInterface: OpenCellIdInterface = retrofitFactory()
+
+
+        openCellIdInterface.openCellIdResponse(214,3,12834060, 2426).enqueue( object :Callback<Towers> {
+
+
+
+            override fun onResponse(call: Call<Towers>, response: Response<Towers>) {
+                Log.e("cfauli","Onresponse" + response.body()?.result)
+                try {
+                    System.out.println(response.body())
+                    Log.e("cfauli","Onresponse " + response.body()?.data?.lat + ", " +  response.body()?.data?.lon )
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+
+                /*if (response.code() == 200) {
+                    //var aa=response.body()!!
+                    Log.d("cfauli",response.body()!!.toString())
+                    val aaa=1
+                }*/
+            }
+
+            override fun onFailure(call: Call<Towers>, t: Throwable) {
+                Log.e("cfauli","RetrofitFailure")
+            }
+        })
+
+        /*var aaa=getResponseText(URLTOTAL)*/
+        var aaaa=1
     }
+
+
 
     private fun onLocationChanged(location: Location): LatLng {
         // New location has now been determined
@@ -190,24 +251,68 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     }
 
     // Check location permissions, but it is not needed for using google maps
-    private fun checkPermissions(): Boolean {
+    private fun checkPermissionsLoc(): Boolean {
         return if (ContextCompat.checkSelfPermission(
-                activity!!,
+                requireActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             true
         } else {
-            requestPermissions()
+            requestPermissionsLoc()
             false
         }
     }
 
-    private fun requestPermissions() {
+    private fun checkPermissionsTel(): Boolean {
+        return if (ContextCompat.checkSelfPermission(
+                requireActivity(),
+                Manifest.permission.READ_PHONE_STATE
+            ) == PackageManager.PERMISSION_GRANTED        )
+            {
+            true
+        } else {
+            requestPermissionsTel()
+            false
+        }
+    }
+
+    private fun checkPermissionsNet(): Boolean {
+        return if (ContextCompat.checkSelfPermission(
+                requireActivity(),
+                Manifest.permission.ACCESS_NETWORK_STATE
+            ) == PackageManager.PERMISSION_GRANTED        )
+        {
+            true
+        } else {
+            requestPermissionsNet()
+            false
+        }
+    }
+
+    private fun requestPermissionsLoc() {
         ActivityCompat.requestPermissions(
-            activity!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
             REQUEST_FINE_LOCATION
         )
     }
+    private fun requestPermissionsTel() {
+        ActivityCompat.requestPermissions(
+            requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE),
+            1
+        )
+    }
+
+    private fun requestPermissionsNet() {
+        ActivityCompat.requestPermissions(
+            requireActivity(), arrayOf(Manifest.permission.ACCESS_NETWORK_STATE),
+            1
+        )
+    }
+
+}
+
+
+interface FetchCompleteListener {
 
 }

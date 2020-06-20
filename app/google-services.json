@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "247776579597",
+    "firebase_url": "https://findyourantena.firebaseio.com",
+    "project_id": "findyourantena",
+    "storage_bucket": "findyourantena.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247776579597:android:ee5bbbbc7828fa57ed0544",
+        "android_client_info": {
+          "package_name": "lestelabs.antenna"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "247776579597-tiq749ch95ttg86ojh9hijmhd276nrqn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "lestelabs.antenna",
+            "certificate_hash": "b705fb8640c99121139eed7740db26a95e4fa15e"
+          }
+        },
+        {
+          "client_id": "247776579597-tqm4d7p0fdlfmbj6j15kgfbisk3tp54q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzgxgltHjbFnGczfvAWVmBNCm9BBDlxLw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "247776579597-tqm4d7p0fdlfmbj6j15kgfbisk3tp54q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
