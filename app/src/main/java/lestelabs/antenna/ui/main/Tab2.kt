@@ -24,16 +24,20 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.rest.OpenCellIdInterface
+import lestelabs.antenna.ui.main.rest.Coordenadas
 import lestelabs.antenna.ui.main.rest.models.Towers
+
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
-import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
+
 
 
 /**
@@ -60,7 +64,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var telephonyManager: TelephonyManager
     private lateinit var pDevice:DevicePhone
-    private lateinit var openCellIdInterface: OpenCellIdInterface
+    private val openCellIdInterface = retrofitFactory()
 
 
 
@@ -189,13 +193,51 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 val centroMapa = location?.let { onLocationChanged(it) }
+
+
                 if (location == null) {
                 } else {
-                    val mapBounds = LatLngBounds(
-                        LatLng(location.latitude - 0.3, location.longitude - 0.3),
-                        LatLng(location.latitude + 0.1, location.longitude + 0.1)
-                    )
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
+
+                    var boundsMapTowerGpsMin: Coordenadas = Coordenadas()
+                    var boundsMapTowerGpsMax: Coordenadas = Coordenadas()
+
+                    val scope = CoroutineScope(Dispatchers.Main)
+
+                    findTower {coordenadas ->
+
+                        var locationTower:Coordenadas = coordenadas as Coordenadas
+
+                        Log.d(
+                            "cfauli",
+                            "OnMaReady " + locationTower.lat.toString() + ", " + locationTower.lon.toString()
+                        )
+                        /*if ((locationTower.lat!! < 999) || (locationTower.lat!! == 0.0) || (locationTower.lat == null)) {
+                            locationTower.lat = location.latitude
+                            locationTower.lon = location.longitude
+                        }*/
+                        boundsMapTowerGpsMin.lat =
+                            minOf(location.latitude, locationTower.lat!!) - 0.01
+                        boundsMapTowerGpsMin.lon =
+                            minOf(location.longitude, locationTower.lon!!) - 0.01
+                        boundsMapTowerGpsMax.lat =
+                            maxOf(location.latitude, locationTower.lat!!) + 0.01
+                        boundsMapTowerGpsMax.lon =
+                            maxOf(location.longitude, locationTower.lon!!) + 0.01
+                        mMap.addMarker(
+                            MarkerOptions()
+                                .position(LatLng(locationTower.lat!!,locationTower.lon!!))
+                                .title(locationTower.lat.toString() + ", " + locationTower.lon.toString())
+                        )
+                        val mapBounds = LatLngBounds(
+                            LatLng(boundsMapTowerGpsMin.lat!!,boundsMapTowerGpsMin.lon!!),
+                            LatLng(boundsMapTowerGpsMax.lat!!,boundsMapTowerGpsMax.lon!!)
+                        )
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
+                    }
+
+
+
+
                 }
 
 
@@ -204,42 +246,44 @@ class Tab2 : Fragment() , OnMapReadyCallback {
                 Log.d("MapDemoActivity", "Error trying to get last GPS location")
                 e.printStackTrace()
             }
-        /*mMap.addMarker(MarkerOptions()
-            .position(marcador)
-            .title(llistacoordenades[i].nom)*/
-
-       val openCellIdInterface: OpenCellIdInterface = retrofitFactory()
-
-
-        openCellIdInterface.openCellIdResponse(214,3,12834060, 2426).enqueue( object :Callback<Towers> {
 
 
 
+    }
+
+    private fun findTower(callback: (Coordenadas) -> Unit) {
+        var salir:Boolean = false
+        var coordenadas:Coordenadas = Coordenadas()
+
+        openCellIdInterface.openCellIdResponse(214,3,12834060, 2426).enqueue( object :
+            Callback<Towers> {
             override fun onResponse(call: Call<Towers>, response: Response<Towers>) {
-                Log.e("cfauli","Onresponse" + response.body()?.result)
+                Log.d("cfauli","Onresponse 1 " + response.body()?.result)
                 try {
                     System.out.println(response.body())
-                    Log.e("cfauli","Onresponse " + response.body()?.data?.lat + ", " +  response.body()?.data?.lon )
+                    Log.d("cfauli","Onresponse 2 " + response.body()?.data?.lat + ", " +  response.body()?.data?.lon )
+                    coordenadas.lat = response.body()?.data?.lat
+                    coordenadas.lon = response.body()?.data?.lon
+                    callback(coordenadas)
+
                 } catch (e: IOException) {
                     e.printStackTrace()
-                }
+                    coordenadas.lat = -1000.0
+                    coordenadas.lon = -1000.0
 
-                /*if (response.code() == 200) {
-                    //var aa=response.body()!!
-                    Log.d("cfauli",response.body()!!.toString())
-                    val aaa=1
-                }*/
+                }
             }
 
             override fun onFailure(call: Call<Towers>, t: Throwable) {
                 Log.e("cfauli","RetrofitFailure")
+                coordenadas.lat = -1000.0
+                coordenadas.lon = -1000.0
+
             }
         })
 
-        /*var aaa=getResponseText(URLTOTAL)*/
-        var aaaa=1
-    }
 
+    }
 
 
     private fun onLocationChanged(location: Location): LatLng {
