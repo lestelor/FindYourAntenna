@@ -1,9 +1,13 @@
 package lestelabs.antenna.ui.main.scanner
 
+import android.location.Location
 import android.os.Build
 import android.telephony.*
+import android.telephony.gsm.GsmCellLocation
 import android.util.Log
 import androidx.annotation.RequiresApi
+import android.telephony.CellInfoLte
+import java.net.NetworkInterface
 
 
 /**
@@ -16,13 +20,15 @@ import androidx.annotation.RequiresApi
  */
 
 @RequiresApi(Build.VERSION_CODES.P)
-fun loadCellInfo(tm: TelephonyManager): DevicePhone {
+fun loadCellInfo2(tm: TelephonyManager,location:Location): DevicePhone {
      val TAG = "AICDL"
      val mTAG = "XXX"
 
     var pDevicePhone:DevicePhone = DevicePhone("",0,0,0,0,0,0,0)
-    val lCurrentApiVersion = Build.VERSION.SDK_INT
 
+    var cellLocation= CellLocation.requestLocationUpdate()
+    val lCurrentApiVersion = Build.VERSION.SDK_INT
+    var gsmCellLocation:GsmCellLocation
 
     try {
 
@@ -70,19 +76,24 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                     pDevicePhone.mnc = identityLte.mncString.toInt()
                     pDevicePhone.lac = identityLte.tac
                     pDevicePhone.cid = identityLte.ci
-                    Log.d("cfauli","loadCellInfo" + " " + identityLte.ci)
+                    Log.d("cfauli","loadCellInfo2" + " " + identityLte.ci)
+
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         Log.d(
                             "cfauli",
-                            "loadCellInfo" + " " + NeighboringCellInfo(
+                            "loadCellInfo2" + " " + NeighboringCellInfo(
                                 lte.rssi,
                                 identityLte.ci
                             ).cid + " " +
                                     NeighboringCellInfo(lte.rssi, identityLte.ci).networkType
                                     + " " +
-                                    NeighboringCellInfo(lte.rssi, identityLte.ci).lac + " "
+                                    NeighboringCellInfo().lac + " " +
+                                    NeighboringCellInfo(
+                                        lte.rssi, identityLte.ci
+                                    ).psc
 
                         )
+
                     }
                 } else if (lCurrentApiVersion >= Build.VERSION_CODES.JELLY_BEAN_MR2 && info is CellInfoWcdma) {
                     val wcdma =
@@ -113,5 +124,10 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 npe
             )
         }
-        return pDevicePhone
+
+
+
+
+    return pDevicePhone
     }
+

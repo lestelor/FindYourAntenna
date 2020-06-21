@@ -27,22 +27,13 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.rest.Coordenadas
-import lestelabs.antenna.ui.main.rest.OpenCellIdInterface
 import lestelabs.antenna.ui.main.rest.findTower
-import lestelabs.antenna.ui.main.rest.models.Towers
-
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.io.IOException
-
+import lestelabs.antenna.ui.main.scanner.loadCellInfo2
 
 
 /**
@@ -71,7 +62,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private var pDevice:DevicePhone = DevicePhone()
     private val openCellIdInterface = retrofitFactory()
     private var neighbourCells:List<DevicePhone> = mutableListOf()
-
+    private var locationAnt:Location? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -191,7 +182,14 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         }
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
+        if (pDevice.lac == 2147483647) {
+            pDevice = loadCellInfo(telephonyManager)
+        }
+        if (pDevice.lac == 2147483647) {
+            pDevice = loadCellInfo(telephonyManager)
+        }
         Log.d("cfauli","pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
+
         /*pDevice.mcc=214
         pDevice.mnc=3
         pDevice.lac=2426
@@ -199,48 +197,29 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         /*pDevice.mcc=214
         pDevice.mnc= 3
         pDevice.lac=2320
-        pDevice.cid = 12924929*/
+        pDevice.cid = 12924929
         pDevice.mcc=214
         pDevice.mnc= 3
         pDevice.lac=2426
-        pDevice.cid = 12834060
+        pDevice.cid = 12834060*/
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         Log.d("cfauli","isFusedLocatedTrue")
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 val centroMapa = location?.let { onLocationChanged(it) }
-
-
+                pDevice = loadCellInfo2(telephonyManager,location!!)
+                var numNeighbourCells = neighbourCells.count()
                 if (location == null) {
-                } else {
-                    var setdeCoordenadas:List<Coordenadas>
-
-                    neighbourCells = findTower (openCellIdInterface,pDevice.mcc!!,pDevice.mnc!!,pDevice.cid!!,pDevice.lac!!,
-                        neighbourCells as MutableList<DevicePhone>
-                    ) { coordenadas ->
-                        Log.d("cfauli","findTower " + neighbourCells[0].totalCellId)
-                        setdeCoordenadas = locateTowerMap (location, coordenadas)
-
-                        mMap.addMarker(
-                            MarkerOptions()
-                                .position(LatLng(setdeCoordenadas[0].lat!!,setdeCoordenadas[0].lon!!))
-                                .title(setdeCoordenadas[0].lat.toString() + ", " + setdeCoordenadas[0].lon.toString())
-                        )
-                        val mapBounds = LatLngBounds(
-                            LatLng(setdeCoordenadas[1].lat!!,setdeCoordenadas[1].lon!!),
-                            LatLng(setdeCoordenadas[2].lat!!,setdeCoordenadas[2].lon!!)
-                        )
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
+                } else if (pDevice.lac.toString().take(3) != pDevice.mcc.toString()) {
+                    neighbourCells = findTower(openCellIdInterface,pDevice.mcc!!,pDevice.mnc!!,pDevice.cid!!,pDevice.lac!!,neighbourCells as MutableList<DevicePhone>)
+                    { coordenadas ->
+                        Log.d("cfauli", "findTower " + neighbourCells[0].totalCellId)
+                        locateTowerMap(location,coordenadas,neighbourCells.count() - numNeighbourCells)
                     }
-
-
-
-
                 }
-
-
             }
+
             .addOnFailureListener { e ->
                 Log.d("MapDemoActivity", "Error trying to get last GPS location")
                 e.printStackTrace()
@@ -252,45 +231,107 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
 
 
+
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun onLocationChanged(location: Location): LatLng {
         // New location has now been determined
+        var numNeighbourCells = neighbourCells.count()
+        pDevice = loadCellInfo(telephonyManager)
+        if (pDevice.lac == 2147483647) {
+            pDevice = loadCellInfo(telephonyManager)
+        }
 
+        locationAnt=location
+
+        if ((locationAnt!=null) && checkDistaceLocations(location,10.0f) && (pDevice.lac.toString().take(3) != pDevice.mcc.toString())){
+            neighbourCells = findTower(
+            openCellIdInterface, pDevice.mcc!!, pDevice.mnc!!, pDevice.cid!!, pDevice.lac!!,
+            neighbourCells as MutableList<DevicePhone>
+            ) { coordenadas ->
+
+
+                locateTowerMap(location, coordenadas, neighbourCells.count() - numNeighbourCells)
+            }
+        }
         // You can now create a LatLng Object for use with maps
         val latLng = LatLng(location.latitude, location.longitude)
         return latLng
     }
 
-    private fun locateTowerMap(location: Location, locationTower:Coordenadas): List<Coordenadas> {
+    private fun locateTowerMap(location: Location, locationTower:Coordenadas, dif:Int) {
 
-        val responseFun: MutableList<Coordenadas> = mutableListOf()
         val boundsMapTowerGpsMin:Coordenadas = Coordenadas()
         val boundsMapTowerGpsMax:Coordenadas = Coordenadas()
 
         Log.d(
             "cfauli",
-            "OnMaReady " + locationTower.lat.toString() + ", " + locationTower.lon.toString()
+            "locationTowerMap " + locationTower.lat.toString() + ", " + locationTower.lon.toString()
         )
         /*if ((locationTower.lat!! < 999) || (locationTower.lat!! == 0.0) || (locationTower.lat == null)) {
             locationTower.lat = location.latitude
             locationTower.lon = location.longitude
         }*/
+
+        val distance = distance(locationTower.lat!!,locationTower.lon!!,location.latitude,location.longitude)
+
+        Log.d("cfauli","locationTowerMap " + distance)
         boundsMapTowerGpsMin.lat =
-            minOf(location.latitude, locationTower.lat!!) - 0.01
+            minOf(location.latitude, locationTower.lat!!) - 0.001 * distance/11119
         boundsMapTowerGpsMin.lon =
-            minOf(location.longitude, locationTower.lon!!) - 0.01
+            minOf(location.longitude, locationTower.lon!!) - 0.001 * distance/839
         boundsMapTowerGpsMax.lat =
-            maxOf(location.latitude, locationTower.lat!!) + 0.01
+            maxOf(location.latitude, locationTower.lat!!) - 0.001 * distance/11119
         boundsMapTowerGpsMax.lon =
-            maxOf(location.longitude, locationTower.lon!!) + 0.01
+            maxOf(location.longitude, locationTower.lon!!) + 0.001 * distance/839
 
-        responseFun.add(0,locationTower)
-        responseFun.add(1,boundsMapTowerGpsMin)
-        responseFun.add(2,boundsMapTowerGpsMax)
-
-
-        return responseFun
+        Log.d("cfauli","locationTowerMap dif " + dif)
+        if (dif>0) {
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(LatLng(locationTower.lat!!, locationTower.lon!!))
+                    .title(
+                        "%.4f".format(locationTower.lat) + "; " + "%.4f".format(locationTower.lon) + " " + "dist: " + "%.0f".format(
+                            distance
+                        ) + " m"
+                    )
+            )
+            Log.d("cfauli","locationTowerMap markerok ")
+            val mapBounds = LatLngBounds(
+                LatLng(boundsMapTowerGpsMin.lat!!, boundsMapTowerGpsMin.lon!!),
+                LatLng(boundsMapTowerGpsMax.lat!!, boundsMapTowerGpsMax.lon!!)
+            )
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
+            Log.d("cfauli","locationTowerMap dif " + dif)
+        }
     }
-
+    private fun checkDistaceLocations(location: Location, distanceLocations:Float):Boolean {
+        val distanceLocs: Float
+        if (locationAnt != null) {
+            distanceLocs = location.distanceTo(locationAnt)
+        } else {
+            distanceLocs = 10000.0f
+        }
+        Log.d("cfauli", "checkDistaceLocations distance " + distanceLocs)
+        return distanceLocs > distanceLocations
+    }
+    fun distance(
+        lat1: Double,
+        lng1: Double,
+        lat2: Double,
+        lng2: Double
+    ): Double {
+        val earthRadius = 6371000.0 //meters
+        val dLat = Math.toRadians(lat2 - lat1.toDouble())
+        val dLng = Math.toRadians(lng2 - lng1.toDouble())
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1.toDouble())) * Math.cos(
+            Math.toRadians(lat2.toDouble())
+        ) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2)
+        val c =
+            2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return (earthRadius * c)
+    }
 
     // Check location permissions, but it is not needed for using google maps
     private fun checkPermissionsLoc(): Boolean {
