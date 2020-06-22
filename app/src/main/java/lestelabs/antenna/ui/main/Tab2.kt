@@ -61,7 +61,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private lateinit var telephonyManager:TelephonyManager
     private var pDevice:DevicePhone = DevicePhone()
     private val openCellIdInterface = retrofitFactory()
-    private var neighbourCells:List<DevicePhone> = mutableListOf()
+    private var totalTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
     private var locationAnt:Location? = null
 
 
@@ -72,19 +72,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
-
-
-        if (checkPermissionsTel() && checkPermissionsNet()) {
-            //
-            //
-
-
-            //val text = findCellIdOpenCellId("http://www.opencellid.org/cell/get?key=9abd6e867e1cf9&mcc=214&mnc=3&lac=2426&cellid=12834060")
-        }
-
-        Log.d("cfauli","onCreateTrue")
-
-
 
     }
 
@@ -98,7 +85,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
 
         mapFragment!!.getMapAsync(this)
-        Log.d("cfauli","fragmentViewok")
         return fragmentView
     }
 
@@ -118,6 +104,20 @@ class Tab2 : Fragment() , OnMapReadyCallback {
                 context.toString()
                         + " must implement OnFragmentInteractionListener"
             )
+        }
+        if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                MainActivity.PERMISSION_REQUEST_CODE
+            )
+
+        }
+        if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE),
+                MainActivity.PERMISSION_REQUEST_CODE
+            )
+
         }
     }
 
@@ -147,7 +147,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         private const val ARG_PARAM1 = "param1"
         private const val ARG_PARAM2 = "param2"
         private const val REQUEST_FINE_LOCATION = 1
-        private const val PERMISSION_REQUEST_CODE = 1
+        public const val PERMISSION_REQUEST_CODE = 1
 
 
         /**
@@ -177,13 +177,13 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
         mMap = googleMap
         googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-        if (checkPermissionsLoc()) {
-            mMap.isMyLocationEnabled = true
-        }
+
+        mMap.isMyLocationEnabled = true
+
+
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
-
-
+        var towerinListBool = ckeckTowerinList(pDevice)
 
         /*pDevice.mcc=214
         pDevice.mnc=3
@@ -207,13 +207,11 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 val centroMapa = location?.let { onLocationChanged(it) }
-                var numNeighbourCellsLast = neighbourCells.count()
                 if (location == null) {
-                } else {
-                    neighbourCells = findTower(openCellIdInterface,pDevice.mcc!!,pDevice.mnc!!,pDevice.cid!!,pDevice.lac!!,neighbourCells as MutableList<DevicePhone>)
+                } else if ((!towerinListBool)){
+                    findTower(openCellIdInterface,pDevice)
                     { coordenadas ->
-                        Log.d ("cfauli","New Cell " + (neighbourCells.count() - numNeighbourCellsLast).toString())
-                        locateTowerMap(location,coordenadas,neighbourCells.count() - numNeighbourCellsLast)
+                        locateTowerMap(location,coordenadas)
                     }
                 }
             }
@@ -227,22 +225,18 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
     }
 
-
-
-
     @RequiresApi(Build.VERSION_CODES.P)
     private fun onLocationChanged(location: Location): LatLng {
         // New location has now been determined
 
         pDevice = loadCellInfo(telephonyManager)
-        locationAnt=location
-        var numNeighbourCellsLast = neighbourCells.count()
-        if (checkDistaceLocations(location,10.0f)){
-            neighbourCells = findTower(
-            openCellIdInterface, pDevice.mcc!!, pDevice.mnc!!, pDevice.cid!!, pDevice.lac!!,
-            neighbourCells as MutableList<DevicePhone>
-            ) { coordenadas ->
-                locateTowerMap(location, coordenadas, neighbourCells.count() - numNeighbourCellsLast)
+        var towerinListBool = ckeckTowerinList(pDevice)
+
+
+        if (checkDistaceLocations(location,10.0f) && (!towerinListBool)){
+            findTower(openCellIdInterface, pDevice)
+             { coordenadas ->
+                locateTowerMap(location, coordenadas)
             }
         }
         // You can now create a LatLng Object for use with maps
@@ -250,15 +244,11 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         return latLng
     }
 
-    private fun locateTowerMap(location: Location, locationTower:Coordenadas, dif:Int) {
+    private fun locateTowerMap(location: Location, locationTower:Coordenadas) {
 
         val boundsMapTowerGpsMin:Coordenadas = Coordenadas()
         val boundsMapTowerGpsMax:Coordenadas = Coordenadas()
 
-        Log.d(
-            "cfauli",
-            "locationTowerMap " + locationTower.lat.toString() + ", " + locationTower.lon.toString()
-        )
         /*if ((locationTower.lat!! < 999) || (locationTower.lat!! == 0.0) || (locationTower.lat == null)) {
             locationTower.lat = location.latitude
             locationTower.lon = location.longitude
@@ -266,7 +256,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
         val distance = distance(locationTower.lat!!,locationTower.lon!!,location.latitude,location.longitude)
 
-        Log.d("cfauli","locationTowerMap " + distance)
         boundsMapTowerGpsMin.lat =
             minOf(location.latitude, locationTower.lat!!) - 0.001 * distance/11119
         boundsMapTowerGpsMin.lon =
@@ -276,37 +265,60 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         boundsMapTowerGpsMax.lon =
             maxOf(location.longitude, locationTower.lon!!) + 0.001 * distance/839
 
-        Log.d("cfauli","locationTowerMap dif " + dif)
-        if (dif>0) {
-            mMap.addMarker(
-                MarkerOptions()
-                    .position(LatLng(locationTower.lat!!, locationTower.lon!!))
-                    .title(
-                        "%.4f".format(locationTower.lat) + "; " + "%.4f".format(locationTower.lon) + " " + "dist: " + "%.0f".format(
-                            distance
-                        ) + " m"
-                    )
-            )
-            Log.d("cfauli","locationTowerMap markerok ")
-            val mapBounds = LatLngBounds(
-                LatLng(boundsMapTowerGpsMin.lat!!, boundsMapTowerGpsMin.lon!!),
-                LatLng(boundsMapTowerGpsMax.lat!!, boundsMapTowerGpsMax.lon!!)
-            )
-            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
-            Log.d("cfauli","locationTowerMap dif " + dif)
-        }
+
+        mMap.addMarker(
+            MarkerOptions()
+                .position(LatLng(locationTower.lat!!, locationTower.lon!!))
+                .title(
+                    "%.4f".format(locationTower.lat) + "; " + "%.4f".format(locationTower.lon) + " " + "dist: " + "%.0f".format(
+                        distance
+                    ) + " m"
+                )
+        )
+        Log.d("cfauli","locateTowerMap markerok")
+        val mapBounds = LatLngBounds(
+            LatLng(boundsMapTowerGpsMin.lat!!, boundsMapTowerGpsMin.lon!!),
+            LatLng(boundsMapTowerGpsMax.lat!!, boundsMapTowerGpsMax.lon!!)
+        )
+        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
+
+
     }
     private fun checkDistaceLocations(location: Location, distanceLocations:Float):Boolean {
         val distanceLocs: Float
         if (locationAnt != null) {
             distanceLocs = location.distanceTo(locationAnt)
         } else {
+            locationAnt = location
             distanceLocs = 10000.0f
         }
         Log.d("cfauli", "checkDistaceLocations distance " + distanceLocs)
-        return distanceLocs > distanceLocations
+        if (distanceLocs > distanceLocations) {
+            locationAnt = location
+            return true
+        } else {
+            return false
+        }
+
     }
-    fun distance(
+
+
+    private fun ckeckTowerinList(devicePhone: DevicePhone):Boolean {
+        var devicePhonecheck: DevicePhone? = totalTowersFound.find { it.totalCellId == devicePhone.totalCellId }
+        if (devicePhonecheck != null) {
+            Log.d ("cfauli", "ckeckTowrList found " + totalTowersFound[0].totalCellId!! + totalTowersFound[1]!!.totalCellId)
+            return true
+        } else {
+            Log.d ("cfauli", "ckeckTowrList NOT found " + totalTowersFound[0].totalCellId!! )
+            totalTowersFound.add(devicePhone)
+            return false
+        }
+    }
+
+
+
+
+    private fun distance(
         lat1: Double,
         lng1: Double,
         lat2: Double,
@@ -323,66 +335,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         val c =
             2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         return (earthRadius * c)
-    }
-
-    // Check location permissions, but it is not needed for using google maps
-    private fun checkPermissionsLoc(): Boolean {
-        return if (ContextCompat.checkSelfPermission(
-                requireActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            true
-        } else {
-            requestPermissionsLoc()
-            false
-        }
-    }
-
-    private fun checkPermissionsTel(): Boolean {
-        return if (ContextCompat.checkSelfPermission(
-                requireActivity(),
-                Manifest.permission.READ_PHONE_STATE
-            ) == PackageManager.PERMISSION_GRANTED        )
-            {
-            true
-        } else {
-            requestPermissionsTel()
-            false
-        }
-    }
-
-    private fun checkPermissionsNet(): Boolean {
-        return if (ContextCompat.checkSelfPermission(
-                requireActivity(),
-                Manifest.permission.ACCESS_NETWORK_STATE
-            ) == PackageManager.PERMISSION_GRANTED        )
-        {
-            true
-        } else {
-            requestPermissionsNet()
-            false
-        }
-    }
-
-    private fun requestPermissionsLoc() {
-        ActivityCompat.requestPermissions(
-            requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            REQUEST_FINE_LOCATION
-        )
-    }
-    private fun requestPermissionsTel() {
-        ActivityCompat.requestPermissions(
-            requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE),
-            1
-        )
-    }
-
-    private fun requestPermissionsNet() {
-        ActivityCompat.requestPermissions(
-            requireActivity(), arrayOf(Manifest.permission.ACCESS_NETWORK_STATE),
-            1
-        )
     }
 
 }

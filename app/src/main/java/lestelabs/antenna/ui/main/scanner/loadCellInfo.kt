@@ -56,7 +56,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.mnc = identityCdma.systemId
                 pDevicePhone.lac = identityCdma.networkId
             } else if (info is CellInfoLte) {
-                //Log.d("cfauli","loadCellInfo" + " " + info)
+
 
                 val lte =
                     info.cellSignalStrength
@@ -70,19 +70,8 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.mnc = identityLte.mncString.toInt()
                 pDevicePhone.lac = identityLte.tac
                 pDevicePhone.cid = identityLte.ci
-                Log.d("cfauli","loadCellInfo" + " " + identityLte.ci)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    Log.d(
-                        "cfauli",
-                        "loadCellInfo" + " " + NeighboringCellInfo(
-                            lte.rssi,
-                            identityLte.ci
-                        ).cid + " " +
-                                NeighboringCellInfo(lte.rssi, identityLte.ci).networkType
-                                + " " +
-                                NeighboringCellInfo(lte.rssi, identityLte.ci).lac + " "
 
-                    )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 }
             } else if (lCurrentApiVersion >= Build.VERSION_CODES.JELLY_BEAN_MR2 && info is CellInfoWcdma) {
                 val wcdma =
@@ -98,12 +87,9 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.cid = identityWcdma.cid
                 pDevicePhone.psc = identityWcdma.psc
             } else {
-                Log.i(
-                    TAG, """${mTAG}Unknown type of cell signal!
-ClassName: ${info.javaClass.simpleName}
-ToString: $info"""
-                    )
+                Log.d("cfauli", "loadCellInfo Unknown Cell")
                 }
+            pDevicePhone.totalCellId = pDevicePhone.mcc.toString() + pDevicePhone.mnc.toString() + pDevicePhone.lac.toString() + pDevicePhone.cid.toString()
             }
 
         } catch (npe: NullPointerException) {

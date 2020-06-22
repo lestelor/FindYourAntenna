@@ -1,9 +1,12 @@
 package lestelabs.antenna.ui.main
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
@@ -15,7 +18,6 @@ class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
 
 
 
@@ -55,6 +57,6 @@ class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener,
     }
 
     companion object {
-        private const val PERMISSION_REQUEST_CODE = 1
+        const val PERMISSION_REQUEST_CODE = 1
     }
 }
