@@ -33,7 +33,7 @@ import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
-import lestelabs.antenna.ui.main.scanner.loadCellInfo2
+
 
 
 /**
@@ -182,13 +182,8 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         }
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
-        if (pDevice.lac == 2147483647) {
-            pDevice = loadCellInfo(telephonyManager)
-        }
-        if (pDevice.lac == 2147483647) {
-            pDevice = loadCellInfo(telephonyManager)
-        }
-        Log.d("cfauli","pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
+
+
 
         /*pDevice.mcc=214
         pDevice.mnc=3
@@ -200,22 +195,25 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         pDevice.cid = 12924929
         pDevice.mcc=214
         pDevice.mnc= 3
-        pDevice.lac=2426
+        pDevice.lac= 137
+        //pDevice.lac= 2426
         pDevice.cid = 12834060*/
 
+        Log.d("cfauli","pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
+
+
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        Log.d("cfauli","isFusedLocatedTrue")
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 val centroMapa = location?.let { onLocationChanged(it) }
-                pDevice = loadCellInfo2(telephonyManager,location!!)
-                var numNeighbourCells = neighbourCells.count()
+                var numNeighbourCellsLast = neighbourCells.count()
                 if (location == null) {
-                } else if (pDevice.lac.toString().take(3) != pDevice.mcc.toString()) {
+                } else {
                     neighbourCells = findTower(openCellIdInterface,pDevice.mcc!!,pDevice.mnc!!,pDevice.cid!!,pDevice.lac!!,neighbourCells as MutableList<DevicePhone>)
                     { coordenadas ->
-                        Log.d("cfauli", "findTower " + neighbourCells[0].totalCellId)
-                        locateTowerMap(location,coordenadas,neighbourCells.count() - numNeighbourCells)
+                        Log.d ("cfauli","New Cell " + (neighbourCells.count() - numNeighbourCellsLast).toString())
+                        locateTowerMap(location,coordenadas,neighbourCells.count() - numNeighbourCellsLast)
                     }
                 }
             }
@@ -235,22 +233,16 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.P)
     private fun onLocationChanged(location: Location): LatLng {
         // New location has now been determined
-        var numNeighbourCells = neighbourCells.count()
+
         pDevice = loadCellInfo(telephonyManager)
-        if (pDevice.lac == 2147483647) {
-            pDevice = loadCellInfo(telephonyManager)
-        }
-
         locationAnt=location
-
-        if ((locationAnt!=null) && checkDistaceLocations(location,10.0f) && (pDevice.lac.toString().take(3) != pDevice.mcc.toString())){
+        var numNeighbourCellsLast = neighbourCells.count()
+        if (checkDistaceLocations(location,10.0f)){
             neighbourCells = findTower(
             openCellIdInterface, pDevice.mcc!!, pDevice.mnc!!, pDevice.cid!!, pDevice.lac!!,
             neighbourCells as MutableList<DevicePhone>
             ) { coordenadas ->
-
-
-                locateTowerMap(location, coordenadas, neighbourCells.count() - numNeighbourCells)
+                locateTowerMap(location, coordenadas, neighbourCells.count() - numNeighbourCellsLast)
             }
         }
         // You can now create a LatLng Object for use with maps

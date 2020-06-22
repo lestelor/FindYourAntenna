@@ -2,12 +2,10 @@ package lestelabs.antenna.ui.main.rest
 
 
 
+import com.squareup.okhttp.ResponseBody
 import lestelabs.antenna.ui.main.rest.models.Towers
-import okhttp3.ResponseBody
-
 import retrofit2.Call
 import retrofit2.http.GET
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface OpenCellIdInterface {
@@ -18,6 +16,5 @@ interface OpenCellIdInterface {
         @Query("mnc") mnc: Int,
         @Query("cellid") cellid: Int,
         @Query("lac") lac: Int): Call<Towers>
-
 
 }
