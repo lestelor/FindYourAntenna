@@ -19,6 +19,36 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Platform calls Class.forName on types which do not exist on Android to determine platform.
+-dontnote retrofit2.Platform
+# Platform used when running on Java 8 VMs. Will not be used at runtime.
 
- -keep public class lestelabs.antenna.ui.main.rest.models.DataCell {*;}
- -keep public class lestelabs.antenna.ui.main.rest.models.Towers {*;}
+# Retain generic type information for use by reflection by converters and adapters.
+-keepattributes Signature
+# Retain declared checked exceptions for use by a Proxy instance.
+-keepattributes Exceptions
+
+-keep class com.squareup.* { *; }
+-keep interface com.squareup.* { *; }
+-keep class retrofit2.* { *; }
+-keep interface retrofit2.* { *;}
+-keep interface com.squareup.* { *; }
+
+
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}
+
+
+-dontwarn rx.**
+-dontwarn retrofit2.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class lestelabs.antenna.ui.main.rest.* { *; }
+-keep interface lestelabs.antenna.ui.main.rest.* { *; }
+-keep class okhttp3.* { *; }
+-keep interface okhttp3.* { *; }
+
+-dontwarn okhttp3.**

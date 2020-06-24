@@ -1,11 +1,12 @@
 package lestelabs.antenna.ui.main
 
 
-import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,15 +16,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
@@ -33,7 +29,6 @@ import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
-
 
 
 /**
@@ -57,13 +52,19 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fragmentView: View
+    private lateinit var mapFragment: SupportMapFragment
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var telephonyManager:TelephonyManager
-    private var pDevice:DevicePhone = DevicePhone()
+    private lateinit var pDevice:DevicePhone
     private val openCellIdInterface = retrofitFactory()
-    private var totalTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
+    private var listTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
     private var locationAnt:Location? = null
+    private val mLocationManager: LocationManager? = null
+    private lateinit var listener: MyStringListener
 
+    interface MyStringListener {
+        fun initializeMap():Boolean
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,19 +74,32 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
 
-    }
 
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-    fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
-        val mapFragment =
-            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
 
+        fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
+
+        mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
+
+
+
+        /*if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE_FINE_LOCATION)
+        } else {*/
+        /*mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
+        mapFragment!!.getMapAsync(this)*/
+
+
+
+
         return fragmentView
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -105,19 +119,11 @@ class Tab2 : Fragment() , OnMapReadyCallback {
                         + " must implement OnFragmentInteractionListener"
             )
         }
-        if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                MainActivity.PERMISSION_REQUEST_CODE
-            )
+        try {
+            listener = activity as MyStringListener
 
-        }
-        if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE),
-                MainActivity.PERMISSION_REQUEST_CODE
-            )
-
+        } catch (castException: ClassCastException) {
+            /** The activity does not implement the listener.  */
         }
     }
 
@@ -146,8 +152,9 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
         private const val ARG_PARAM1 = "param1"
         private const val ARG_PARAM2 = "param2"
-        private const val REQUEST_FINE_LOCATION = 1
-        public const val PERMISSION_REQUEST_CODE = 1
+        private const val PERMISSION_REQUEST_CODE = 1
+        private const val PERMISSION_REQUEST_CODE_FINE_LOCATION =2
+
 
 
         /**
@@ -172,24 +179,33 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
-
+        Thread.sleep(1000)
         //MapsInitializer.initialize(context)
-
-        mMap = googleMap
-        googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-
-        mMap.isMyLocationEnabled = true
+        initializeMapFragment() {
+            //MapsInitializer.initialize(context)
+            mMap = googleMap
 
 
-        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        pDevice = loadCellInfo(telephonyManager)
-        var towerinListBool = ckeckTowerinList(pDevice)
 
-        /*pDevice.mcc=214
+            googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+
+
+
+
+            mMap.isMyLocationEnabled = true
+
+            telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+            pDevice = loadCellInfo(telephonyManager)
+            var towerinListBool = ckeckTowerinList(pDevice)
+
+
+            Log.d("cfauli", "TowerinList " + towerinListBool)
+            /*pDevice.mcc=214
         pDevice.mnc=3
         pDevice.lac=2426
         pDevice.cid = 12834060*/
-        /*pDevice.mcc=214
+            /*pDevice.mcc=214
         pDevice.mnc= 3
         pDevice.lac=2320
         pDevice.cid = 12924929
@@ -199,34 +215,39 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         //pDevice.lac= 2426
         pDevice.cid = 12834060*/
 
-        Log.d("cfauli","pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
+            Log.d("cfauli", "pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
 
 
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-                val centroMapa = location?.let { onLocationChanged(it) }
-                if (location == null) {
-                } else if ((!towerinListBool)){
-                    findTower(openCellIdInterface,pDevice)
-                    { coordenadas ->
-                        locateTowerMap(location,coordenadas)
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+
+            fusedLocationClient.lastLocation
+
+                .addOnSuccessListener { location: Location? ->
+                    val centroMapa = location?.let { onLocationChanged(it) }
+                    if (location == null) {
+                    } else if ((!towerinListBool)) {
+                        findTower(openCellIdInterface, pDevice)
+                        { coordenadas ->
+                            locateTowerMap(location, coordenadas)
+                        }
                     }
                 }
-            }
 
-            .addOnFailureListener { e ->
-                Log.d("MapDemoActivity", "Error trying to get last GPS location")
-                e.printStackTrace()
-            }
+                .addOnFailureListener { e ->
+                    Log.d("MapDemoActivity", "Error trying to get last GPS location")
+                    e.printStackTrace()
+                }
 
+            mMap.clear()
+        }
 
 
     }
 
+
     @RequiresApi(Build.VERSION_CODES.P)
-    private fun onLocationChanged(location: Location): LatLng {
+    fun onLocationChanged(location: Location) {
         // New location has now been determined
 
         pDevice = loadCellInfo(telephonyManager)
@@ -239,10 +260,12 @@ class Tab2 : Fragment() , OnMapReadyCallback {
                 locateTowerMap(location, coordenadas)
             }
         }
+
         // You can now create a LatLng Object for use with maps
-        val latLng = LatLng(location.latitude, location.longitude)
-        return latLng
+        //val latLng = LatLng(location.latitude, location.longitude)
+        //return latLng
     }
+
 
     private fun locateTowerMap(location: Location, locationTower:Coordenadas) {
 
@@ -301,22 +324,17 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         }
 
     }
-
-
     private fun ckeckTowerinList(devicePhone: DevicePhone):Boolean {
-        var devicePhonecheck: DevicePhone? = totalTowersFound.find { it.totalCellId == devicePhone.totalCellId }
+        var devicePhonecheck: DevicePhone? = listTowersFound.find { it.totalCellId == devicePhone.totalCellId }
         if (devicePhonecheck != null) {
-            Log.d ("cfauli", "ckeckTowrList found " + totalTowersFound[0].totalCellId!! + totalTowersFound[1]!!.totalCellId)
+            Log.d ("cfauli", "ckeckTowrList found " + listTowersFound[0].totalCellId!! + listTowersFound[1]!!.totalCellId)
             return true
         } else {
-            Log.d ("cfauli", "ckeckTowrList NOT found " + totalTowersFound[0].totalCellId!! )
-            totalTowersFound.add(devicePhone)
+            Log.d ("cfauli", "ckeckTowrList NOT found " + listTowersFound[0].totalCellId!! )
+            listTowersFound.add(devicePhone)
             return false
         }
     }
-
-
-
 
     private fun distance(
         lat1: Double,
@@ -335,6 +353,34 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         val c =
             2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         return (earthRadius * c)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when(requestCode){
+
+            2 -> {
+                Log.d("cfauli", "Check loc permission" + requestCode)
+
+                if( grantResults!=null && grantResults[0] == PackageManager.PERMISSION_GRANTED ) {
+                    Log.d("cfauli", "Agree loc permission")
+
+                    val inflater = LayoutInflater.from(context)
+                    onCreateView(inflater, this.fragmentView.findViewById(R.id.map) ,Bundle())
+
+                }
+                else
+                    Log.d("cfauli","Not agree loc permission")
+            }
+            else -> {Log.d("cfauli", "Check loc permission rarito" + requestCode)}
+        }
+    }
+
+    fun initializeMapFragment(callback: (Boolean) -> Unit) {
+        if (listener.initializeMap()){
+            callback(true)
+        }
+
     }
 
 }

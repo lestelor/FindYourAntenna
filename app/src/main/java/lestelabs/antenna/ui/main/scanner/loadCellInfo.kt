@@ -1,9 +1,13 @@
 package lestelabs.antenna.ui.main.scanner
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.telephony.*
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import lestelabs.antenna.ui.main.MainActivity
 
 
 /**
@@ -22,6 +26,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
 
     var pDevicePhone:DevicePhone = DevicePhone("",0,0,0,0,0,0,0)
     val lCurrentApiVersion = Build.VERSION.SDK_INT
+
 
 
     try {
