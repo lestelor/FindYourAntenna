@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.telephony.TelephonyManager
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -36,46 +37,20 @@ import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
 
 
-class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener, Tab2.MyStringListener {
-    private var locPermissionOk =false
+class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener {
 
 @RequiresApi(Build.VERSION_CODES.P)
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
-    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-        ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.READ_PHONE_STATE), PERMISSION_REQUEST_CODE)
-        Thread.sleep(2000)
+    if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
+        (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+        ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
+        Thread.sleep(1000)
     }
 
-
-
-
-
-
-    /*if (ActivityCompat.checkSelfPermission(
-
-            this, Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        requestPermissions(
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            PERMISSION_REQUEST_CODE_FINE_LOCATION
-        )
-        //Timer("SettingUp", false).schedule(3000) {}
-    }*/
-
-
-    Log.d(
-        "cfauli",
-        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION).first() + " intarray: " + intArrayOf(
-            PackageManager.PERMISSION_GRANTED
-        )
-    )
-
-
-
+    checkAllPermission(){
         val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
         tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_text_1))
         tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_text_2))
@@ -87,74 +62,39 @@ override fun onCreate(savedInstanceState: Bundle?) {
         tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 viewPager.currentItem = tab.position
-                if (tab.position == 1) {
+                /*if (tab.position == 1) {
                     if (ActivityCompat.checkSelfPermission(this@MainActivity,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         ActivityCompat.requestPermissions(this@MainActivity,arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),PERMISSION_REQUEST_CODE_FINE_LOCATION)
+                        Thread.sleep(1000)
                     }
-                }
+                }*/
                 Log.d("cfauli", "TAB" + tab.position)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {}
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
-
+    }
 }
 
 
 
     override fun onFragmentInteraction(uri: Uri?) {
     //TODO("Not yet implemented")
-        val aaa=1
-
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.P)
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        when (requestCode) {
-
-            PERMISSION_REQUEST_CODE -> {
-
-                if (grantResults != null && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("cfauli", "Agree phone permission")
-
-
-                } else
-                    Log.d("cfauli", "Not agree phone permission")
-            }
-
-            PERMISSION_REQUEST_CODE_FINE_LOCATION -> {
-                if (grantResults != null && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("cfauli", "Agree fine location permission")
-                    locPermissionOk = true
-
-                } else  Log.d("cfauli", "Not agree fine location permission")
-            }
-
-            else -> {
-                Log.d("cfauli", "Check phone permission rarito que te cagas" + requestCode)
-
-            }
+    fun checkAllPermission(callback: (Boolean) -> Unit) {
+        while ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
+                (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+            Thread.sleep(1000)
         }
+        callback(true)
     }
-
-
 
 
     companion object {
         const val PERMISSION_REQUEST_CODE = 1
-        const val PERMISSION_REQUEST_CODE_FINE_LOCATION = 2
     }
-
-    override fun initializeMap(): Boolean {
-        if  ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-            || locPermissionOk) {
-            return true
-        } else  return false
-
-    }
-
 
 }
 

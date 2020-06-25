@@ -1,8 +1,8 @@
 package lestelabs.antenna.ui.main
 
 
+import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -10,13 +10,16 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
@@ -44,6 +47,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private var mParam1: String? = null
     private var mParam2: String? = null
     private var mListener: OnFragmentInteractionListener? = null
+    private var location:Location? = null
 
     // As indicated in android developers https://developers.google.com/maps/documentation/android-sdk/start
     // Previously it is necessary to get the google API key from the Google Cloud Platform Console
@@ -60,11 +64,9 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private var listTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
     private var locationAnt:Location? = null
     private val mLocationManager: LocationManager? = null
-    private lateinit var listener: MyStringListener
+    private var towerinListBool: Boolean = false
 
-    interface MyStringListener {
-        fun initializeMap():Boolean
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,32 +76,17 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
 
-
     }
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-
         fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
-
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
-
-
-
-        /*if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE_FINE_LOCATION)
-        } else {*/
-        /*mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
-        mapFragment!!.getMapAsync(this)*/
-
-
-
-
         return fragmentView
-
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -118,12 +105,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
                 context.toString()
                         + " must implement OnFragmentInteractionListener"
             )
-        }
-        try {
-            listener = activity as MyStringListener
-
-        } catch (castException: ClassCastException) {
-            /** The activity does not implement the listener.  */
         }
     }
 
@@ -147,60 +128,19 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
     }
 
-    companion object {
-        // TODO: Rename parameter arguments, choose names that match
-        // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-        private const val ARG_PARAM1 = "param1"
-        private const val ARG_PARAM2 = "param2"
-        private const val PERMISSION_REQUEST_CODE = 1
-        private const val PERMISSION_REQUEST_CODE_FINE_LOCATION =2
 
-
-
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment Tab2.
-         */
-        // TODO: Rename and change types and number of parameters
-        fun newInstance(param1: String?, param2: String?): Tab2 {
-            val fragment = Tab2()
-            val args = Bundle()
-            args.putString(ARG_PARAM1, param1)
-            args.putString(ARG_PARAM2, param2)
-            fragment.arguments = args
-            return fragment
-        }
-    }
 
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         Thread.sleep(1000)
         //MapsInitializer.initialize(context)
-        initializeMapFragment() {
-            //MapsInitializer.initialize(context)
-            mMap = googleMap
+
+        mMap = googleMap
+        mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+        mMap.isMyLocationEnabled = true
 
 
-
-            googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-
-
-
-
-            mMap.isMyLocationEnabled = true
-
-            telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-
-            pDevice = loadCellInfo(telephonyManager)
-            var towerinListBool = ckeckTowerinList(pDevice)
-
-
-            Log.d("cfauli", "TowerinList " + towerinListBool)
             /*pDevice.mcc=214
         pDevice.mnc=3
         pDevice.lac=2426
@@ -215,32 +155,29 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         //pDevice.lac= 2426
         pDevice.cid = 12834060*/
 
-            Log.d("cfauli", "pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
+        fusedLocationClient.lastLocation
 
-            fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
-            fusedLocationClient.lastLocation
-
-                .addOnSuccessListener { location: Location? ->
-                    val centroMapa = location?.let { onLocationChanged(it) }
-                    if (location == null) {
-                    } else if ((!towerinListBool)) {
-                        findTower(openCellIdInterface, pDevice)
-                        { coordenadas ->
-                            locateTowerMap(location, coordenadas)
-                        }
+            .addOnSuccessListener { location: Location? ->
+                val centroMapa = location?.let { onLocationChanged(it) }
+                /*if (location == null) {
+                } else if ((!towerinListBool)) {
+                    findTower(openCellIdInterface, pDevice)
+                    { coordenadas ->
+                        locateTowerMap(location, coordenadas)
                     }
-                }
+                }*/
+            }
 
-                .addOnFailureListener { e ->
-                    Log.d("MapDemoActivity", "Error trying to get last GPS location")
-                    e.printStackTrace()
-                }
+            .addOnFailureListener { e ->
+                Log.d("MapDemoActivity", "Error trying to get last GPS location")
+                e.printStackTrace()
+            }
 
-            mMap.clear()
-        }
+        mMap.clear()
+
 
 
     }
@@ -249,10 +186,11 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.P)
     fun onLocationChanged(location: Location) {
         // New location has now been determined
-
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
-        var towerinListBool = ckeckTowerinList(pDevice)
-
+        towerinListBool = ckeckTowerinList(pDevice)
+        Log.d("cfauli", "TowerinList " + towerinListBool)
+        Log.d("cfauli", "pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
 
         if (checkDistaceLocations(location,10.0f) && (!towerinListBool)){
             findTower(openCellIdInterface, pDevice)
@@ -305,7 +243,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         )
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
 
-
     }
     private fun checkDistaceLocations(location: Location, distanceLocations:Float):Boolean {
         val distanceLocs: Float
@@ -355,32 +292,30 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         return (earthRadius * c)
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        when(requestCode){
+    companion object {
+        // TODO: Rename parameter arguments, choose names that match
+        // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+        private const val ARG_PARAM1 = "param1"
+        private const val ARG_PARAM2 = "param2"
 
-            2 -> {
-                Log.d("cfauli", "Check loc permission" + requestCode)
 
-                if( grantResults!=null && grantResults[0] == PackageManager.PERMISSION_GRANTED ) {
-                    Log.d("cfauli", "Agree loc permission")
-
-                    val inflater = LayoutInflater.from(context)
-                    onCreateView(inflater, this.fragmentView.findViewById(R.id.map) ,Bundle())
-
-                }
-                else
-                    Log.d("cfauli","Not agree loc permission")
-            }
-            else -> {Log.d("cfauli", "Check loc permission rarito" + requestCode)}
+        /**
+         * Use this factory method to create a new instance of
+         * this fragment using the provided parameters.
+         *
+         * @param param1 Parameter 1.
+         * @param param2 Parameter 2.
+         * @return A new instance of fragment Tab2.
+         */
+        // TODO: Rename and change types and number of parameters
+        fun newInstance(param1: String?, param2: String?): Tab2 {
+            val fragment = Tab2()
+            val args = Bundle()
+            args.putString(ARG_PARAM1, param1)
+            args.putString(ARG_PARAM2, param2)
+            fragment.arguments = args
+            return fragment
         }
-    }
-
-    fun initializeMapFragment(callback: (Boolean) -> Unit) {
-        if (listener.initializeMap()){
-            callback(true)
-        }
-
     }
 
 }
