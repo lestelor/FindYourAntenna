@@ -1,6 +1,14 @@
 package lestelabs.antenna.ui.main.rest
 
-
+/*
+Check this site, it's very well explained and simple: https://www.mylnikov.org/archives/1059
+Here's an example:
+.MCC: 268
+.MNC: 06
+.LAC: 8280
+.CELL ID: 5616
+API LINK: https://api.mylnikov.org/geolocation/cell?v=1.1&data=open&mcc=268&mnc=06&lac=8280&cellid=5616
+*/
 
 import com.squareup.okhttp.ResponseBody
 import lestelabs.antenna.ui.main.rest.models.Towers

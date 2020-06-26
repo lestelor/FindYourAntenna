@@ -1,28 +1,29 @@
 package lestelabs.antenna.ui.main
 
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
+import android.content.Context.LOCATION_SERVICE
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
+import android.os.Looper
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import com.google.android.gms.location.FusedLocationProviderClient
+
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
@@ -32,6 +33,7 @@ import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
+import android.location.LocationListener
 
 
 /**
@@ -42,8 +44,12 @@ import lestelabs.antenna.ui.main.scanner.loadCellInfo
  * Use the [Tab2.newInstance] factory method to
  * create an instance of this fragment.
  */
+
+
 class Tab2 : Fragment() , OnMapReadyCallback {
-    // TODO: Rename and change types of parameters
+
+
+
     private var mParam1: String? = null
     private var mParam2: String? = null
     private var mListener: OnFragmentInteractionListener? = null
@@ -62,9 +68,13 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private lateinit var pDevice:DevicePhone
     private val openCellIdInterface = retrofitFactory()
     private var listTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
-    private var locationAnt:Location? = null
-    private val mLocationManager: LocationManager? = null
+    private var locationAnt: Location? = null
+    private lateinit var locationManager: LocationManager
     private var towerinListBool: Boolean = false
+    private var requestingLocationUpdates = true
+
+    //private lateinit var locationCallback: LocationCallback
+
 
 
 
@@ -75,8 +85,22 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
+        //val mgr = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+
+        /*locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations){
+                    // Update UI with location data
+                    Log.d("cfauli", "locationupdaterequest")
+                    // ...
+                }
+            }
+        }*/
+
 
     }
+
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -128,81 +152,34 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
     }
 
-
-
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         Thread.sleep(1000)
         //MapsInitializer.initialize(context)
-
+        Log.d("cfauli", "OnmapReady")
         mMap = googleMap
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         mMap.isMyLocationEnabled = true
 
-
-            /*pDevice.mcc=214
-        pDevice.mnc=3
-        pDevice.lac=2426
-        pDevice.cid = 12834060*/
-            /*pDevice.mcc=214
-        pDevice.mnc= 3
-        pDevice.lac=2320
-        pDevice.cid = 12924929
-        pDevice.mcc=214
-        pDevice.mnc= 3
-        pDevice.lac= 137
-        //pDevice.lac= 2426
-        pDevice.cid = 12834060*/
+        val myLocListener:MyLocationListener = MyLocationListener()
+        val minDist = 0.1f
+        val minTime:Long  = 1000
 
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
-        fusedLocationClient.lastLocation
-
-            .addOnSuccessListener { location: Location? ->
-                val centroMapa = location?.let { onLocationChanged(it) }
-                /*if (location == null) {
-                } else if ((!towerinListBool)) {
-                    findTower(openCellIdInterface, pDevice)
-                    { coordenadas ->
-                        locateTowerMap(location, coordenadas)
-                    }
-                }*/
-            }
-
-            .addOnFailureListener { e ->
-                Log.d("MapDemoActivity", "Error trying to get last GPS location")
-                e.printStackTrace()
-            }
-
-        mMap.clear()
-
-
-
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.P)
-    fun onLocationChanged(location: Location) {
-        // New location has now been determined
-        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        pDevice = loadCellInfo(telephonyManager)
-        towerinListBool = ckeckTowerinList(pDevice)
-        Log.d("cfauli", "TowerinList " + towerinListBool)
-        Log.d("cfauli", "pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
-
-        if (checkDistaceLocations(location,10.0f) && (!towerinListBool)){
-            findTower(openCellIdInterface, pDevice)
-             { coordenadas ->
-                locateTowerMap(location, coordenadas)
-            }
+        locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime,minDist,myLocListener)
+        }
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime,minDist,myLocListener)
         }
 
-        // You can now create a LatLng Object for use with maps
-        //val latLng = LatLng(location.latitude, location.longitude)
-        //return latLng
+        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+
     }
+
+
 
 
     private fun locateTowerMap(location: Location, locationTower:Coordenadas) {
@@ -244,23 +221,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
 
     }
-    private fun checkDistaceLocations(location: Location, distanceLocations:Float):Boolean {
-        val distanceLocs: Float
-        if (locationAnt != null) {
-            distanceLocs = location.distanceTo(locationAnt)
-        } else {
-            locationAnt = location
-            distanceLocs = 10000.0f
-        }
-        Log.d("cfauli", "checkDistaceLocations distance " + distanceLocs)
-        if (distanceLocs > distanceLocations) {
-            locationAnt = location
-            return true
-        } else {
-            return false
-        }
 
-    }
     private fun ckeckTowerinList(devicePhone: DevicePhone):Boolean {
         var devicePhonecheck: DevicePhone? = listTowersFound.find { it.totalCellId == devicePhone.totalCellId }
         if (devicePhonecheck != null) {
@@ -318,7 +279,44 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         }
     }
 
+
+    inner class MyLocationListener : LocationListener {
+
+
+        @RequiresApi(Build.VERSION_CODES.P)
+        override fun onLocationChanged(location: Location) {
+            telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            pDevice = loadCellInfo(telephonyManager)
+            towerinListBool = ckeckTowerinList(pDevice)
+            Log.d("cfauli", "TowerinList " + towerinListBool)
+            Log.d("cfauli", "pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
+
+            if (!towerinListBool){
+                findTower(openCellIdInterface, pDevice)
+                { coordenadas ->
+                    locateTowerMap(location, coordenadas)
+                }
+            }
+
+            // You can now create a LatLng Object for use with maps
+            //val latLng = LatLng(location.latitude, location.longitude)
+            //return latLng
+        }
+
+        override fun onProviderDisabled(arg0: String?) {
+            // Do something here if you would like to know when the provider is disabled by the user
+        }
+
+        override fun onProviderEnabled(arg0: String?) {
+            // Do something here if you would like to know when the provider is enabled by the user
+        }
+
+        override fun onStatusChanged(arg0: String?, arg1: Int, arg2: Bundle?) {
+            // Do something here if you would like to know when the provider status changes
+        }
+    }
 }
+
 
 
 interface FetchCompleteListener {
