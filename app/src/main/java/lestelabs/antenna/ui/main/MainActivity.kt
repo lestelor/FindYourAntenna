@@ -1,48 +1,55 @@
 package lestelabs.antenna.ui.main
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.telephony.TelephonyManager
 import android.util.Log
-import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.rest.Coordenadas
-import lestelabs.antenna.ui.main.rest.findTower
-import lestelabs.antenna.ui.main.rest.retrofitFactory
-import lestelabs.antenna.ui.main.scanner.DevicePhone
-import lestelabs.antenna.ui.main.scanner.loadCellInfo
 
 
 class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener {
+
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
 @RequiresApi(Build.VERSION_CODES.P)
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
+
+
+    val fab: FloatingActionButton = findViewById(R.id.fab)
+    fab.setOnClickListener { view ->
+        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+            .setAction("Action", null).show()
+    }
+
+    val toolbar = findViewById<Toolbar>(R.id.toolbar)
+    setSupportActionBar(findViewById<View>(R.id.toolbar) as Toolbar)
+
+    val drawerLayout = findViewById<View>(R.id.drawer_layout)
+    val toggle = ActionBarDrawerToggle(
+        this, drawerLayout as DrawerLayout?, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
+    )
+    drawerLayout?.addDrawerListener(toggle)
+    toggle.syncState()
+
 
     if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
         (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
@@ -82,6 +89,16 @@ override fun onCreate(savedInstanceState: Bundle?) {
     override fun onFragmentInteraction(uri: Uri?) {
     //TODO("Not yet implemented")
     }
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.main, menu)
+        return true
+    }
+
+    /*override fun onSupportNavigateUp(): Boolean {
+        val navController = findNavController(R.id.view_pager)
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }*/
 
     fun checkAllPermission(callback: (Boolean) -> Unit) {
         while ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
