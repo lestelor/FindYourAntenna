@@ -34,6 +34,8 @@ import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import android.location.LocationListener
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 
 
 /**
@@ -85,6 +87,9 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
+
+
+
         //val mgr = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
 
         /*locationCallback = object : LocationCallback() {
@@ -110,6 +115,12 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
+        /*val fab: FloatingActionButton = fragmentView.findViewById(R.id.fab)
+        fab.setOnClickListener { view ->
+            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+        }*/
+
         return fragmentView
     }
 

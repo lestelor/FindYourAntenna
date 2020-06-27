@@ -68,13 +68,13 @@ override fun onCreate(savedInstanceState: Bundle?) {
         viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
         tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
+                if (tab.position == 0) {
+                    fab.hide()
+                } else {
+                    fab.show()
+                }
                 viewPager.currentItem = tab.position
-                /*if (tab.position == 1) {
-                    if (ActivityCompat.checkSelfPermission(this@MainActivity,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(this@MainActivity,arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),PERMISSION_REQUEST_CODE_FINE_LOCATION)
-                        Thread.sleep(1000)
-                    }
-                }*/
+
                 Log.d("cfauli", "TAB" + tab.position)
             }
 
