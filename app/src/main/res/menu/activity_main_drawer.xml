@@ -6,7 +6,7 @@
 
 
     <item
-        android:id="@+id/tvSeekBarTime"
+        android:id="@+id/navOptions"
         android:title="@string/timeSamples" />
     <item
         android:id="@+id/seekBarTime"
