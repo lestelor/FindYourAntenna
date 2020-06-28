@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FindYourAntenna</string>
+    <string name="menu_home">Casa</string>
+    <string name="action_settings">Ajustes</string>
+    <string name="titlepopup">Ajustes</string>
+    <string name="textTimeSample">Tiempo mínimo entre muestras</string>
+    <string name="textSampleDistance">Distancia mínima entre muestras</string>
+    <string name="navSettings">Opciones</string>
+    <string name="otherSettings">Acerca:</string>
+</resources>

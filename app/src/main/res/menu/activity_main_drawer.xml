@@ -6,34 +6,26 @@
 
 
     <item
-        android:id="@+id/navOptions"
-        android:title="@string/timeSamples" />
-    <item
-        android:id="@+id/seekBarTime"
-        android:layout_width="200sp"
-        android:layout_height="wrap_content"
-        android:max="200"
-        android:progress="100"
-        android:title=""
-        app:actionViewClass="android.widget.SeekBar"
-        app:showAsAction="withText" />
-    <item
-        android:id="@+id/seekBarDistance"
-        android:title="@string/distanceSamples"
-        app:actionViewClass="android.widget.SeekBar"
-        app:showAsAction="never" />
+        android:id="@+id/navSettings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/navSettings" />
 
 
-    <group android:checkableBehavior="single">
+    <item android:title="@string/otherSettings">
+        <menu>
+        <group android:checkableBehavior="single">
 
 
-        <item
-            android:id="@+id/nav_tab3"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/menu_gallery" />
-        <item
-            android:id="@+id/nav_slideshow1"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/menu_slideshow" />
-    </group>
+            <item
+                android:id="@+id/nav_tab3"
+                android:icon="@drawable/ic_menu_gallery"
+                android:title="@string/menu_gallery" />
+            <item
+                android:id="@+id/nav_slideshow1"
+                android:icon="@drawable/ic_menu_slideshow"
+                android:title="@string/menu_slideshow" />
+        </group>
+        </menu>
+    </item>
+
 </menu>

@@ -149,7 +149,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
         val title: Int
         when (p0.getItemId()) {
-            R.id.navOptions -> {
+            R.id.navSettings -> {
                 val intent = Intent(this, PopUpSettings::class.java)
                 intent.putExtra("popuptitle", "Error")
                 intent.putExtra("popuptext", "Sorry, that email address is already used!")

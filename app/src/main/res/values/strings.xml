@@ -1,21 +1,27 @@
 <resources>
     <string name="app_name">FindYourAntenna</string>
-    <string name="tab_text_1">Tab1</string>
-    <string name="tab_text_2">Tab2</string>
-    <string name="distance">"Dist: "</string>
+    <string name="tab_text_1" translatable="false">Tab1</string>
+    <string name="tab_text_2" translatable="false">Tab2</string>
+    <string name="distance" translatable="false">"Dist: "</string>
 
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string name="nav_header_title" translatable="false">Android Studio</string>
+    <string name="nav_header_subtitle" translatable="false">android.studio@android.com</string>
+    <string name="nav_header_desc" translatable="false">Navigation header</string>
     <string name="action_settings">Settings</string>
 
+    <string name="menu_gallery" translatable="false">Gallery</string>
+    <string name="menu_slideshow" translatable="false">Slideshow</string>
+    <string name="hola" translatable="false">hola</string>
+    <string name="timeSamples" translatable="false">Sample time</string>
+    <string name="distanceSamples" translatable="false">Sample distance</string>
+    <string name="titlepopup">Settings</string>
+    <string name="ok" translatable="false">OK</string>
+    <string name="textTimeSample">Sample time</string>
+    <string name="textSampleDistance">Sample diatance</string>
     <string name="menu_home">Home</string>
-    <string name="menu_gallery">Gallery</string>
-    <string name="menu_slideshow">Slideshow</string>
-    <string name="hola">hola</string>
-    <string name="timeSamples">Sample time</string>
-    <string name="distanceSamples">Sample distance</string>
-    <!-- TODO: Remove or change this placeholder text -->
+    <string name="navSettings">Settings</string>
+    <string name="otherSettings">About:</string>
+
 </resources>
