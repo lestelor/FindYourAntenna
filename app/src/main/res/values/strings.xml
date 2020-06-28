@@ -18,10 +18,13 @@
     <string name="distanceSamples" translatable="false">Sample distance</string>
     <string name="titlepopup">Settings</string>
     <string name="ok" translatable="false">OK</string>
-    <string name="textTimeSample">Sample time</string>
+    <string name="textSampleTime">Sample Distance</string>
     <string name="textSampleDistance">Sample diatance</string>
     <string name="menu_home">Home</string>
     <string name="navSettings">Settings</string>
     <string name="otherSettings">About:</string>
+    <string name="minDistSample">10</string>
+    <string name="minTimeSample">10</string>
+
 
 </resources>

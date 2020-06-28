@@ -4,8 +4,10 @@
     <string name="menu_home">Casa</string>
     <string name="action_settings">Ajustes</string>
     <string name="titlepopup">Ajustes</string>
-    <string name="textTimeSample">Tiempo mínimo entre muestras</string>
     <string name="textSampleDistance">Distancia mínima entre muestras</string>
     <string name="navSettings">Opciones</string>
     <string name="otherSettings">Acerca:</string>
+    <string name="minDistSample">10</string>
+    <string name="minTimeSample">10</string>
+    <string name="textSampleTime">Tiempo mínimo entre muestras</string>
 </resources>

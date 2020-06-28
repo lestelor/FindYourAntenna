@@ -1,25 +1,27 @@
 package lestelabs.antenna.ui.main
 
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
-
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -33,9 +35,6 @@ import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
-import android.location.LocationListener
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 
 
 /**
@@ -74,6 +73,9 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private lateinit var locationManager: LocationManager
     private var towerinListBool: Boolean = false
     private var requestingLocationUpdates = true
+    private var minDist: Float? = null
+    private var minTime:Long? =null
+
 
     //private lateinit var locationCallback: LocationCallback
 
@@ -88,6 +90,8 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
 
+
+        readInitialConfiguration()
 
 
         //val mgr = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
@@ -105,6 +109,8 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
 
     }
+
+
 
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreateView(
@@ -163,6 +169,27 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
+        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
+
+        val myLocListener:MyLocationListener = MyLocationListener()
+        locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(requireActivity(),arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
+                return
+            }
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime!!,minDist!!,myLocListener)
+        }
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime!!,minDist!!,myLocListener)
+        }
+    }
+
+
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
@@ -174,16 +201,14 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         mMap.isMyLocationEnabled = true
 
         val myLocListener:MyLocationListener = MyLocationListener()
-        val minDist = 0.1f
-        val minTime:Long  = 1000
 
 
         locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
         if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime,minDist,myLocListener)
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime!!,minDist!!,myLocListener)
         }
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime,minDist,myLocListener)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime!!,minDist!!,myLocListener)
         }
 
         //fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
@@ -326,6 +351,13 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             // Do something here if you would like to know when the provider status changes
         }
     }
+
+    private fun readInitialConfiguration() {
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
+        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong()* 1000
+    }
+
 }
 
 
