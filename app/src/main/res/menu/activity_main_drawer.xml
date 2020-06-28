@@ -6,6 +6,7 @@
 
 
     <item
+        android:checkable="false"
         android:id="@+id/navSettings"
         android:icon="@drawable/ic_settings"
         android:title="@string/navSettings" />

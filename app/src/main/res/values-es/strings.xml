@@ -10,4 +10,6 @@
     <string name="minDistSample">10</string>
     <string name="minTimeSample">10</string>
     <string name="textSampleTime">Tiempo mínimo entre muestras</string>
+    <string name="tab_text_1">Radio</string>
+    <string name="tab_text_2">Mapa</string>
 </resources>

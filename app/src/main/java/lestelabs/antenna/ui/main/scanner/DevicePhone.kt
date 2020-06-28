@@ -9,6 +9,8 @@ class DevicePhone (
     var cid: Int? = 0,
     var dbm: Int? = 0,
     var networkType: Int? = 0,
-    var totalCellId : String = ""
+    var totalCellId : String = "",
+    var lat: Double = 0.0,
+    var lon: Double = 0.0
 
 )

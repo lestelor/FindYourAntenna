@@ -10,12 +10,9 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -27,19 +24,18 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
-
 
 
 class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var drawerLayout: View? = null
+    private val tabIcons = intArrayOf(R.drawable.ic_speed, R.drawable.ic_map)
 
-    @RequiresApi(Build.VERSION_CODES.P)
+@RequiresApi(Build.VERSION_CODES.P)
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
@@ -81,19 +77,32 @@ override fun onCreate(savedInstanceState: Bundle?) {
         Thread.sleep(1000)
     }
 
+
+
     checkAllPermission(){
         val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
-        tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_text_1))
-        tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_text_2))
+        tabLayout.addTab(tabLayout.newTab())
+        tabLayout.addTab(tabLayout.newTab())
+
+
         tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
+        // Setup tab icons
+        tabLayout.setupWithViewPager(viewPager)
+
+
+
         val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
         viewPager.adapter = adapter
         viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
+
+        tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
+        tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_map)
         tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 if (tab.position == 0) {
                     fab.hide()
+
                 } else {
                     fab.show()
                 }
@@ -156,7 +165,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
                 intent.putExtra("popupbtn", "OK")
                 intent.putExtra("darkstatusbar", false)
                 startActivity(intent)
-                p0.isChecked = true
+                p0.isChecked = false
                 //(drawerLayout as DrawerLayout).closeDrawer(GravityCompat.START)
             }
             else -> throw IllegalArgumentException("menu option not implemented!!")

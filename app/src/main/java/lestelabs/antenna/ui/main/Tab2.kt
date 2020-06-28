@@ -26,6 +26,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
@@ -71,10 +72,11 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private var listTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
     private var locationAnt: Location? = null
     private lateinit var locationManager: LocationManager
-    private var towerinListBool: Boolean = false
+    private var towerinListInt: Int = -1
     private var requestingLocationUpdates = true
     private var minDist: Float? = null
     private var minTime:Long? =null
+    private var previousTower: String? = null
 
 
     //private lateinit var locationCallback: LocationCallback
@@ -239,16 +241,26 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         boundsMapTowerGpsMax.lon =
             maxOf(location.longitude, locationTower.lon!!) + 0.001 * distance/839
 
-
+        mMap.clear()
         mMap.addMarker(
             MarkerOptions()
                 .position(LatLng(locationTower.lat!!, locationTower.lon!!))
-                .title(
-                    "%.4f".format(locationTower.lat) + "; " + "%.4f".format(locationTower.lon) + " " + "dist: " + "%.0f".format(
-                        distance
-                    ) + " m"
-                )
+                .title("%.4f".format(locationTower.lat) + "; " + "%.4f".format(locationTower.lon))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
         )
+        if (listTowersFound.size > 1) {
+            for (i in 1..listTowersFound.size) {
+                if (i != towerinListInt) {
+                    mMap.addMarker(
+                        MarkerOptions()
+                            .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
+                            .title("%.4f".format(listTowersFound[i].lat) + "; " + "%.4f".format(listTowersFound[i].lon))
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                    )
+                }
+            }
+        }
+
         Log.d("cfauli","locateTowerMap markerok")
         val mapBounds = LatLngBounds(
             LatLng(boundsMapTowerGpsMin.lat!!, boundsMapTowerGpsMin.lon!!),
@@ -258,16 +270,13 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
     }
 
-    private fun ckeckTowerinList(devicePhone: DevicePhone):Boolean {
-        var devicePhonecheck: DevicePhone? = listTowersFound.find { it.totalCellId == devicePhone.totalCellId }
-        if (devicePhonecheck != null) {
-            Log.d ("cfauli", "ckeckTowrList found " + listTowersFound[0].totalCellId!! + listTowersFound[1]!!.totalCellId)
-            return true
-        } else {
-            Log.d ("cfauli", "ckeckTowrList NOT found " + listTowersFound[0].totalCellId!! )
+    private fun ckeckTowerinList(devicePhone: DevicePhone):Int {
+        //var devicePhonecheck: DevicePhone? = listTowersFound.find { it.totalCellId == devicePhone.totalCellId }
+        var indexOfTower = listTowersFound.indexOfFirst { it.totalCellId == devicePhone.totalCellId }
+        if (indexOfTower != -1) {
             listTowersFound.add(devicePhone)
-            return false
         }
+        return indexOfTower
     }
 
     private fun distance(
@@ -323,14 +332,26 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         override fun onLocationChanged(location: Location) {
             telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             pDevice = loadCellInfo(telephonyManager)
-            towerinListBool = ckeckTowerinList(pDevice)
-            Log.d("cfauli", "TowerinList " + towerinListBool)
-            Log.d("cfauli", "pDevice " + pDevice.networkType + " " + pDevice.mcc + " " + pDevice.mnc + " " + pDevice.cid + " " + pDevice.lac)
+            towerinListInt = ckeckTowerinList(pDevice)
+            Log.d("cfauli", "previoustower " + previousTower)
+            Log.d("cfauli", "currentTower " + pDevice.totalCellId)
+            var sameTowerBool = false
+            if (pDevice.totalCellId == previousTower) {
+                sameTowerBool = true
+            } else {
+                previousTower = pDevice.totalCellId
+                sameTowerBool = false
+            }
 
-            if (!towerinListBool){
+            Log.d("cfauli", "TowerinList " + towerinListInt.toString())
+
+            if (!sameTowerBool){
                 findTower(openCellIdInterface, pDevice)
                 { coordenadas ->
+                    pDevice.lat = coordenadas.lat!!
+                    pDevice.lon = coordenadas.lon!!
                     locateTowerMap(location, coordenadas)
+
                 }
             }
 
