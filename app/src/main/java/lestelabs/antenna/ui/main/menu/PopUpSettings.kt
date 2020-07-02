@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
@@ -36,16 +37,16 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
         this.seekBarTime.min= 1
         this.seekBarTime.max = 60
 
-        var textSeek = getString(R.string.textSampleTime) + ": " + seekBarTime.progress + "m"
+        var textSeek = getString(R.string.textSampleTime) + ": " + this.seekBarTime.progress + "s"
         this.popup_window_text_time.text = textSeek
 
         this.seekBarDistance.min= 5
         this.seekBarDistance.max = 100
 
-        textSeek = getString(R.string.textSampleDistance) + seekBarDistance.progress + "s"
+        textSeek = getString(R.string.textSampleDistance) + ": " + this.seekBarDistance.progress + "m"
         this.popup_window_text_distance.text = textSeek
 
-
+        this.popup_window_folder.text = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
 
 
         popup_window_button.setOnClickListener {
@@ -74,7 +75,7 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
                 editor.apply()
             }
             R.id.seekBarTime -> {
-                val text = getString(R.string.textSampleTime) + progress.toString() + "s"
+                val text = getString(R.string.textSampleTime) + ": " + progress.toString() + "s"
                 this.popup_window_text_time.text = text
                 editor.putInt("num_time_samples",progress)
                 editor.apply()

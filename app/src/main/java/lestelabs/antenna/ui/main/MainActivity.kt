@@ -10,17 +10,17 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.ImageView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.isInvisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
@@ -28,32 +28,47 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
 
+interface GetfileState {
+    fun getFileState():Boolean
+}
 
-class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var drawerLayout: View? = null
-    private val tabIcons = intArrayOf(R.drawable.ic_speed, R.drawable.ic_map)
+    private var getFileStateButtonPressed: Boolean = false
+
+
 
 @RequiresApi(Build.VERSION_CODES.P)
 override fun onCreate(savedInstanceState: Bundle?) {
+
+
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
-        val navigationView: NavigationView = findViewById(R.id.nav_view)
-        val fab: FloatingActionButton = findViewById(R.id.fab)
-        //val toolbar = findViewById<Toolbar>(R.id.toolbar)
+    val navigationView: NavigationView = findViewById(R.id.nav_view)
+
+    //val toolbar = findViewById<Toolbar>(R.id.toolbar)
+    val drawerLayout = findViewById<View>(R.id.drawer_layout)
+    val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
+
+    val fab = findViewById<View>(R.id.fab) as ImageView
+
 
     // Floating button
-
+    fab.setBackgroundResource(R.drawable.ic_diskette)
     fab.setOnClickListener { view ->
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show()
+        changebutton(view)
+        Log.d("cfauli","onclick buttom")
     }
-        //setSupportActionBar(toolbar)
-        //supportActionBar?.setDisplayShowTitleEnabled(true)
-        //supportActionBar?.setDisplayUseLogoEnabled(true)
-        val drawerLayout = findViewById<View>(R.id.drawer_layout)
+
+
+    setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(true)
+        supportActionBar?.setDisplayUseLogoEnabled(true)
+
+
         val toggle = ActionBarDrawerToggle(
             this, drawerLayout as DrawerLayout?, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
         )
@@ -61,13 +76,6 @@ override fun onCreate(savedInstanceState: Bundle?) {
         toggle.syncState()
 
         navigationView.setNavigationItemSelectedListener(this)
-
-
-
-
-
-
-    // Navigation menu
 
 
 
@@ -80,18 +88,12 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
 
     checkAllPermission(){
-        val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
+
         tabLayout.addTab(tabLayout.newTab())
         tabLayout.addTab(tabLayout.newTab())
-
-
         tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
-        // Setup tab icons
         tabLayout.setupWithViewPager(viewPager)
-
-
-
         val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
         viewPager.adapter = adapter
         viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
@@ -100,12 +102,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
         tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_map)
         tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                if (tab.position == 0) {
-                    fab.hide()
-
-                } else {
-                    fab.show()
-                }
+                fab.isInvisible = tab.position == 0
                 viewPager.currentItem = tab.position
 
                 Log.d("cfauli", "TAB" + tab.position)
@@ -116,7 +113,6 @@ override fun onCreate(savedInstanceState: Bundle?) {
         })
     }
 }
-
 
 
     override fun onFragmentInteraction(uri: Uri?) {
@@ -150,6 +146,20 @@ override fun onCreate(savedInstanceState: Bundle?) {
         callback(true)
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun changebutton(view:View) {
+        fab.setBackgroundColor(resources.getColor(R.color.black));
+        if (getFileStateButtonPressed) {
+
+            fab.setImageResource(R.drawable.ic_diskette)
+            fab.setBackgroundColor(resources.getColor(R.color.colorPrimary))
+
+        } else {
+            fab.setImageResource(R.drawable.ic_stop)
+            fab.setBackgroundColor(resources.getColor(R.color.black))
+        }
+        getFileStateButtonPressed = !getFileStateButtonPressed // reverse
+    }
 
     companion object {
         const val PERMISSION_REQUEST_CODE = 1
@@ -160,10 +170,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
         when (p0.getItemId()) {
             R.id.navSettings -> {
                 val intent = Intent(this, PopUpSettings::class.java)
-                intent.putExtra("popuptitle", "Error")
-                intent.putExtra("popuptext", "Sorry, that email address is already used!")
-                intent.putExtra("popupbtn", "OK")
-                intent.putExtra("darkstatusbar", false)
+                //intent.putExtra("popuptitle", "Error")
                 startActivity(intent)
                 p0.isChecked = false
                 //(drawerLayout as DrawerLayout).closeDrawer(GravityCompat.START)
@@ -173,7 +180,13 @@ override fun onCreate(savedInstanceState: Bundle?) {
         return true
     }
 
+    override fun getFileState():Boolean {
+        return getFileStateButtonPressed
+    }
+
 }
+
+
 
 
 

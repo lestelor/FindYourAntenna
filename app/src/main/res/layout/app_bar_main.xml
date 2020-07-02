@@ -47,9 +47,10 @@
             android:layout_margin="@dimen/fab_margin"
             android:layout_marginEnd="25dp"
             android:visibility="invisible"
+            android:src="@drawable/ic_diskette"
+
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:srcCompat="@android:drawable/ic_dialog_email" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

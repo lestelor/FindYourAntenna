@@ -12,4 +12,8 @@
     <string name="textSampleTime">Tiempo mínimo entre muestras</string>
     <string name="tab_text_1">Radio</string>
     <string name="tab_text_2">Mapa</string>
+    <string name="textDirectory">Sample Source</string>
+    <string name="checkbox_Towers">Almacenar coordenadas de torres</string>
+    <string name="pop_up_window_tv_folder">Samples file folder</string>
+    <string name="pop_up_checkbox_samples">"Save samples signal strenght "</string>
 </resources>

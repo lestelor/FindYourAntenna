@@ -16,15 +16,23 @@
     <string name="hola" translatable="false">hola</string>
     <string name="timeSamples" translatable="false">Sample time</string>
     <string name="distanceSamples" translatable="false">Sample distance</string>
-    <string name="titlepopup">Settings</string>
+    <string name="titlepopup">Local drive save settings</string>
     <string name="ok" translatable="false">OK</string>
-    <string name="textSampleTime">Sample Distance</string>
+    <string name="textSampleTime">Sample time</string>
     <string name="textSampleDistance">Sample distance</string>
     <string name="menu_home">Home</string>
     <string name="navSettings">Settings</string>
     <string name="otherSettings">About:</string>
     <string name="minDistSample">10</string>
+    <string name="textDirectory">Sample Source</string>
+    <string name="checkbox_Towers">Save mobile sites coordinates</string>
+    <string name="checkbox_samples" translatable="false">Save mobile signal strength samples</string>
+    <string name="pop_up_window_tv_folder">Samples file folder</string>
     <string name="minTimeSample">10</string>
+    <string name="pop_up_checkbox_towers" translatable="false">Save towers file</string>
+    <string name="pop_up_checkbox_samples">Save samples signal strength file</string>
+    <string name="oksavetowers" translatable="false">1</string>
+    <string name="oksavesamples" translatable="false">1</string>
 
 
 </resources>

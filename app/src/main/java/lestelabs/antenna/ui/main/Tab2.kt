@@ -13,6 +13,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
@@ -36,6 +37,10 @@ import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
+import java.io.File
+import java.io.ByteArrayOutputStream
+import java.io.FileOutputStream
+import java.time.LocalDateTime
 
 
 /**
@@ -76,14 +81,14 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private var requestingLocationUpdates = true
     private var minDist: Float? = null
     private var minTime:Long? =null
+    private var okSaveTowers:Int? = null
+    private var okSaveSamples: Int? = null
     private var previousTower: String? = null
+    private var listener: GetfileState? = null
+    private var isFileOpened: Boolean = false
+    private var sampleFilePath: File? = null
 
-
-    //private lateinit var locationCallback: LocationCallback
-
-
-
-
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -92,22 +97,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
 
-
         readInitialConfiguration()
-
-
-        //val mgr = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
-
-        /*locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                for (location in locationResult.locations){
-                    // Update UI with location data
-                    Log.d("cfauli", "locationupdaterequest")
-                    // ...
-                }
-            }
-        }*/
 
 
     }
@@ -123,11 +113,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
-        /*val fab: FloatingActionButton = fragmentView.findViewById(R.id.fab)
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }*/
 
         return fragmentView
     }
@@ -148,6 +133,12 @@ class Tab2 : Fragment() , OnMapReadyCallback {
                 context.toString()
                         + " must implement OnFragmentInteractionListener"
             )
+        }
+        try {
+           listener = activity as GetfileState
+            // listener.showFormula(show?);
+        } catch (castException: ClassCastException) {
+            /** The activity does not implement the listener.  */
         }
     }
 
@@ -354,10 +345,32 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
                 }
             }
+            // Save samples in file
+            if (listener?.getFileState()!! && okSaveSamples == 1)  {
+                if (!isFileOpened) {
 
-            // You can now create a LatLng Object for use with maps
-            //val latLng = LatLng(location.latitude, location.longitude)
-            //return latLng
+                    //create file
+                    val sampleFile = "samples_" + LocalDateTime.now() + ".txt"
+                    val storageDir=getStorageDir()
+
+                    Log.d("cfauli", "File first created" + LocalDateTime.now())
+                    val storageDirFile = File(storageDir)
+                    if (!storageDirFile.exists()) {
+                        storageDirFile.mkdirs()
+                    }
+                    sampleFilePath = File(storageDirFile, sampleFile)
+                    File(sampleFilePath.toString()).writeText("time;mcc;mnc;cid;lat;lon")
+                    File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() +";" + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude)  + ";" +  pDevice.dbm)
+                    Log.d("cfauli", sampleFilePath.toString())
+                    isFileOpened = true
+
+                }
+                Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
+                File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude) + ";" +  pDevice.dbm)
+            } else if (!listener?.getFileState()!! && isFileOpened) {
+                isFileOpened = false
+            }
+
         }
 
         override fun onProviderDisabled(arg0: String?) {
@@ -377,8 +390,18 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong()* 1000
+        okSaveTowers = sharedPreferences.getInt("ok_save_towers",getString(R.string.oksavetowers).toInt())
+        okSaveSamples = sharedPreferences.getInt("ok_save_towers",getString(R.string.oksavesamples).toInt())
     }
+    // The sdcard directory is equal to the partition storage/emulated/0 which corresponds to the public external storage
+    // See https://imnotyourson.com/which-storage-directory-should-i-use-for-storing-on-android-6/
+    // The pricate external storage is storage/emulated/0/Android/data/edu.uoc.android
+    // The pictures are in storage/emulated/0/Android/data/edu.uoc.android/files/Pictures/UOCImageAPP/
+    // To save in other location needs to be analyzed if package_paths is to be used.
 
+    private fun getStorageDir(): String {
+        return requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
+    }
 }
 
 
