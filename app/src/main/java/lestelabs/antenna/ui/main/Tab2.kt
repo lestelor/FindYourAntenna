@@ -359,14 +359,14 @@ class Tab2 : Fragment() , OnMapReadyCallback {
                         storageDirFile.mkdirs()
                     }
                     sampleFilePath = File(storageDirFile, sampleFile)
-                    File(sampleFilePath.toString()).writeText("time;mcc;mnc;cid;lat;lon")
-                    File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() +";" + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude)  + ";" +  pDevice.dbm)
+                    File(sampleFilePath.toString()).writeText("time;operator;band;mcc;mnc;cid;lat;lon")
+                    File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() +";" + pDevice.operator.toString() + ";" + pDevice.band.toString() + ";" + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude)  + ";" +  pDevice.dbm)
                     Log.d("cfauli", sampleFilePath.toString())
                     isFileOpened = true
 
                 }
                 Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
-                File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude) + ";" +  pDevice.dbm)
+                File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.operator.toString() + ";" + pDevice.band.toString() + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude) + ";" +  pDevice.dbm)
             } else if (!listener?.getFileState()!! && isFileOpened) {
                 isFileOpened = false
             }
@@ -391,7 +391,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong()* 1000
         okSaveTowers = sharedPreferences.getInt("ok_save_towers",getString(R.string.oksavetowers).toInt())
-        okSaveSamples = sharedPreferences.getInt("ok_save_towers",getString(R.string.oksavesamples).toInt())
+        okSaveSamples = sharedPreferences.getInt("ok_save_samples",getString(R.string.oksavesamples).toInt())
     }
     // The sdcard directory is equal to the partition storage/emulated/0 which corresponds to the public external storage
     // See https://imnotyourson.com/which-storage-directory-should-i-use-for-storing-on-android-6/
