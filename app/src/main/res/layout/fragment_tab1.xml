@@ -7,10 +7,26 @@
 
     <!-- TODO: Update blank fragment layout -->
     <TextView
-        android:layout_width="wrap_content"        android:layout_height="wrap_content"
-        android:text="Tab 1"
+        android:id="@+id/tvSpeedtest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TAB1"
         android:layout_centerInParent="true"
         android:textSize="30dp"
         />
+
+    <Button
+        android:id="@+id/btSpeetTest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="163dp"
+        android:layout_marginTop="120dp"
+        android:layout_marginEnd="160dp"
+        android:layout_marginBottom="435dp"
+        android:text="Button" />
 
 </RelativeLayout>
