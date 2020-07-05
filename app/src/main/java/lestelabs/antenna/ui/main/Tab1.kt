@@ -1,23 +1,25 @@
 package lestelabs.antenna.ui.main
 
 import android.content.Context
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.StrictMode
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.github.anastr.speedviewlib.SpeedView
+import com.github.anastr.speedviewlib.components.Section
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.ISpeedTestListener
 import fr.bmartel.speedtest.model.SpeedTestError
-import kotlinx.android.synthetic.main.fragment_tab1.*
 import kotlinx.android.synthetic.main.fragment_tab1.view.*
 import lestelabs.antenna.R
-import org.w3c.dom.Text
+
 
 /**
  * A simple [Fragment] subclass.
@@ -53,34 +55,70 @@ class Tab1 : Fragment() {
 
 
         val view: View = inflater.inflate(R.layout.fragment_tab1, container, false)
+        val tv: TextView = view.findViewById(R.id.tvSpeedtest)
+        val speedometer = view.findViewById<SpeedView>(R.id.speedView)
+        var speedDowndEnd: Boolean = false
+        speedometer.unit = "Mbps"
+        speedometer.minSpeed = 0.0f
+        speedometer.maxSpeed = 300.0f
+        speedometer.withTremble = false
+        /*speedometer.clearSections()
+        speedometer.addSections(
+            Section(0f, .1f, Color.LTGRAY)
+            , Section(.1f, .4f, Color.YELLOW)
+            , Section(.4f, .75f, Color.BLUE)
+            , Section(.75f, .9f, Color.RED))*/
+        speedometer.sections[0].color = Color.RED
+        speedometer.sections[1].color = Color.BLUE
+        speedometer.sections[2].color = Color.YELLOW
+        //speedometer.sections[3].color = Color.LTGRAY
+
+
+        // Avoids exception android.os.NetworkOnMainThreadException
+        //at android.os.StrictMode$AndroidBlockGuardPolicy.onNetwork(StrictMode.java --- Only for debug use Async in production
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
 
         view.btSpeetTest.setOnClickListener { view ->
-            speedTestSocket.startDownload("ftp://speedtest.tele2.net/1MB.zip", 1500);
+            speedDowndEnd = false
+            //speedTestSocket.startFixedDownload("http://ipv4.ikoula.testdebit.info/100M.iso", 10000);
+            speedTestSocket.startDownload("https://ipv4.scaleway.testdebit.info:8080/10M.iso", 1000);
+            //speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 10000000, 1500);
         }
-        val tv: TextView = view.findViewById(R.id.tvSpeedtest);
+
+
 
         // add a listener to wait for speedtest completion and progress
         speedTestSocket.addSpeedTestListener(object : ISpeedTestListener {
             override fun onCompletion(report: SpeedTestReport) {
-                tv.text = (report.transferRateBit.toInt()/1024).toString()
-                // called when download/upload is complete
-                //println("[COMPLETED] rate in octet/s : " + report.transferRateOctet)
-                //println("[COMPLETED] rate in bit/s   : " + report.transferRateBit)
 
-                //
+                // called when download/upload is complete
+                Log.d("cfauli","[COMPLETED] rate in octet/s : " + report.transferRateOctet)
+                Log.d("cfauli","[COMPLETED] rate in bit/s   : " + report.transferRateBit)
+
+                val internet8080Speed: Float = (report.transferRateBit.toFloat()/1000000.0f)
+                tv.text = "%.4f".format(internet8080Speed)
             }
 
             override fun onError(speedTestError: SpeedTestError, errorMessage: String) {
-                // called when a download/upload error occur
+                Log.d("cfauli", "[ERROR] rate 0")
             }
 
             override fun onProgress(percent: Float, report: SpeedTestReport) {
                 // called to notify download/upload progress
-                //println("[PROGRESS] progress : $percent%")
-                //println("[PROGRESS] rate in octet/s : " + report.transferRateOctet)
-                //println("[PROGRESS] rate in bit/s   : " + report.transferRateBit)
-                tv.text = (report.transferRateBit.toInt()/1024).toString()
+                Log.d("cfauli","[PROGRESS] progress : $percent%")
+                Log.d("cfauli","[PROGRESS] rate in octet/s : " + report.transferRateOctet)
+                Log.d("cfauli","[PROGRESS] rate in bit/s   : " + report.transferRateBit)
+                val internet8080Speed: Float = (report.transferRateBit.toFloat()/1000000.0f)
+                Log.d("cfauli","Speedometer" + internet8080Speed.toString())
+
+
+                    requireActivity().runOnUiThread(Runnable {
+                            speedometer.speedTo(internet8080Speed,1000)
+                    })
             }
+
+
         })
 
         // Inflate the layout for this fragment

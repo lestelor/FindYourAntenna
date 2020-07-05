@@ -16,4 +16,5 @@
     <string name="checkbox_Towers">Almacenar coordenadas de torres</string>
     <string name="pop_up_window_tv_folder">Samples file folder</string>
     <string name="pop_up_checkbox_samples">"Save samples signal strenght "</string>
+    <string name="speed_test_button">Start Speed Test</string>
 </resources>

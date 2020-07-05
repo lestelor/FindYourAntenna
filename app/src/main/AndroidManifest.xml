@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="lestelabs.antenna">
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -20,8 +21,9 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".ui.main.menu.PopUpSettings"></activity>
+        android:theme="@style/AppTheme"
+        tools:targetApi="n">
+        <activity android:name=".ui.main.menu.PopUpSettings" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

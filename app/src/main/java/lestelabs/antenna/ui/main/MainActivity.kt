@@ -1,11 +1,14 @@
 package lestelabs.antenna.ui.main
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
+
+
 import android.os.Bundle
+import android.os.StrictMode
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -40,7 +43,7 @@ class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Ta
 
 
 
-@RequiresApi(Build.VERSION_CODES.P)
+
 override fun onCreate(savedInstanceState: Bundle?) {
 
 
@@ -54,6 +57,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
     val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
 
     val fab = findViewById<View>(R.id.fab) as ImageView
+
 
 
     // Floating button
@@ -146,7 +150,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
         callback(true)
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+
     fun changebutton(view:View) {
         fab.setBackgroundColor(resources.getColor(R.color.black));
         if (getFileStateButtonPressed) {

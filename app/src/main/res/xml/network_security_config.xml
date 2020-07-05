@@ -3,5 +3,6 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">http://api.mylnikov.org/geolocation</domain>
         <domain includeSubdomains="true">http://www.opencellid.org</domain>
+        <domain includeSubdomains="true">http://ipv4.scaleway.testdebit.info</domain>
     </domain-config>
 </network-security-config>
