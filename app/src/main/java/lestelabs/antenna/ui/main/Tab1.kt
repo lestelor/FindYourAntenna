@@ -9,14 +9,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.dd.CircularProgressButton
 import com.github.anastr.speedviewlib.SpeedView
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
-import fr.bmartel.speedtest.inter.ISpeedTestListener
-import fr.bmartel.speedtest.model.SpeedTestError
+import fr.bmartel.speedtest.inter.IRepeatListener
 import lestelabs.antenna.R
 
 
@@ -34,10 +33,14 @@ class Tab1 : Fragment() {
     private var mParam2: String? = null
     private var mListener: OnFragmentInteractionListener? = null
     private val speedTestSocket = SpeedTestSocket()
-
+    private var internetSpeedDownload: Float = 0.0f
+    private var internetSpeedUpload: Float = 0.0f
+    private var speedTestRunningStep = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
         if (arguments != null) {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
@@ -54,11 +57,14 @@ class Tab1 : Fragment() {
 
 
         val view: View = inflater.inflate(R.layout.fragment_tab1, container, false)
-        val tvDownload: TextView = view.findViewById(R.id.tvSpeedtestDownload)
-        val tvUpload: TextView = view.findViewById(R.id.tvSpeedtestUpload)
+        val tvDownload = view.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
+        val tvUpload = view.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
+        val tvLatency = view.findViewById<View>(R.id.tvLatency) as TextView
         val speedometer = view.findViewById<SpeedView>(R.id.speedView)
-        var speedTestStep = false
+        val button: Button = view.findViewById(R.id.btSpeedTest)
 
+        var internetSpeedUploadText = "0"
+        var internetSpeedDownloadText = "0"
 
         speedometer.unit = "Mbps"
         speedometer.minSpeed = 0.0f
@@ -72,36 +78,119 @@ class Tab1 : Fragment() {
         speedometer.sections[2].color = Color.GREEN
         speedometer.sections[2].startOffset = 0.3333333f
 
-
+        speedTestSocket.downloadSetupTime = 1000
+        speedTestSocket.uploadSetupTime = 1000
+        speedTestSocket.socketTimeout = 5000
 
         // Avoids exception android.os.NetworkOnMainThreadException
         //at android.os.StrictMode$AndroidBlockGuardPolicy.onNetwork(StrictMode.java --- Only for debug use Async in production
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
+        button.setOnClickListener {
+            if (speedTestRunningStep==0) {
+                //speedTestSocket.startDownload("https://ipv4.scaleway.testdebit.info:8080/10M.iso",1000)
+                speedTestSocket.startDownloadRepeat("https://ipv4.scaleway.testdebit.info:8080/1M.iso",
+                    5000, 1000, object : IRepeatListener {
+                        override fun onCompletion(report: SpeedTestReport) {
+                            Log.d("cfauli","[COMPLETED] rate in octet/s : " + report.transferRateOctet)
+                            Log.d("cfauli","[COMPLETED] rate in bit/s   : " + report.transferRateBit)
+                            internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
+                            //internetSpeedDownloadText = ".1f".format(internetSpeed)
+                            //tvDownload.text = internetSpeedText
+                            requireActivity().runOnUiThread(Runnable {
+                                speedometer.speedTo(0.0f,1000)
+                                speedTestRunningStep = 1
+                                Log.d("cfauli","[COMPLETED] step" + speedTestRunningStep)
+                                tvDownload.text = "%.1f".format(internetSpeedDownload)
 
+                                // Start upload test
+                                speedTestSocket.startUploadRepeat("http://ipv4.ikoula.testdebit.info/",
+                                    5000, 1000, 100000000, object : IRepeatListener {
+                                        override fun onCompletion(report: SpeedTestReport) {
+                                            Log.d("cfauli","[COMPLETED] rate in octet/s : " + report.transferRateOctet)
+                                            Log.d("cfauli","[COMPLETED] rate in bit/s   : " + report.transferRateBit)
+                                            internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
+                                            //internetSpeedDownloadText = ".1f".format(internetSpeed)
+                                            //tvDownload.text = internetSpeedText
+                                            requireActivity().runOnUiThread(Runnable {
+                                                speedometer.speedTo(0.0f,1000)
+                                                speedTestRunningStep = 2
+                                                Log.d("cfauli","[COMPLETED] step" + speedTestRunningStep)
+                                                tvUpload.text = "%.1f".format(internetSpeedUpload)
+
+
+                                                // Test latency
+                                                tvLatency.text = pingg("http://www.google.com").toString()
+                                                speedTestRunningStep = 0
+                                                button.setBackgroundResource(R.drawable.ic_switch_on_off)
+                                                // End test latency
+                                            })
+                                        }
+
+                                        override fun onReport(report: SpeedTestReport) {
+                                            // called when a upload report is dispatched
+                                            internetSpeedUpload= report.transferRateBit.toFloat()/1000000.0f
+                                            //internetSpeedText = ".1f".format(internetSpeed)
+
+                                            requireActivity().runOnUiThread(Runnable {
+                                                speedometer.speedTo(internetSpeedUpload,1000)
+                                            })
+                                        }
+                                    })
+                                // End upload test
+
+
+
+
+
+
+                            })
+                            //
+                        }
+
+                        override fun onReport(report: SpeedTestReport) {
+                            // called when a download report is dispatched
+                            internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
+                            //internetSpeedText = ".1f".format(internetSpeed)
+
+                            requireActivity().runOnUiThread(Runnable {
+                                speedometer.speedTo(internetSpeedDownload,1000)
+                            })
+                        }
+                    })
+                button.setBackgroundResource(R.drawable.ic_switch_on_off_grey)
+            }
+        }
 
 
         // add a listener to wait for speedtest completion and progress
-        speedTestSocket.addSpeedTestListener(object : ISpeedTestListener {
+        /*speedTestSocket.addSpeedTestListener(object : ISpeedTestListener {
             override fun onCompletion(report: SpeedTestReport) {
 
                 // called when download/upload is complete
                 Log.d("cfauli","[COMPLETED] rate in octet/s : " + report.transferRateOctet)
                 Log.d("cfauli","[COMPLETED] rate in bit/s   : " + report.transferRateBit)
 
-                val internet8080Speed: Float = (report.transferRateBit.toFloat()/1000000.0f)
-                val internet8080SpeedText = "%.4f".format(internet8080Speed)
+                val internetSpeed: Float = (report.transferRateBit.toFloat()/1000000.0f)
+                val internetSpeedText = "%.1f".format(internetSpeed).toString()
                 requireActivity().runOnUiThread(Runnable {
                     speedometer.speedTo(0.0f,1000)
                 })
-                if (!speedTestStep) {
-                    tvDownload.text = internet8080SpeedText
-                    speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 10000000, 1000)
-                } else {
-                    tvUpload.text = internet8080SpeedText
+
+                if (speedTestRunning==0) {
+                    Log.d("cfauli","tvDownload " + internetSpeedText)
+                    Thread.sleep(5000)
+                    //tvDownload.text = internetSpeedText
+                    Log.d("cfauli","tvDownload post tv" + internetSpeedText)
+                    //speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 10000000, 1000)
+                    button.setBackgroundResource(R.drawable.ic_switch_on_off)
+                    speedTestRunning = 1
+                } else if (speedTestRunning ==1){
+                    tvUpload.text = internetSpeedText
+                    speedTestRunning = 0
+                    button.setBackgroundResource(R.drawable.ic_switch_on_off)
                 }
-                speedTestStep = !speedTestStep
             }
 
             override fun onError(speedTestError: SpeedTestError, errorMessage: String) {
@@ -123,7 +212,8 @@ class Tab1 : Fragment() {
             }
 
 
-        })
+
+        })*/
 
 
 
@@ -196,4 +286,26 @@ class Tab1 : Fragment() {
         }
     }
 
+    fun pingg(domain: String): Long {
+        val runtime = Runtime.getRuntime()
+        var timeofping: Array<Long> = arrayOf(0,0,0,0)
+        try {
+            for (i in 0..3) {
+                var a = System.currentTimeMillis() % 1000000
+                var ipProcess = runtime.exec("/system/bin/ping -c 1 $domain")
+                ipProcess.waitFor()
+                var b = System.currentTimeMillis() % 1000000
+                timeofping[i] = if (b <= a) {
+                    1000000 - a + b
+                } else {
+                    b - a
+                }
+            }
+        } catch (e: Exception) {
+        }
+        val latency: Long = timeofping.average().toLong()
+        return latency
+    }
+
 }
+
