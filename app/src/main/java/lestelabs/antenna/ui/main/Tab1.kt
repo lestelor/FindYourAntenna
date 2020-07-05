@@ -11,13 +11,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.dd.CircularProgressButton
 import com.github.anastr.speedviewlib.SpeedView
-import com.github.anastr.speedviewlib.components.Section
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.ISpeedTestListener
 import fr.bmartel.speedtest.model.SpeedTestError
-import kotlinx.android.synthetic.main.fragment_tab1.view.*
 import lestelabs.antenna.R
 
 
@@ -55,23 +54,24 @@ class Tab1 : Fragment() {
 
 
         val view: View = inflater.inflate(R.layout.fragment_tab1, container, false)
-        val tv: TextView = view.findViewById(R.id.tvSpeedtest)
+        val tvDownload: TextView = view.findViewById(R.id.tvSpeedtestDownload)
+        val tvUpload: TextView = view.findViewById(R.id.tvSpeedtestUpload)
         val speedometer = view.findViewById<SpeedView>(R.id.speedView)
-        var speedDowndEnd: Boolean = false
+        var speedTestStep = false
+
+
         speedometer.unit = "Mbps"
         speedometer.minSpeed = 0.0f
         speedometer.maxSpeed = 300.0f
         speedometer.withTremble = false
-        /*speedometer.clearSections()
-        speedometer.addSections(
-            Section(0f, .1f, Color.LTGRAY)
-            , Section(.1f, .4f, Color.YELLOW)
-            , Section(.4f, .75f, Color.BLUE)
-            , Section(.75f, .9f, Color.RED))*/
         speedometer.sections[0].color = Color.RED
-        speedometer.sections[1].color = Color.BLUE
-        speedometer.sections[2].color = Color.YELLOW
-        //speedometer.sections[3].color = Color.LTGRAY
+        speedometer.sections[0].endOffset = 0.1f
+        speedometer.sections[1].color = Color.YELLOW
+        speedometer.sections[1].startOffset = 0.1f
+        speedometer.sections[1].endOffset = 0.3333333f
+        speedometer.sections[2].color = Color.GREEN
+        speedometer.sections[2].startOffset = 0.3333333f
+
 
 
         // Avoids exception android.os.NetworkOnMainThreadException
@@ -79,12 +79,6 @@ class Tab1 : Fragment() {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        view.btSpeetTest.setOnClickListener { view ->
-            speedDowndEnd = false
-            //speedTestSocket.startFixedDownload("http://ipv4.ikoula.testdebit.info/100M.iso", 10000);
-            speedTestSocket.startDownload("https://ipv4.scaleway.testdebit.info:8080/10M.iso", 1000);
-            //speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 10000000, 1500);
-        }
 
 
 
@@ -97,7 +91,17 @@ class Tab1 : Fragment() {
                 Log.d("cfauli","[COMPLETED] rate in bit/s   : " + report.transferRateBit)
 
                 val internet8080Speed: Float = (report.transferRateBit.toFloat()/1000000.0f)
-                tv.text = "%.4f".format(internet8080Speed)
+                val internet8080SpeedText = "%.4f".format(internet8080Speed)
+                requireActivity().runOnUiThread(Runnable {
+                    speedometer.speedTo(0.0f,1000)
+                })
+                if (!speedTestStep) {
+                    tvDownload.text = internet8080SpeedText
+                    speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 10000000, 1000)
+                } else {
+                    tvUpload.text = internet8080SpeedText
+                }
+                speedTestStep = !speedTestStep
             }
 
             override fun onError(speedTestError: SpeedTestError, errorMessage: String) {
@@ -120,6 +124,8 @@ class Tab1 : Fragment() {
 
 
         })
+
+
 
         // Inflate the layout for this fragment
         return view

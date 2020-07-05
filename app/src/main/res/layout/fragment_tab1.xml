@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#7fffad42"
     android:orientation="vertical"
     tools:context=".ui.main.Tab1">
@@ -13,22 +14,88 @@
         android:layout_gravity="center"
         android:layout_marginTop="50dp"/>
 
+
     <Button
-        android:id="@+id/btSpeetTest"
+        android:id="@+id/btSpeedTest"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@color/colorPrimary"
+        android:background="@drawable/button_background"
         android:text="@string/speed_test_button"
-        android:layout_marginTop="10dp"/>
+        android:textColor="#ffffff"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
-    <TextView
-        android:id="@+id/tvSpeedtest"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
         android:layout_marginTop="10dp"
-        android:text="dsfsdfgdsfsdfsd"/>
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvSpeedtestDownloadFixed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="85dp"
+                android:text="Download" />
+
+            <TextView
+                android:id="@+id/tvSpeedtestDownload"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="85dp"
+                android:textColor="@color/colorPrimary"
+                android:textSize="30sp"/>
+
+            <TextView
+                android:id="@+id/tvSpeedtestDownloadFixed2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="85dp"
+                android:text="Mbps" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvSpeedtestUploadFixed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="40dp"
+                android:layout_gravity="start"
+                android:text="@string/upload" />
+
+            <TextView
+                android:id="@+id/tvSpeedtestUpload"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="40dp"
+                android:textColor="@color/colorPrimary"
+                android:textSize="30sp"/>
+
+            <TextView
+                android:id="@+id/tvSpeedtestUploadFixed2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="40dp"
+                android:text="Mbps" />
+        </LinearLayout>
 
 
+    </LinearLayout>
 </LinearLayout>

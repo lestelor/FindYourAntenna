@@ -33,7 +33,8 @@
     <string name="pop_up_checkbox_samples">Save samples signal strength file</string>
     <string name="oksavetowers" translatable="false">1</string>
     <string name="oksavesamples" translatable="false">1</string>
-    <string name="speed_test_button">Start Speed Test</string>
+    <string name="speed_test_button">  Start Speed Test  </string>
+    <string name="upload">Upload</string>
 
 
 </resources>
