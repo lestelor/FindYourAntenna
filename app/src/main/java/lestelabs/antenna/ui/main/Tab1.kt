@@ -128,6 +128,9 @@ class Tab1 : Fragment() {
         button.setOnClickListener {
             tvNetType.text=setNetworkType(requireContext())
             if (speedTestRunningStep==0) {
+                tvDownload.text="-"
+                tvUpload.text="-"
+                tvLatency.text ="-"
                 //speedTestSocket.startDownload("https://ipv4.scaleway.testdebit.info:8080/10M.iso",1000)
                 speedTestSocket.startDownloadRepeat("https://ipv4.scaleway.testdebit.info:8080/1M.iso",
                     5000, 1000, object : IRepeatListener {

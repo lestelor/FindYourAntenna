@@ -58,7 +58,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:textColor="@color/colorPrimary"
-                android:textSize="30sp"/>
+                android:textSize="30sp"
+                android:text="-"/>
 
             <TextView
                 android:id="@+id/tvSpeedtestDownloadFixed2"
@@ -88,7 +89,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:textColor="@color/colorPrimary"
-                android:textSize="30sp"/>
+                android:textSize="30sp"
+                android:text="-"/>
 
             <TextView
                 android:id="@+id/tvSpeedtestUploadFixed2"
@@ -116,7 +118,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:textColor="@color/colorPrimary"
-                android:textSize="30sp"/>
+                android:textSize="30sp"
+                android:text="-"/>
 
             <TextView
                 android:id="@+id/tvLatencyFixed2"
