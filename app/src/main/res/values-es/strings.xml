@@ -17,4 +17,8 @@
     <string name="pop_up_window_tv_folder">Samples file folder</string>
     <string name="pop_up_checkbox_samples">"Save samples signal strenght "</string>
     <string name="speed_test_button">Start Speed Test</string>
+    <string name="download">Download</string>
+    <string name="banner_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="upload">Subida</string>
+    <string name="latency">Latencia</string>
 </resources>

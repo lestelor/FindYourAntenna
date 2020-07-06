@@ -23,6 +23,7 @@ import androidx.core.view.isInvisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
+import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
@@ -35,7 +36,7 @@ interface GetfileState {
     fun getFileState():Boolean
 }
 
-class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
+class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var drawerLayout: View? = null
@@ -55,10 +56,10 @@ override fun onCreate(savedInstanceState: Bundle?) {
     //val toolbar = findViewById<Toolbar>(R.id.toolbar)
     val drawerLayout = findViewById<View>(R.id.drawer_layout)
     val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
-
     val fab = findViewById<View>(R.id.fab) as ImageView
 
-
+    // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
+    MobileAds.initialize(this, "ca-app-pub-8346072505648333~5697526220")
 
     // Floating button
     fab.setBackgroundResource(R.drawable.ic_diskette)
@@ -95,6 +96,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
         tabLayout.addTab(tabLayout.newTab())
         tabLayout.addTab(tabLayout.newTab())
+        tabLayout.addTab(tabLayout.newTab())
         tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
         tabLayout.setupWithViewPager(viewPager)
@@ -104,9 +106,10 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
         tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
         tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_map)
+        tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_coverage)
         tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                fab.isInvisible = tab.position == 0
+                fab.isInvisible = tab.position == 0 || tab.position ==2
                 viewPager.currentItem = tab.position
 
                 Log.d("cfauli", "TAB" + tab.position)

@@ -35,6 +35,9 @@
     <string name="oksavesamples" translatable="false">1</string>
     <string name="speed_test_button">  Start Speed Test  </string>
     <string name="upload">Upload</string>
+    <string name="download">Download</string>
+    <string name="latency">Latency</string>
+    <string name="banner_id">ca-app-pub-8346072505648333/9907948565</string>
 
 
 </resources>

@@ -32,6 +32,9 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
                 return  tab2;
             default:
                 return null;
+            case 2:
+                Tab3 tab3 = new Tab3();
+                return  tab3;
         }
     }
 

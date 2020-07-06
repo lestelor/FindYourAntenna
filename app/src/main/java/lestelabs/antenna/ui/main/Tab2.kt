@@ -1,7 +1,6 @@
 package lestelabs.antenna.ui.main
 
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
@@ -19,9 +18,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -38,9 +42,8 @@ import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import java.io.File
-import java.io.ByteArrayOutputStream
-import java.io.FileOutputStream
 import java.time.LocalDateTime
+import java.util.jar.Manifest
 
 
 /**
@@ -61,6 +64,9 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private var mParam2: String? = null
     private var mListener: OnFragmentInteractionListener? = null
     private var location:Location? = null
+    private lateinit var mAdView : AdView
+    private var gpsActive = false
+    private var firstOnResume = true
 
     // As indicated in android developers https://developers.google.com/maps/documentation/android-sdk/start
     // Previously it is necessary to get the google API key from the Google Cloud Platform Console
@@ -87,6 +93,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private var listener: GetfileState? = null
     private var isFileOpened: Boolean = false
     private var sampleFilePath: File? = null
+    var myLocListener:MyLocationListener = MyLocationListener()
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,12 +103,23 @@ class Tab2 : Fragment() , OnMapReadyCallback {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
-
+        Log.d("cfauli","OnCreate")
         readInitialConfiguration()
-
-
     }
 
+
+
+    // Called at the end of the active lifetime.
+    override fun onPause() {
+        // Suspend UI updates, threads, or CPU intensive processes
+        // that don't need to be updated when the Activity isn't
+        // the active foreground activity.
+        // Persist all edits or state changes
+        // as after this call the process is likely to be killed.
+        super.onPause()
+        Log.d("cfauli","OnPause")
+        endGPS()
+    }
 
 
     @RequiresApi(Build.VERSION_CODES.P)
@@ -113,7 +131,6 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
-
         return fragmentView
     }
 
@@ -140,11 +157,13 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         } catch (castException: ClassCastException) {
             /** The activity does not implement the listener.  */
         }
+        Log.d("cfauli","OnAtach")
     }
 
     override fun onDetach() {
         super.onDetach()
         mListener = null
+        Log.d("cfauli","OnDetach")
     }
 
     /**
@@ -162,30 +181,22 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
     }
 
+
     override fun onResume() {
         super.onResume()
         val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
-
-        val myLocListener:MyLocationListener = MyLocationListener()
-        locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
-        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(requireActivity(),arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
-                return
-            }
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime!!,minDist!!,myLocListener)
-        }
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime!!,minDist!!,myLocListener)
-        }
+        Log.d("cfauli","OnResume")
+        if (!firstOnResume) startGPS()
+        firstOnResume = false
     }
 
 
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         Thread.sleep(1000)
         //MapsInitializer.initialize(context)
         Log.d("cfauli", "OnmapReady")
@@ -193,19 +204,55 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         mMap.isMyLocationEnabled = true
 
-        val myLocListener:MyLocationListener = MyLocationListener()
+        //val myLocListener:MyLocationListener = MyLocationListener()
 
-
-        locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+        startGPS()
+        /*locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
         if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime!!,minDist!!,myLocListener)
         }
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime!!,minDist!!,myLocListener)
-        }
+        }*/
 
         //fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        //val view: View = inflater.inflate(R.layout.fragment_tab2, container, false)
 
+
+
+        mAdView = view?.findViewById(R.id.adViewFragment2)!!
+        val adView = AdView(requireActivity())
+        MobileAds.initialize(requireActivity())
+        val adRequest = AdRequest.Builder().build()
+
+        mAdView.loadAd(adRequest)
+        mAdView.adListener = object: AdListener() {
+            override fun onAdLoaded() {
+                // Code to be executed when an ad finishes loading.
+            }
+
+            override fun onAdFailedToLoad(errorCode : Int) {
+                // Code to be executed when an ad request fails.
+            }
+
+            override fun onAdOpened() {
+                // Code to be executed when an ad opens an overlay that
+                // covers the screen.
+            }
+
+            override fun onAdClicked() {
+                // Code to be executed when the user clicks on an ad.
+            }
+
+            override fun onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            override fun onAdClosed() {
+                // Code to be executed when the user is about to return
+                // to the app after tapping on an ad.
+            }
+        }
     }
 
 
@@ -321,7 +368,7 @@ class Tab2 : Fragment() , OnMapReadyCallback {
 
         @RequiresApi(Build.VERSION_CODES.P)
         override fun onLocationChanged(location: Location) {
-            telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
             pDevice = loadCellInfo(telephonyManager)
             towerinListInt = ckeckTowerinList(pDevice)
             Log.d("cfauli", "previoustower " + previousTower)
@@ -402,6 +449,35 @@ class Tab2 : Fragment() , OnMapReadyCallback {
     private fun getStorageDir(): String {
         return requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
     }
+
+    fun startGPS() {
+        if (!gpsActive) {
+            locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                if (ActivityCompat.checkSelfPermission(requireActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(requireActivity(),arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
+                    return
+                }
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime!!,minDist!!,myLocListener)
+            }
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime!!,minDist!!,myLocListener)
+            }
+        }
+        gpsActive = true
+        //locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+
+    }
+
+    fun endGPS() {
+        try {
+            locationManager.removeUpdates(myLocListener)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        gpsActive = false
+    }
+
 }
 
 

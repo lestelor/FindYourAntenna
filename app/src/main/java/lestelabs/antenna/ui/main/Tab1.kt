@@ -13,6 +13,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.github.anastr.speedviewlib.SpeedView
+import com.google.android.gms.ads.*
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
@@ -36,6 +37,7 @@ class Tab1 : Fragment() {
     private var internetSpeedDownload: Float = 0.0f
     private var internetSpeedUpload: Float = 0.0f
     private var speedTestRunningStep = 0
+    lateinit var mAdView : AdView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,8 +47,6 @@ class Tab1 : Fragment() {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
-
-
 
     }
 
@@ -63,8 +63,40 @@ class Tab1 : Fragment() {
         val speedometer = view.findViewById<SpeedView>(R.id.speedView)
         val button: Button = view.findViewById(R.id.btSpeedTest)
 
-        var internetSpeedUploadText = "0"
-        var internetSpeedDownloadText = "0"
+        mAdView = view.findViewById(R.id.adViewFragment1)
+        val adView = AdView(requireActivity())
+
+        MobileAds.initialize(requireActivity())
+        val adRequest = AdRequest.Builder().build()
+
+        mAdView.loadAd(adRequest)
+        mAdView.adListener = object: AdListener() {
+            override fun onAdLoaded() {
+                // Code to be executed when an ad finishes loading.
+            }
+
+            override fun onAdFailedToLoad(errorCode : Int) {
+                // Code to be executed when an ad request fails.
+            }
+
+            override fun onAdOpened() {
+                // Code to be executed when an ad opens an overlay that
+                // covers the screen.
+            }
+
+            override fun onAdClicked() {
+                // Code to be executed when the user clicks on an ad.
+            }
+
+            override fun onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            override fun onAdClosed() {
+                // Code to be executed when the user is about to return
+                // to the app after tapping on an ad.
+            }
+        }
 
         speedometer.unit = "Mbps"
         speedometer.minSpeed = 0.0f
@@ -93,58 +125,42 @@ class Tab1 : Fragment() {
                 speedTestSocket.startDownloadRepeat("https://ipv4.scaleway.testdebit.info:8080/1M.iso",
                     5000, 1000, object : IRepeatListener {
                         override fun onCompletion(report: SpeedTestReport) {
-                            Log.d("cfauli","[COMPLETED] rate in octet/s : " + report.transferRateOctet)
-                            Log.d("cfauli","[COMPLETED] rate in bit/s   : " + report.transferRateBit)
+
                             internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
-                            //internetSpeedDownloadText = ".1f".format(internetSpeed)
-                            //tvDownload.text = internetSpeedText
                             requireActivity().runOnUiThread(Runnable {
                                 speedometer.speedTo(0.0f,1000)
                                 speedTestRunningStep = 1
                                 Log.d("cfauli","[COMPLETED] step" + speedTestRunningStep)
                                 tvDownload.text = "%.1f".format(internetSpeedDownload)
 
-                                // Start upload test
+                                // Start upload test (once the download test finishes)---------------------------------------------------------
                                 speedTestSocket.startUploadRepeat("http://ipv4.ikoula.testdebit.info/",
                                     5000, 1000, 100000000, object : IRepeatListener {
                                         override fun onCompletion(report: SpeedTestReport) {
-                                            Log.d("cfauli","[COMPLETED] rate in octet/s : " + report.transferRateOctet)
-                                            Log.d("cfauli","[COMPLETED] rate in bit/s   : " + report.transferRateBit)
+
                                             internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
-                                            //internetSpeedDownloadText = ".1f".format(internetSpeed)
-                                            //tvDownload.text = internetSpeedText
                                             requireActivity().runOnUiThread(Runnable {
                                                 speedometer.speedTo(0.0f,1000)
                                                 speedTestRunningStep = 2
-                                                Log.d("cfauli","[COMPLETED] step" + speedTestRunningStep)
                                                 tvUpload.text = "%.1f".format(internetSpeedUpload)
 
 
-                                                // Test latency
+                                                // Test latency (once the upload test finishes)-----------------
                                                 tvLatency.text = pingg("http://www.google.com").toString()
                                                 speedTestRunningStep = 0
                                                 button.setBackgroundResource(R.drawable.ic_switch_on_off)
-                                                // End test latency
+                                                // End test latency  --------------------------------------------
                                             })
                                         }
-
                                         override fun onReport(report: SpeedTestReport) {
                                             // called when a upload report is dispatched
                                             internetSpeedUpload= report.transferRateBit.toFloat()/1000000.0f
-                                            //internetSpeedText = ".1f".format(internetSpeed)
-
                                             requireActivity().runOnUiThread(Runnable {
                                                 speedometer.speedTo(internetSpeedUpload,1000)
                                             })
                                         }
                                     })
-                                // End upload test
-
-
-
-
-
-
+                                // End upload test---------------------------------------------------------------------------------------------
                             })
                             //
                         }
@@ -152,8 +168,6 @@ class Tab1 : Fragment() {
                         override fun onReport(report: SpeedTestReport) {
                             // called when a download report is dispatched
                             internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
-                            //internetSpeedText = ".1f".format(internetSpeed)
-
                             requireActivity().runOnUiThread(Runnable {
                                 speedometer.speedTo(internetSpeedDownload,1000)
                             })
@@ -163,61 +177,6 @@ class Tab1 : Fragment() {
             }
         }
 
-
-        // add a listener to wait for speedtest completion and progress
-        /*speedTestSocket.addSpeedTestListener(object : ISpeedTestListener {
-            override fun onCompletion(report: SpeedTestReport) {
-
-                // called when download/upload is complete
-                Log.d("cfauli","[COMPLETED] rate in octet/s : " + report.transferRateOctet)
-                Log.d("cfauli","[COMPLETED] rate in bit/s   : " + report.transferRateBit)
-
-                val internetSpeed: Float = (report.transferRateBit.toFloat()/1000000.0f)
-                val internetSpeedText = "%.1f".format(internetSpeed).toString()
-                requireActivity().runOnUiThread(Runnable {
-                    speedometer.speedTo(0.0f,1000)
-                })
-
-                if (speedTestRunning==0) {
-                    Log.d("cfauli","tvDownload " + internetSpeedText)
-                    Thread.sleep(5000)
-                    //tvDownload.text = internetSpeedText
-                    Log.d("cfauli","tvDownload post tv" + internetSpeedText)
-                    //speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 10000000, 1000)
-                    button.setBackgroundResource(R.drawable.ic_switch_on_off)
-                    speedTestRunning = 1
-                } else if (speedTestRunning ==1){
-                    tvUpload.text = internetSpeedText
-                    speedTestRunning = 0
-                    button.setBackgroundResource(R.drawable.ic_switch_on_off)
-                }
-            }
-
-            override fun onError(speedTestError: SpeedTestError, errorMessage: String) {
-                Log.d("cfauli", "[ERROR] rate 0")
-            }
-
-            override fun onProgress(percent: Float, report: SpeedTestReport) {
-                // called to notify download/upload progress
-                Log.d("cfauli","[PROGRESS] progress : $percent%")
-                Log.d("cfauli","[PROGRESS] rate in octet/s : " + report.transferRateOctet)
-                Log.d("cfauli","[PROGRESS] rate in bit/s   : " + report.transferRateBit)
-                val internet8080Speed: Float = (report.transferRateBit.toFloat()/1000000.0f)
-                Log.d("cfauli","Speedometer" + internet8080Speed.toString())
-
-
-                    requireActivity().runOnUiThread(Runnable {
-                            speedometer.speedTo(internet8080Speed,1000)
-                    })
-            }
-
-
-
-        })*/
-
-
-
-        // Inflate the layout for this fragment
         return view
     }
 
@@ -303,8 +262,7 @@ class Tab1 : Fragment() {
             }
         } catch (e: Exception) {
         }
-        val latency: Long = timeofping.average().toLong()
-        return latency
+        return timeofping.average().toLong()/2
     }
 
 }
