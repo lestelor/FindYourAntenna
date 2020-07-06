@@ -131,7 +131,9 @@ class Tab2 : Fragment() , OnMapReadyCallback {
         fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
+        Log.d("cfauli","OnCreateView")
         return fragmentView
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event

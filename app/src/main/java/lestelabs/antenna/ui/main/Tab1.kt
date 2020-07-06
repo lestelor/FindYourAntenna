@@ -3,6 +3,7 @@ package lestelabs.antenna.ui.main
 import android.content.Context
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.util.Log
@@ -11,13 +12,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.github.anastr.speedviewlib.SpeedView
 import com.google.android.gms.ads.*
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
+import kotlinx.android.synthetic.main.fragment_tab1.*
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.scanner.Connectivity
 
 
 /**
@@ -50,6 +54,7 @@ class Tab1 : Fragment() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -60,6 +65,7 @@ class Tab1 : Fragment() {
         val tvDownload = view.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
         val tvUpload = view.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
         val tvLatency = view.findViewById<View>(R.id.tvLatency) as TextView
+        val tvNetType = view.findViewById<View>(R.id.tv_networkname) as TextView
         val speedometer = view.findViewById<SpeedView>(R.id.speedView)
         val button: Button = view.findViewById(R.id.btSpeedTest)
 
@@ -100,15 +106,15 @@ class Tab1 : Fragment() {
 
         speedometer.unit = "Mbps"
         speedometer.minSpeed = 0.0f
-        speedometer.maxSpeed = 300.0f
+        speedometer.maxSpeed = 120.0f
         speedometer.withTremble = false
         speedometer.sections[0].color = Color.RED
-        speedometer.sections[0].endOffset = 0.1f
+        speedometer.sections[0].endOffset = (1f/1.2f) * 0.2f
         speedometer.sections[1].color = Color.YELLOW
-        speedometer.sections[1].startOffset = 0.1f
-        speedometer.sections[1].endOffset = 0.3333333f
+        speedometer.sections[1].startOffset = (1f/1.2f) * 0.2f
+        speedometer.sections[1].endOffset = (1f/1.2f) * 0.5f
         speedometer.sections[2].color = Color.GREEN
-        speedometer.sections[2].startOffset = 0.3333333f
+        speedometer.sections[2].startOffset = (1f/1.2f) * 0.5f
 
         speedTestSocket.downloadSetupTime = 1000
         speedTestSocket.uploadSetupTime = 1000
@@ -120,6 +126,7 @@ class Tab1 : Fragment() {
         StrictMode.setThreadPolicy(policy)
 
         button.setOnClickListener {
+            tvNetType.text=setNetworkType(requireContext())
             if (speedTestRunningStep==0) {
                 //speedTestSocket.startDownload("https://ipv4.scaleway.testdebit.info:8080/10M.iso",1000)
                 speedTestSocket.startDownloadRepeat("https://ipv4.scaleway.testdebit.info:8080/1M.iso",
@@ -176,7 +183,7 @@ class Tab1 : Fragment() {
                 button.setBackgroundResource(R.drawable.ic_switch_on_off_grey)
             }
         }
-
+        tvNetType.text=setNetworkType(requireContext())
         return view
     }
 
@@ -263,6 +270,18 @@ class Tab1 : Fragment() {
         } catch (e: Exception) {
         }
         return timeofping.average().toLong()/2
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun setNetworkType(context:Context):String {
+        var type:String = ""
+     if (Connectivity.isConnectedWifi(context)){
+         type = Connectivity.getSsid(context).toString()
+     } else if (Connectivity.isConnected(context)) {
+         type = Connectivity.connectionType(Connectivity.networkType(context), Connectivity.networkSubtype(context)).toString()
+     } else tv_networkname.text =""
+
+        return type
     }
 
 }

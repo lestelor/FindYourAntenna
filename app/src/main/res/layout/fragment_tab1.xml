@@ -6,13 +6,21 @@
     android:background="#7fffad42"
     android:orientation="vertical"
     tools:context=".ui.main.Tab1">
+<androidx.appcompat.widget.AppCompatTextView
+    android:id="@+id/tv_networkname"
+    android:text=""
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="20dp"
+    android:layout_marginTop="20dp" />
+
 
     <com.github.anastr.speedviewlib.SpeedView
         android:id="@+id/speedView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="50dp"/>
+        android:layout_marginTop="20dp"/>
 
 
     <Button
