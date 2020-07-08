@@ -1,6 +1,7 @@
 package lestelabs.antenna.ui.main
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
@@ -11,6 +12,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
@@ -19,10 +22,12 @@ import com.google.android.gms.ads.*
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
+import kotlinx.android.synthetic.main.activity_pop_up_settings.*
 import kotlinx.android.synthetic.main.fragment_tab1.*
-import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.Connectivity
-
+import kotlin.math.pow
+import lestelabs.antenna.R
+import kotlin.math.absoluteValue
 
 /**
  * A simple [Fragment] subclass.
@@ -59,16 +64,104 @@ class Tab1 : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-
+        // Inflate view
         val view: View = inflater.inflate(R.layout.fragment_tab1, container, false)
+        // layout widgets
         val tvDownload = view.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
         val tvUpload = view.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
         val tvLatency = view.findViewById<View>(R.id.tvLatency) as TextView
         val tvNetType = view.findViewById<View>(R.id.tv_networkname) as TextView
         val speedometer = view.findViewById<SpeedView>(R.id.speedView)
         val button: Button = view.findViewById(R.id.btSpeedTest)
+        val rbHttp = view.findViewById<View>(R.id.rbHttp) as RadioButton
+        val rbBittorrent = view.findViewById<View>(R.id.rbBittorrent) as RadioButton
+        val rbFtp = view.findViewById<View>(R.id.rbFtp) as RadioButton
+        val rb1MB = view.findViewById<View>(R.id.rb1MB) as RadioButton
+        val rb10MB = view.findViewById<View>(R.id.rb10MB) as RadioButton
+        val rb100MB = view.findViewById<View>(R.id.rb100MB) as RadioButton
+        val radioGroupType = view.findViewById(R.id.rgType) as RadioGroup
+        val radioGroupFile = view.findViewById(R.id.rgFile) as RadioGroup
 
+        //Read shared preferences for speedtest
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val editor:SharedPreferences.Editor =  sharedPreferences.edit()
+        var speedTestType = sharedPreferences.getInt("speed_test_type",0)
+        var speedTestFile = sharedPreferences.getInt("speed_test_file",0)
+
+        Log.d("cfauli","speedtesttypeandfile"+ speedTestType + " " +speedTestFile)
+
+        //var speedTestType = 0
+        //var speedTestFile = 0
+        editor.putInt("speed_test_file",0)
+        editor.putInt("speed_test_type",0)
+        editor.commit()
+        
+        var downLoadFile = ""
+        var upLoadFile = ""
+        when(speedTestType) {
+            0 -> rbHttp.isChecked=true
+            1 -> rbBittorrent.isChecked=true
+            2 -> rbFtp.isChecked=true
+        }
+        when(speedTestFile) {
+            0 -> rb1MB.isChecked=true
+            1 -> rb10MB.isChecked =true
+            2 -> rb100MB.isChecked=true
+        }
+
+        downLoadFile = Constants.SPEEDTESTDOWNLOAD[3*(speedTestType)+speedTestFile]
+        when(speedTestType) {
+            0,1-> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
+            2-> upLoadFile = Constants.SPEEDTESTUPLOAD[1]
+        }
+
+        Log.d ("cfauli", "down file " + downLoadFile)
+        Log.d ("cfauli", "up file " + upLoadFile)
+
+
+
+        radioGroupType.setOnCheckedChangeListener { group, checkedId ->
+            Log.d("cfauli checkedidtype", checkedId.toString())
+            downLoadFile = Constants.SPEEDTESTDOWNLOAD[3*(speedTestType)+speedTestFile]
+            var checkedIdConverted: Int = 0
+            when (checkedId) {
+                R.id.rbHttp -> checkedIdConverted = 0
+                R.id.rbBittorrent -> checkedIdConverted = 1
+                R.id.rbFtp -> checkedIdConverted = 2
+            }
+            when(checkedIdConverted) {
+                0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
+                2 -> upLoadFile = Constants.SPEEDTESTUPLOAD[1]
+            }
+            when(checkedId) {
+                0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
+                2 -> upLoadFile = Constants.SPEEDTESTUPLOAD[1]
+            }
+            speedTestType = checkedIdConverted
+            editor.putInt("speed_test_type",checkedId.toString().toInt())
+            editor.commit()
+        }
+        Log.d ("cfauli","speedtes files int " + speedTestType + " " + speedTestFile)
+        radioGroupFile.setOnCheckedChangeListener { group, checkedId ->
+            Log.d("cfauli checkedidfile", checkedId.toString())
+            downLoadFile = Constants.SPEEDTESTDOWNLOAD[3*(speedTestType)+speedTestFile]
+            var checkedIdConverted: Int = 0
+            when (checkedId) {
+                R.id.rb1MB -> checkedIdConverted = 0
+                R.id.rb10MB -> checkedIdConverted = 1
+                R.id.rb100MB -> checkedIdConverted = 2
+            }
+            when(checkedIdConverted) {
+                0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
+                2 -> upLoadFile = Constants.SPEEDTESTUPLOAD[1]
+            }
+            speedTestFile = checkedIdConverted
+            Log.d("cfauli checkedidfile", checkedId.toString())
+            editor.putInt("speed_test_file",checkedId.toString().toInt())
+            editor.commit()
+        }
+
+        // Admod
         mAdView = view.findViewById(R.id.adViewFragment1)
         val adView = AdView(requireActivity())
 
@@ -104,6 +197,7 @@ class Tab1 : Fragment() {
             }
         }
 
+        // speedometer parametters
         speedometer.unit = "Mbps"
         speedometer.minSpeed = 0.0f
         speedometer.maxSpeed = 120.0f
@@ -120,8 +214,6 @@ class Tab1 : Fragment() {
         speedTestSocket.uploadSetupTime = 1000
         speedTestSocket.socketTimeout = 5000
 
-        // Avoids exception android.os.NetworkOnMainThreadException
-        //at android.os.StrictMode$AndroidBlockGuardPolicy.onNetwork(StrictMode.java --- Only for debug use Async in production
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
@@ -131,8 +223,9 @@ class Tab1 : Fragment() {
                 tvDownload.text="-"
                 tvUpload.text="-"
                 tvLatency.text ="-"
-                //speedTestSocket.startDownload("https://ipv4.scaleway.testdebit.info:8080/10M.iso",1000)
-                speedTestSocket.startDownloadRepeat("https://ipv4.scaleway.testdebit.info:8080/1M.iso",
+
+                // Here we choose the file to dowload fron Object Constants
+                speedTestSocket.startDownloadRepeat(downLoadFile,
                     5000, 1000, object : IRepeatListener {
                         override fun onCompletion(report: SpeedTestReport) {
 
@@ -142,12 +235,13 @@ class Tab1 : Fragment() {
                                 speedTestRunningStep = 1
                                 Log.d("cfauli","[COMPLETED] step" + speedTestRunningStep)
                                 tvDownload.text = "%.1f".format(internetSpeedDownload)
-
+                                Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
                                 // Start upload test (once the download test finishes)---------------------------------------------------------
-                                speedTestSocket.startUploadRepeat("http://ipv4.ikoula.testdebit.info/",
-                                    5000, 1000, 100000000, object : IRepeatListener {
-                                        override fun onCompletion(report: SpeedTestReport) {
+                                speedTestSocket.startUploadRepeat(upLoadFile,
+                                    5000, 1000, ((10).toDouble().pow(speedTestFile+1).toInt())/10*1000000, object : IRepeatListener {
 
+                                        override fun onCompletion(report: SpeedTestReport) {
+                                            Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
                                             internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
                                             requireActivity().runOnUiThread(Runnable {
                                                 speedometer.speedTo(0.0f,1000)

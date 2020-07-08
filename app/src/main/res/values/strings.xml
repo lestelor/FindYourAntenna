@@ -38,6 +38,12 @@
     <string name="download">Download</string>
     <string name="latency">Latency</string>
     <string name="banner_id">ca-app-pub-8346072505648333/9907948565</string>
+    <string name="rbHTTP">http:8080 web</string>
+    <string name="rbFTP">ftp connection</string>
+    <string name="rb10MB">10 MB file</string>
+    <string name="rb1MB">1MB file</string>
+    <string name="rb100MB">100 MB file</string>
+    <string name="rbBitTorrent">http:6881 BitTorrent</string>
 
 
 </resources>
