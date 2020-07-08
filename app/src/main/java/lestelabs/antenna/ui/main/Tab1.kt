@@ -18,16 +18,19 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.github.anastr.speedviewlib.SpeedView
-import com.google.android.gms.ads.*
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
-import kotlinx.android.synthetic.main.activity_pop_up_settings.*
+import fr.bmartel.speedtest.utils.SpeedTestUtils
 import kotlinx.android.synthetic.main.fragment_tab1.*
+import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.Connectivity
 import kotlin.math.pow
-import lestelabs.antenna.R
-import kotlin.math.absoluteValue
+
 
 /**
  * A simple [Fragment] subclass.
@@ -92,9 +95,9 @@ class Tab1 : Fragment() {
 
         //var speedTestType = 0
         //var speedTestFile = 0
-        editor.putInt("speed_test_file",0)
-        editor.putInt("speed_test_type",0)
-        editor.commit()
+        //editor.putInt("speed_test_file",0)
+        //editor.putInt("speed_test_type",0)
+        //editor.commit()
         
         var downLoadFile = ""
         var upLoadFile = ""
@@ -112,18 +115,21 @@ class Tab1 : Fragment() {
         downLoadFile = Constants.SPEEDTESTDOWNLOAD[3*(speedTestType)+speedTestFile]
         when(speedTestType) {
             0,1-> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
-            2-> upLoadFile = Constants.SPEEDTESTUPLOAD[1]
+            2-> {
+                var fileName = SpeedTestUtils.generateFileName() + ".txt"
+                upLoadFile = Constants.SPEEDTESTUPLOAD[1].toString() + fileName.toString()
+            }
         }
 
         Log.d ("cfauli", "down file " + downLoadFile)
         Log.d ("cfauli", "up file " + upLoadFile)
 
 
-
+        var checkedIdConverted: Int = 0
         radioGroupType.setOnCheckedChangeListener { group, checkedId ->
-            Log.d("cfauli checkedidtype", checkedId.toString())
+
             downLoadFile = Constants.SPEEDTESTDOWNLOAD[3*(speedTestType)+speedTestFile]
-            var checkedIdConverted: Int = 0
+
             when (checkedId) {
                 R.id.rbHttp -> checkedIdConverted = 0
                 R.id.rbBittorrent -> checkedIdConverted = 1
@@ -131,33 +137,31 @@ class Tab1 : Fragment() {
             }
             when(checkedIdConverted) {
                 0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
-                2 -> upLoadFile = Constants.SPEEDTESTUPLOAD[1]
+                2 -> {
+                    val fileName = SpeedTestUtils.generateFileName() + ".txt"
+                    Log.d("cfauli","generatefilename" + fileName)
+                    upLoadFile = Constants.SPEEDTESTUPLOAD[1].toString() + fileName.toString()
+                }
             }
-            when(checkedId) {
-                0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
-                2 -> upLoadFile = Constants.SPEEDTESTUPLOAD[1]
-            }
+
             speedTestType = checkedIdConverted
-            editor.putInt("speed_test_type",checkedId.toString().toInt())
+            editor.putInt("speed_test_type",checkedIdConverted)
             editor.commit()
+            Log.d("cfauli" , "checkedidtype" + checkedIdConverted)
         }
         Log.d ("cfauli","speedtes files int " + speedTestType + " " + speedTestFile)
         radioGroupFile.setOnCheckedChangeListener { group, checkedId ->
-            Log.d("cfauli checkedidfile", checkedId.toString())
+            Log.d("cfauli" , "checkedidfile" + checkedIdConverted)
             downLoadFile = Constants.SPEEDTESTDOWNLOAD[3*(speedTestType)+speedTestFile]
-            var checkedIdConverted: Int = 0
             when (checkedId) {
                 R.id.rb1MB -> checkedIdConverted = 0
                 R.id.rb10MB -> checkedIdConverted = 1
                 R.id.rb100MB -> checkedIdConverted = 2
             }
-            when(checkedIdConverted) {
-                0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
-                2 -> upLoadFile = Constants.SPEEDTESTUPLOAD[1]
-            }
+
             speedTestFile = checkedIdConverted
-            Log.d("cfauli checkedidfile", checkedId.toString())
-            editor.putInt("speed_test_file",checkedId.toString().toInt())
+            Log.d("cfauli", "checkedidfile" + checkedIdConverted)
+            editor.putInt("speed_test_file",checkedIdConverted)
             editor.commit()
         }
 
@@ -238,7 +242,7 @@ class Tab1 : Fragment() {
                                 Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
                                 // Start upload test (once the download test finishes)---------------------------------------------------------
                                 speedTestSocket.startUploadRepeat(upLoadFile,
-                                    5000, 1000, ((10).toDouble().pow(speedTestFile+1).toInt())/10*1000000, object : IRepeatListener {
+                                    5000, 1000, ((10).toDouble().pow(speedTestFile).toInt())*1000000, object : IRepeatListener {
 
                                         override fun onCompletion(report: SpeedTestReport) {
                                             Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
