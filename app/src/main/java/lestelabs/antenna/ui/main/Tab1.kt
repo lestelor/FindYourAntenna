@@ -381,7 +381,6 @@ class Tab1 : Fragment() {
      } else if (Connectivity.isConnected(context)) {
          type = Connectivity.connectionType(Connectivity.networkType(context), Connectivity.networkSubtype(context)).toString()
      } else tv_networkname.text =""
-
         return type
     }
 

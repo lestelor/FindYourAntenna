@@ -12,6 +12,8 @@ import androidx.annotation.RequiresApi
 
 public object Connectivity {
 
+
+
     @RequiresApi(Build.VERSION_CODES.M)
     fun getSsid(context: Context): String? {
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -19,7 +21,6 @@ public object Connectivity {
         wifiInfo = wifiManager.connectionInfo
         return wifiInfo?.ssid /*you will get SSID <unknown ssid> if location turned off*/
     }
-
 
     fun getNetworkInfo(context: Context): NetworkInfo? {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
