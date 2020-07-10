@@ -222,7 +222,7 @@ class Tab1 : Fragment() {
         StrictMode.setThreadPolicy(policy)
 
         button.setOnClickListener {
-            tvNetType.text=setNetworkType(requireContext())
+            tvNetType.text=setNetworkType(requireContext()).toString()
             if (speedTestRunningStep==0) {
                 tvDownload.text="-"
                 tvUpload.text="-"
@@ -284,7 +284,7 @@ class Tab1 : Fragment() {
                 button.setBackgroundResource(R.drawable.ic_switch_on_off_grey)
             }
         }
-        tvNetType.text=setNetworkType(requireContext())
+        tvNetType.text=setNetworkType(requireContext()).toString()
         return view
     }
 
@@ -374,14 +374,14 @@ class Tab1 : Fragment() {
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    fun setNetworkType(context:Context):String {
+    fun setNetworkType(context:Context):List<Any?> {
         var type:String = ""
      if (Connectivity.isConnectedWifi(context)){
          type = Connectivity.getSsid(context).toString()
      } else if (Connectivity.isConnected(context)) {
-         type = Connectivity.connectionType(Connectivity.networkType(context), Connectivity.networkSubtype(context)).toString()
-     } else tv_networkname.text =""
-        return type
+         type = listOf(Connectivity.connectionType(Connectivity.networkType(context), Connectivity.networkSubtype(context)).toString()).toString()
+     } else type =""
+        return listOf(type)
     }
 
 }

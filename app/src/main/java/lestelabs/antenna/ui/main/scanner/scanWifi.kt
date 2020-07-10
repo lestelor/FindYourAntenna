@@ -18,13 +18,16 @@ import java.util.*
 
 public object scanWifi {
 
-    var results: List<ScanResult>? = null
+
     val arrayList = ArrayList<String>()
     var wifiScanReceiver: BroadcastReceiver? = null
-    val devices: MutableList<DeviceWiFi> = mutableListOf()
+    var devices: MutableList<DeviceWiFi> = mutableListOf()
     var i=0
 
-    fun scanwifi (context: FragmentActivity, wifiManager: WifiManager, totalWiFi: Int, callback: (Boolean) -> Unit ) {
+    fun scanwifi (context: FragmentActivity, wifiManager: WifiManager, callback: (Boolean) -> Unit ) {
+
+        var results: List<ScanResult>? = null
+        devices = mutableListOf()
         if (!wifiManager.isWifiEnabled) {
             Toast.makeText(context, "WiFi is disabled, please enable it", Toast.LENGTH_LONG).show()
             wifiManager.isWifiEnabled = true
@@ -33,16 +36,22 @@ public object scanWifi {
         wifiScanReceiver = object : BroadcastReceiver() {
             @RequiresApi(Build.VERSION_CODES.M)
             override fun onReceive(c: Context, intent: Intent) {
-                i=0
+                i=1
                 results = wifiManager.scanResults
-                Log.d("cfauli lenght results", (results as MutableList<ScanResult>?)?.size.toString())
+                Log.d("cfauli wifi results", (results as MutableList<ScanResult>?)?.size.toString())
                 //unregisterReceiver(this)
                 for (scanResult in (results as MutableList<ScanResult>?)!!) {
-
-                    val mac = "0"
-                    devices.add(DeviceWiFi(scanResult.SSID, mac, scanResult.capabilities, scanResult.centerFreq0, scanResult.centerFreq1, scanResult.frequency, scanResult.channelWidth))
-                    Log.d("cfauli wifidevices", devices[0].ssid.toString())
-                    if (i==totalWiFi-1) {
+                    if (i==1) {
+                        devices = mutableListOf(DeviceWiFi())
+                        devices[0] = DeviceWiFi(
+                            scanResult.SSID, scanResult.BSSID, scanResult.capabilities, scanResult.centerFreq0, scanResult.centerFreq1,
+                            scanResult.frequency, scanResult.channelWidth, scanResult.level, scanResult.operatorFriendlyName.toString())
+                    } else {
+                        devices.add(DeviceWiFi(
+                            scanResult.SSID, scanResult.BSSID, scanResult.capabilities, scanResult.centerFreq0, scanResult.centerFreq1,
+                            scanResult.frequency, scanResult.channelWidth, scanResult.level, scanResult.operatorFriendlyName.toString()))
+                    }
+                    if (i >= (results as MutableList<ScanResult>?)?.size!!) {
                         callback(true)
                         return
                     } else i += 1

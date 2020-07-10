@@ -7,5 +7,7 @@ class DeviceWiFi(
     var channel: Int? = 0,
     var centerFreq1: Int? = 0,
     var centerFreq2: Int? = 0,
-    var channelWidth: Int? = 0
+    var channelWidth: Int? = 0,
+    var level: Int?=0,
+    var operator: String? =""
 )

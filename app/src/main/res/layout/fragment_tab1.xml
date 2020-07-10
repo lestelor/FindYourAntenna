@@ -62,10 +62,10 @@
         <Button
 
             android:id="@+id/btSpeedTest"
-            android:layout_width="20dp"
-            android:layout_height="56dp"
+            android:layout_width="56sp"
+            android:layout_height="56sp"
             android:layout_gravity="center"
-            android:layout_weight="0.33"
+            android:layout_marginStart="10dp"
             android:background="@drawable/ic_switch_on_off" />
 
         <RadioGroup
@@ -73,7 +73,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.33"
-            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
 
 >
 

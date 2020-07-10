@@ -6,6 +6,7 @@ import android.net.Uri
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,8 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.scanner.DeviceWiFi
+import lestelabs.antenna.ui.main.scanner.WifiAdapter
 import lestelabs.antenna.ui.main.scanner.scanWifi
 
 
@@ -55,9 +58,9 @@ class Tab3 : Fragment() {
         val size = 0
         var results: List<ScanResult?>
         val arrayList: ArrayList<String> = ArrayList()
-        var adapter: ArrayAdapter<*>
+        //var adapter: ArrayAdapter<*>
         val view: View = inflater.inflate(R.layout.fragment_tab3, container, false)
-        val listView: ListView = view.findViewById<View>((R.id.wifiList)) as ListView
+        //val listView: ListView = view.findViewById<View>((R.id.wifiList)) as ListView
         val wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiScanReceiver: BroadcastReceiver
 
@@ -97,15 +100,38 @@ class Tab3 : Fragment() {
 
 
         /// fill the list --------------------------------------------
-        adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_1, arrayList)
+        // Construct the data source
+
+        // Construct the data source
+        val arrayOfWifis: ArrayList<DeviceWiFi> = ArrayList<DeviceWiFi>()
+        // Create the adapter to convert the array to views
+        var adapter = WifiAdapter(activity, arrayOfWifis)
+        // Attach the adapter to a ListView
+        val listView = view.findViewById(R.id.wifiList) as ListView
         listView.adapter = adapter
 
-        scanWifi.scanwifi(requireActivity(), wifiManager, 5) {
-            arrayList.clear()
-            for (i in 0..4) {
-                arrayList.add(scanWifi.devices[i].ssid.toString())
-            }
+
+
+
+        //adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_1, arrayList)
+        listView.adapter = adapter
+        var deviceWiFi:DeviceWiFi = DeviceWiFi()
+
+        scanWifi.scanwifi(requireActivity(), wifiManager) {
+            adapter.clear()
+
+            val showedWiFiList = scanWifi.devices.sortedByDescending { it.level }
+            Log.d("cfauli size", showedWiFiList.size.toString())
+            /*for (i in showedWiFiList.indices) {
+                Log.d("cfauli item", showedWiFiList[i].ssid + showedWiFiList[i].level)
+                deviceWiFi.ssid = showedWiFiList[i].ssid.toString()
+                deviceWiFi.level = showedWiFiList[i].level
+                adapter.add(deviceWiFi)
+                adapter.notifyDataSetChanged()
+            }*/
+            adapter.addAll(showedWiFiList)
             adapter.notifyDataSetChanged()
+
         }
 
 

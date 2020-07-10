@@ -15,11 +15,11 @@ public object Connectivity {
 
 
     @RequiresApi(Build.VERSION_CODES.M)
-    fun getSsid(context: Context): String? {
+    fun getSsid(context: Context): List<Any?> {
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         var wifiInfo: WifiInfo? = null
         wifiInfo = wifiManager.connectionInfo
-        return wifiInfo?.ssid /*you will get SSID <unknown ssid> if location turned off*/
+        return listOf(wifiInfo?.ssid, wifiInfo.hiddenSSID, wifiInfo.rssi,wifiInfo.frequency,wifiInfo.ipAddress,wifiInfo.macAddress)/*you will get SSID <unknown ssid> if location turned off*/
     }
 
     fun getNetworkInfo(context: Context): NetworkInfo? {
