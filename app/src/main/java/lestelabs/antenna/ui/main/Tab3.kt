@@ -2,8 +2,6 @@ package lestelabs.antenna.ui.main
 
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
@@ -13,14 +11,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ListView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.scanner.WiFiScanner
+import lestelabs.antenna.ui.main.scanner.scanWifi
 
 
 /**
@@ -64,6 +61,7 @@ class Tab3 : Fragment() {
         val wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiScanReceiver: BroadcastReceiver
 
+
         // Adds -------------------------------------------------------------------------------------
         mAdView = view.findViewById(R.id.adViewFragment3)
         MobileAds.initialize(requireActivity())
@@ -98,54 +96,19 @@ class Tab3 : Fragment() {
         }
 
 
-        // Wifimanager --------------------------------------------------------------------------------------
-
-/*
-
-        var wifiReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                WiFiScanner.results = wifiManager!!.scanResults
-                WiFiScanner.unregisterReceiver(this)
-                for (scanResult in (WiFiScanner.results as MutableList<ScanResult>?)!!) {
-                    WiFiScanner.arrayList.add(scanResult.SSID + " - " + scanResult.capabilities)
-                    WiFiScanner.adapter!!.notifyDataSetChanged()
-                }
-            }
-        }
-
-
-        WiFiScanner.registerReceiver(wifiReceiver, IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION))
-        wifiManager!!.startScan()
-        Toast.makeText(requireActivity(), "Scanning WiFi ...", Toast.LENGTH_SHORT).show()
-
-
-*/
-        /// wifi adapter 2 --------------------------------------------
-        if (!wifiManager.isWifiEnabled) {
-            Toast.makeText(requireActivity(), "WiFi is disabled, please enable it", Toast.LENGTH_LONG).show()
-            wifiManager.isWifiEnabled = true
-        }
-
+        /// fill the list --------------------------------------------
         adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_1, arrayList)
         listView.adapter = adapter
-        arrayList.clear()
 
-        // Registering Wifi Receiver
-        wifiScanReceiver = object : BroadcastReceiver() {
-            override fun onReceive(c: Context, intent: Intent) {
-                results = wifiManager!!.scanResults
-                //unregisterReceiver(this)
-                for (scanResult in (results as MutableList<ScanResult>?)!!) {
-                    arrayList.add(scanResult.SSID + " - " + scanResult.capabilities)
-                    adapter!!.notifyDataSetChanged()
-                }
+        scanWifi.scanwifi(requireActivity(), wifiManager, 5) {
+            arrayList.clear()
+            for (i in 0..4) {
+                arrayList.add(scanWifi.devices[i].ssid.toString())
             }
+            adapter.notifyDataSetChanged()
         }
 
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
-        requireContext().registerReceiver(wifiScanReceiver, intentFilter)
-        wifiManager.startScan()
+
 
         return view
     }
