@@ -1,20 +1,17 @@
 package lestelabs.antenna.ui.main
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 
 
 import android.os.Bundle
-import android.os.StrictMode
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -36,7 +33,7 @@ interface GetfileState {
     fun getFileState():Boolean
 }
 
-class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
+class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var drawerLayout: View? = null
@@ -105,11 +102,12 @@ override fun onCreate(savedInstanceState: Bundle?) {
         viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
 
         tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
-        tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_map)
-        tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_coverage)
+        tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
+        tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
+
         tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                fab.isInvisible = tab.position == 0 || tab.position ==2
+                fab.isInvisible = tab.position == 0 || tab.position ==1
                 viewPager.currentItem = tab.position
 
                 Log.d("cfauli", "TAB" + tab.position)
