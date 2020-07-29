@@ -299,12 +299,14 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                     )
                 } else {
-                    mMap.addMarker(
-                        MarkerOptions()
-                            .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
-                            .title("serving id: " + listTowersFound[i].totalCellId + " lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                    )
+                    if (distance != 0.0) {
+                        mMap.addMarker(
+                            MarkerOptions()
+                                .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
+                                .title("serving id: " + listTowersFound[i].totalCellId + " lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                        )
+                    }
                 }
             }
 
