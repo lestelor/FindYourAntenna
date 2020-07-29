@@ -302,7 +302,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                     mMap.addMarker(
                         MarkerOptions()
                             .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
-                            .title("id: " + listTowersFound[i].totalCellId + " lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
+                            .title("serving id: " + listTowersFound[i].totalCellId + " lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                     )
                 }

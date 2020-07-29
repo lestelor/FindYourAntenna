@@ -18,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.isInvisible
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.MobileAds
@@ -33,12 +34,12 @@ interface GetfileState {
     fun getFileState():Boolean
 }
 
-class MainActivity : AppCompatActivity(), Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
+class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var drawerLayout: View? = null
     private var getFileStateButtonPressed: Boolean = false
-
+    private lateinit var toggle: ActionBarDrawerToggle
 
 
 
@@ -51,9 +52,10 @@ override fun onCreate(savedInstanceState: Bundle?) {
     val navigationView: NavigationView = findViewById(R.id.nav_view)
 
     //val toolbar = findViewById<Toolbar>(R.id.toolbar)
-    val drawerLayout = findViewById<View>(R.id.drawer_layout)
+    val drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout?
     val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
     val fab = findViewById<View>(R.id.fab) as ImageView
+
 
     // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
     MobileAds.initialize(this, "ca-app-pub-8346072505648333~5697526220")
@@ -71,7 +73,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
         supportActionBar?.setDisplayUseLogoEnabled(true)
 
 
-        val toggle = ActionBarDrawerToggle(
+        toggle = ActionBarDrawerToggle(
             this, drawerLayout as DrawerLayout?, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
         )
         drawerLayout?.addDrawerListener(toggle)
@@ -135,13 +137,6 @@ override fun onCreate(savedInstanceState: Bundle?) {
     }*/
 
 
-    override fun onBackPressed() {
-        if ((drawerLayout as DrawerLayout?)?.isDrawerOpen(GravityCompat.START) == true) {
-            (drawerLayout as DrawerLayout?)?.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
-        }
-    }
 
     fun checkAllPermission(callback: (Boolean) -> Unit) {
         while ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
@@ -173,15 +168,37 @@ override fun onCreate(savedInstanceState: Bundle?) {
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
         val title: Int
         when (p0.getItemId()) {
-            R.id.navSettings -> {
+            R.id.nav_settings -> {
                 val intent = Intent(this, PopUpSettings::class.java)
                 //intent.putExtra("popuptitle", "Error")
                 startActivity(intent)
-                p0.isChecked = false
                 //(drawerLayout as DrawerLayout).closeDrawer(GravityCompat.START)
+            }
+            R.id.nav_tab1 -> {
+                val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
+                val tab = tabLayout.getTabAt(0)
+                tab!!.select()
+            }
+            R.id.nav_tab2 -> {
+                val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
+                val tab = tabLayout.getTabAt(1)
+                tab!!.select()
+            }
+            R.id.nav_tab3 -> {
+                val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
+                val tab = tabLayout.getTabAt(2)
+                tab!!.select()
+            }
+            R.id.nav_exit -> {
+                finish();
+                System.exit(0);
             }
             else -> throw IllegalArgumentException("menu option not implemented!!")
         }
+        p0.isChecked = false
+        val drawer = findViewById<View>(R.id.drawer_layout) as DrawerLayout;
+        if (drawer.isDrawerOpen(GravityCompat.START))
+            drawer.closeDrawer(GravityCompat.START);
         return true
     }
 
@@ -189,6 +206,13 @@ override fun onCreate(savedInstanceState: Bundle?) {
         return getFileStateButtonPressed
     }
 
+    override fun onBackStackChanged() {
+        toggle.syncState();
+    }
+    override fun onBackPressed() {
+        val drawer = findViewById<View>(R.id.drawer_layout) as DrawerLayout
+        if (drawer.isDrawerOpen(GravityCompat.START)) drawer.closeDrawer(GravityCompat.START)
+    }
 }
 
 

@@ -7,7 +7,7 @@
 
     <item
         android:checkable="false"
-        android:id="@+id/navSettings"
+        android:id="@+id/nav_settings"
         android:icon="@drawable/ic_settings"
         android:title="@string/navSettings" />
 
@@ -16,16 +16,29 @@
         <menu>
         <group android:checkableBehavior="single">
 
-
+            <item
+                android:id="@+id/nav_tab1"
+                android:icon="@drawable/ic_speed_dark"
+                android:title="@string/menu_tab1" />
+            <item
+                android:id="@+id/nav_tab2"
+                android:icon="@drawable/ic_network_dark"
+                android:title="@string/menu_tab2" />
             <item
                 android:id="@+id/nav_tab3"
-                android:icon="@drawable/ic_menu_gallery"
-                android:title="@string/menu_gallery" />
-            <item
-                android:id="@+id/nav_slideshow1"
-                android:icon="@drawable/ic_menu_slideshow"
-                android:title="@string/menu_slideshow" />
+                android:icon="@drawable/ic_map_dark"
+                android:title="@string/menu_tab3" />
         </group>
+        </menu>
+    </item>
+
+    <item android:title="Close App">
+        <menu>
+            <item
+                android:checkable="true"
+                android:id="@+id/nav_exit"
+                android:icon="@drawable/ic_exit"
+                android:title="@string/navExit" />
         </menu>
     </item>
 
