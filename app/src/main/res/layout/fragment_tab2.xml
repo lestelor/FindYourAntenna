@@ -1,22 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mapScreen"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#7fffad42"
+    android:orientation="vertical"
+    tools:context=".ui.main.Tab1">
+    <TextView
+        android:id="@+id/tv_mobile_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mobile"
+        android:layout_marginStart="2dp"
+        android:textSize="12sp" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="5dp">
 
-    <androidx.fragment.app.FragmentContainerView
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/iv_mobile_signalIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_network_green" />
+
+            <TextView
+                android:id="@+id/tv_mobile_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Level"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="5dp">
+
+            <TextView
+                android:id="@+id/tv_mobile_operator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="Operator"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/tv_mobile_lac"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="lac"
+                    android:textStyle="normal" />
+
+                <TextView
+                    android:id="@+id/tv_mobile_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="Tower id"
+                    android:textStyle="normal" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/tv_mobile_lat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="lat"
+                    android:textStyle="normal" />
+
+                <TextView
+                    android:id="@+id/tv_mobile_lon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="lon"
+                    android:textStyle="normal" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_mobile_network"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="network:" />
+
+                <TextView
+                    android:id="@+id/tv_mobile_networkType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:text="networkType"
+                    android:textColor="@color/cpb_blue" />
+            </LinearLayout>
+
+        </LinearLayout>
+      </LinearLayout>
+
+    <TableRow
+        android:id="@+id/hr"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#444" />
+    <TextView
+        android:id="@+id/tv_wifi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WIFI"
+        android:layout_marginStart="2dp"
+        android:textSize="12sp" />
+    <ListView
+        android:id="@+id/wifiList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:keepScreenOn="true"
-        tools:context=".ui.main.Tab2">
-    </androidx.fragment.app.FragmentContainerView>
-
+        android:layout_weight="0.97"/>
 
     <com.google.android.gms.ads.AdView
         xmlns:ads="http://schemas.android.com/apk/res-auto"
@@ -24,7 +140,7 @@
         ads:adSize="SMART_BANNER"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
         ads:adUnitId="ca-app-pub-3940256099942544/6300978111">
-
     </com.google.android.gms.ads.AdView>
 </LinearLayout>

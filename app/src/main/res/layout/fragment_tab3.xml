@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#7fffad42"
+    android:id="@+id/mapScreen"
     android:orientation="vertical"
-    tools:context=".ui.main.Tab1">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <ListView
-        android:id="@+id/wifiList"
+
+
+    <androidx.fragment.app.FragmentContainerView
+
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.97"/>
+        android:layout_weight="1"
+        android:keepScreenOn="true"
+        tools:context=".ui.main.Tab2">
+    </androidx.fragment.app.FragmentContainerView>
+
 
     <com.google.android.gms.ads.AdView
         xmlns:ads="http://schemas.android.com/apk/res-auto"
@@ -20,7 +26,7 @@
         ads:adSize="SMART_BANNER"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         ads:adUnitId="ca-app-pub-3940256099942544/6300978111">
+
     </com.google.android.gms.ads.AdView>
 </LinearLayout>

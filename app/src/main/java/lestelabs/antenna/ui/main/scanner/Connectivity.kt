@@ -67,6 +67,12 @@ public object Connectivity {
      * @param subType
      * @return
      */
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun getpDevice(context: Context):DevicePhone {
+        val telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        return loadCellInfo(telephonyManager)
+    }
+
     fun connectionType(type: Int?, subType: Int?): String? {
         if (type == ConnectivityManager.TYPE_WIFI) {
             return "WIFI"

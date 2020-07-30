@@ -126,7 +126,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        fragmentView = inflater.inflate(R.layout.fragment_tab2, container, false)
+        fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
         Log.d("cfauli","OnCreateView")
@@ -220,7 +220,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
 
 
-        mAdView = view?.findViewById(R.id.adViewFragment2)!!
+        mAdView = view?.findViewById(R.id.adViewFragment3)!!
         val adView = AdView(requireActivity())
         MobileAds.initialize(requireActivity())
         val adRequest = AdRequest.Builder().build()
@@ -296,7 +296,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                         MarkerOptions()
                             .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
                             .title("id: " + listTowersFound[i].totalCellId + " lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                     )
                 } else {
                     if (distance != 0.0) {
@@ -304,7 +304,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                             MarkerOptions()
                                 .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
                                 .title("serving id: " + listTowersFound[i].totalCellId + " lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                         )
                     }
                 }

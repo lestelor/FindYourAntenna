@@ -32,10 +32,30 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
         // Lookup view for data population
         TextView tvSsid = (TextView) convertView.findViewById(R.id.tv_wifi_ssid);
         TextView tvLevel = (TextView) convertView.findViewById(R.id.tv_wifi_level);
+        TextView tvMac = (TextView) convertView.findViewById(R.id.tv_wifi_mac);
+        TextView tvSec = (TextView) convertView.findViewById(R.id.tv_wifi_sec);
+        TextView tvChannel = (TextView) convertView.findViewById(R.id.tv_wifi_channel);
+        TextView tvChannelInt = (TextView) convertView.findViewById(R.id.tv_wifi_channelInt);
+        TextView tvFreq = (TextView) convertView.findViewById(R.id.tv_wifi_frequency);
         ImageView ivIconLevel = (ImageView)  convertView.findViewById(R.id.iv_wifi_signalIcon);
         // Populate the data into the template view using the data object
         tvSsid.setText(deviceWiFi.getSsid());
-        tvLevel.setText(deviceWiFi.getLevel().toString());
+        tvLevel.setText(deviceWiFi.getLevel().toString() + " dBm");
+        tvMac.setText("mac: " + deviceWiFi.getMac().toString());
+        tvSec.setText(deviceWiFi.getSecurity().toString());
+        tvChannel.setText(R.string.channel);
+        Integer freq = deviceWiFi.getCenterFreq2();
+        tvFreq.setText(freq.toString() + " MHz");
+
+        Integer channel;
+        if (freq>5000) {
+            channel = ((freq-5180)/5+36);
+        } else {
+            channel = ((freq-2412)/5+1);
+        }
+
+        tvChannelInt.setText(channel.toString());
+
         if (deviceWiFi.getLevel()>=-67) {
             Log.d("cfauli","GREEN " + deviceWiFi.getLevel() + "dBm");
             ivIconLevel.setImageResource(R.drawable.ic_network_green);

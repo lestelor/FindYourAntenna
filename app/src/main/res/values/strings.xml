@@ -48,6 +48,10 @@
     <string name="menu_tab1">Network Speed</string>
     <string name="menu_tab2">Network Signal</string>
     <string name="menu_tab3">Cell Tower Location</string>
+    <string name="channel">channel: </string>
+    <string name="Network">"Network: "</string>
+    <string name="Operator">"Operator (mcc-mnc): "</string>
+    <string name="MobileTxt">Mobile Network</string>
 
 
 </resources>

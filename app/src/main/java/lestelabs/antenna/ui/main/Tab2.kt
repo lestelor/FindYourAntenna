@@ -5,21 +5,25 @@ import android.content.Context
 import android.net.Uri
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.ListView
+import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.scanner.DeviceWiFi
-import lestelabs.antenna.ui.main.scanner.WifiAdapter
-import lestelabs.antenna.ui.main.scanner.scanWifi
+import lestelabs.antenna.ui.main.rest.findTower
+import lestelabs.antenna.ui.main.rest.retrofitFactory
+import lestelabs.antenna.ui.main.scanner.*
 
 
 /**
@@ -50,6 +54,7 @@ class Tab2 : Fragment() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -57,15 +62,15 @@ class Tab2 : Fragment() {
         val size = 0
         var results: List<ScanResult?>
         val arrayList: ArrayList<String> = ArrayList()
-        //var adapter: ArrayAdapter<*>
-        val view: View = inflater.inflate(R.layout.fragment_tab3, container, false)
+
         //val listView: ListView = view.findViewById<View>((R.id.wifiList)) as ListView
         val wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiScanReceiver: BroadcastReceiver
 
+        val view: View = inflater.inflate(R.layout.fragment_tab2, container, false)
 
         // Adds -------------------------------------------------------------------------------------
-        mAdView = view.findViewById(R.id.adViewFragment3)
+        mAdView = view.findViewById(R.id.adViewFragment2)
         MobileAds.initialize(requireActivity())
         val adRequest = AdRequest.Builder().build()
         mAdView.loadAd(adRequest)
@@ -97,10 +102,60 @@ class Tab2 : Fragment() {
             }
         }
 
+        /// fill the mobile layout --------------------------------------------
+        // Lookup view for data population
+        val tvLevel = view.findViewById<View>(R.id.tv_mobile_level) as TextView
+        val tvOperator = view.findViewById<View>(R.id.tv_mobile_operator) as TextView
+        val tvLac = view.findViewById<View>(R.id.tv_mobile_lac) as TextView
+        val tvId = view.findViewById<View>(R.id.tv_mobile_id) as TextView
+        val tvNetwork = view.findViewById<View>(R.id.tv_mobile_network) as TextView
+        val tvNetworkType = view.findViewById<View>(R.id.tv_mobile_networkType) as TextView
+        val tvLat = view.findViewById<View>(R.id.tv_mobile_lat) as TextView
+        val tvLon = view.findViewById<View>(R.id.tv_mobile_lon) as TextView
+        val ivIconLevel = view.findViewById<View>(R.id.iv_mobile_signalIcon) as ImageView
 
-        /// fill the list --------------------------------------------
-        // Construct the data source
+        val tvMobile = view.findViewById<View>(R.id.tv_mobile_txt) as TextView
 
+        var pDevice: DevicePhone = DevicePhone()
+
+        if (Connectivity.isConnectedMobile(requireContext())) {
+            pDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                Connectivity.getpDevice(requireContext())
+
+            } else {
+                TODO("VERSION.SDK_INT < P")
+            }
+        }
+        tvMobile.text = getString(R.string.MobileTxt)
+        tvLevel.text = pDevice.dbm.toString() + "dBm"
+        tvOperator.text = getString(R.string.Operator) + pDevice.mcc.toString() + "-" + pDevice.mnc.toString()
+        tvLac.text = "lac: " + pDevice.lac.toString()
+        tvId.text = "id: " + pDevice.cid.toString()
+        tvNetwork.text = getString(R.string.Network)
+        tvNetworkType.text = pDevice.type
+
+        val openCellIdInterface = retrofitFactory()
+        findTower(openCellIdInterface, pDevice)
+        { coordenadas ->
+            tvLat.text = "lat: " + "%.4f".format(coordenadas.lat)
+            tvLon.text = "lon: " + "%.4f".format(coordenadas.lon)
+        }
+
+
+
+        if (pDevice.dbm!! >= -100) {
+            Log.d("cfauli", "GREEN " + pDevice.dbm + "dBm")
+            ivIconLevel.setImageResource(R.drawable.ic_network_green)
+        } else if (pDevice.dbm!! >= -115) {
+            Log.d("cfauli", "YELLOW " + pDevice.dbm + "dBm")
+            ivIconLevel.setImageResource(R.drawable.ic_network_yellow)
+        } else {
+            Log.d("cfauli", "RED " + pDevice.dbm + "dBm")
+            ivIconLevel.setImageResource(R.drawable.ic_network_red)
+        }
+
+
+        /// fill the wifi list --------------------------------------------
         // Construct the data source
         val arrayOfWifis: ArrayList<DeviceWiFi> = ArrayList<DeviceWiFi>()
         // Create the adapter to convert the array to views
@@ -108,13 +163,6 @@ class Tab2 : Fragment() {
         // Attach the adapter to a ListView
         val listView = view.findViewById(R.id.wifiList) as ListView
         listView.adapter = adapter
-
-
-
-
-        //adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_1, arrayList)
-        listView.adapter = adapter
-        var deviceWiFi:DeviceWiFi = DeviceWiFi()
 
         scanWifi.scanwifi(requireActivity(), wifiManager) {
             adapter.clear()
@@ -206,6 +254,17 @@ class Tab2 : Fragment() {
             fragment.arguments = args
             return fragment
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun setNetworkType(context:Context):List<Any?> {
+        var type:String = ""
+        if (Connectivity.isConnectedWifi(context)){
+            type = Connectivity.getSsid(context).toString()
+        } else if (Connectivity.isConnected(context)) {
+            type = listOf(Connectivity.connectionType(Connectivity.networkType(context), Connectivity.networkSubtype(context)).toString()).toString()
+        } else type =""
+        return listOf(type)
     }
 
 }

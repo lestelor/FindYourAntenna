@@ -53,6 +53,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.lac=identityGsm.lac
                 pDevicePhone.band=identityGsm.arfcn
                 pDevicePhone.operator = identityGsm.mobileNetworkOperator
+
             } else if (info is CellInfoCdma) {
                 pDevicePhone.type = "CDMA"
                 val cdma =
@@ -93,6 +94,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.cid = identityCincoG.nci.toInt()
                 pDevicePhone.band = identityCincoG.nrarfcn
                 pDevicePhone.operator = identityCincoG.operatorAlphaShort.toString()
+
             }
             else if (lCurrentApiVersion >= Build.VERSION_CODES.JELLY_BEAN_MR2 && info is CellInfoWcdma) {
                 pDevicePhone.type = "WCDMA"
