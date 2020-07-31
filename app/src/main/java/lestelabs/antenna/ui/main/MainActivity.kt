@@ -212,6 +212,9 @@ override fun onCreate(savedInstanceState: Bundle?) {
     override fun onBackPressed() {
         val drawer = findViewById<View>(R.id.drawer_layout) as DrawerLayout
         if (drawer.isDrawerOpen(GravityCompat.START)) drawer.closeDrawer(GravityCompat.START)
+        else {
+            finishAffinity()
+        }
     }
 }
 

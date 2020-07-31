@@ -2,11 +2,13 @@ package lestelabs.antenna.ui.main
 
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -40,6 +42,12 @@ class Tab2 : Fragment() {
     private var mParam2: String? = null
     private var mListener: OnFragmentInteractionListener? = null
     lateinit var mAdView : AdView
+    private var firstOnResume = true
+    private var minTime:Long = 1000
+    var mHandler: Handler = Handler()
+    var clockTimerHanlerActive = false
+    private lateinit var mHandlerTask: Runnable
+    private var totalCidAnt = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +59,8 @@ class Tab2 : Fragment() {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
 
     }
 
@@ -101,59 +111,8 @@ class Tab2 : Fragment() {
                 // to the app after tapping on an ad.
             }
         }
-
-        /// fill the mobile layout --------------------------------------------
-        // Lookup view for data population
-        val tvLevel = view.findViewById<View>(R.id.tv_mobile_level) as TextView
-        val tvOperator = view.findViewById<View>(R.id.tv_mobile_operator) as TextView
-        val tvLac = view.findViewById<View>(R.id.tv_mobile_lac) as TextView
-        val tvId = view.findViewById<View>(R.id.tv_mobile_id) as TextView
-        val tvNetwork = view.findViewById<View>(R.id.tv_mobile_network) as TextView
-        val tvNetworkType = view.findViewById<View>(R.id.tv_mobile_networkType) as TextView
-        val tvLat = view.findViewById<View>(R.id.tv_mobile_lat) as TextView
-        val tvLon = view.findViewById<View>(R.id.tv_mobile_lon) as TextView
-        val ivIconLevel = view.findViewById<View>(R.id.iv_mobile_signalIcon) as ImageView
-
-        val tvMobile = view.findViewById<View>(R.id.tv_mobile_txt) as TextView
-
-        var pDevice: DevicePhone = DevicePhone()
-
-        if (Connectivity.isConnectedMobile(requireContext())) {
-            pDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                Connectivity.getpDevice(requireContext())
-
-            } else {
-                TODO("VERSION.SDK_INT < P")
-            }
-        }
-        tvMobile.text = getString(R.string.MobileTxt)
-        tvLevel.text = pDevice.dbm.toString() + "dBm"
-        tvOperator.text = getString(R.string.Operator) + pDevice.mcc.toString() + "-" + pDevice.mnc.toString()
-        tvLac.text = "lac: " + pDevice.lac.toString()
-        tvId.text = "id: " + pDevice.cid.toString()
-        tvNetwork.text = getString(R.string.Network)
-        tvNetworkType.text = pDevice.type
-
-        val openCellIdInterface = retrofitFactory()
-        findTower(openCellIdInterface, pDevice)
-        { coordenadas ->
-            tvLat.text = "lat: " + "%.4f".format(coordenadas.lat)
-            tvLon.text = "lon: " + "%.4f".format(coordenadas.lon)
-        }
-
-
-
-        if (pDevice.dbm!! >= -100) {
-            Log.d("cfauli", "GREEN " + pDevice.dbm + "dBm")
-            ivIconLevel.setImageResource(R.drawable.ic_network_green)
-        } else if (pDevice.dbm!! >= -115) {
-            Log.d("cfauli", "YELLOW " + pDevice.dbm + "dBm")
-            ivIconLevel.setImageResource(R.drawable.ic_network_yellow)
-        } else {
-            Log.d("cfauli", "RED " + pDevice.dbm + "dBm")
-            ivIconLevel.setImageResource(R.drawable.ic_network_red)
-        }
-
+        // fill the mobile list every mintime secs
+        startMobileScanner(view)
 
         /// fill the wifi list --------------------------------------------
         // Construct the data source
@@ -188,10 +147,20 @@ class Tab2 : Fragment() {
 
 
 
+    override fun onResume() {
+        super.onResume()
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        Log.d("cfauli","OnResume Tab2 " + firstOnResume)
+        if (!firstOnResume) startMobileScanner(requireView())
+        firstOnResume = false
+    }
 
-
-
-
+    override fun onPause() {
+        super.onPause()
+        mHandler.removeCallbacks(mHandlerTask)
+        clockTimerHanlerActive = false
+    }
 
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(uri: Uri?) {
@@ -265,6 +234,78 @@ class Tab2 : Fragment() {
             type = listOf(Connectivity.connectionType(Connectivity.networkType(context), Connectivity.networkSubtype(context)).toString()).toString()
         } else type =""
         return listOf(type)
+    }
+
+    fun startMobileScanner(view:View) {
+        if (!clockTimerHanlerActive) {
+            mHandlerTask = object : Runnable {
+                override fun run() {
+                    fillMobileTextView(view)
+                    mHandler.postDelayed(this, minTime)
+                }
+            }
+        }
+        Log.d("cfauli", "startMobileScanner")
+        mHandlerTask.run()
+        clockTimerHanlerActive = true
+    }
+
+    fun fillMobileTextView(view: View){
+        /// fill the mobile layout --------------------------------------------
+        // Lookup view for data population
+        Log.d ("cfauli", "fillMobileTextView")
+        val tvLevel = view.findViewById<View>(R.id.tv_mobile_level) as TextView
+        val tvOperator = view.findViewById<View>(R.id.tv_mobile_operator) as TextView
+        val tvLac = view.findViewById<View>(R.id.tv_mobile_lac) as TextView
+        val tvId = view.findViewById<View>(R.id.tv_mobile_id) as TextView
+        val tvNetwork = view.findViewById<View>(R.id.tv_mobile_network) as TextView
+        val tvNetworkType = view.findViewById<View>(R.id.tv_mobile_networkType) as TextView
+        val tvLat = view.findViewById<View>(R.id.tv_mobile_lat) as TextView
+        val tvLon = view.findViewById<View>(R.id.tv_mobile_lon) as TextView
+        val ivIconLevel = view.findViewById<View>(R.id.iv_mobile_signalIcon) as ImageView
+
+        val tvMobile = view.findViewById<View>(R.id.tv_mobile_txt) as TextView
+
+        var pDevice: DevicePhone = DevicePhone()
+
+        if (Connectivity.isConnectedMobile(requireContext())) {
+            pDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                Connectivity.getpDevice(requireContext())
+
+            } else {
+                TODO("VERSION.SDK_INT < P")
+            }
+        }
+
+        tvMobile.text = getString(R.string.MobileTxt)
+        tvLevel.text = pDevice.dbm.toString() + "dBm"
+        tvOperator.text = getString(R.string.Operator) + pDevice.mcc.toString() + "-" + pDevice.mnc.toString()
+        tvLac.text = "lac: " + pDevice.lac.toString()
+        tvId.text = "id: " + pDevice.cid.toString()
+        tvNetwork.text = getString(R.string.Network)
+        tvNetworkType.text = pDevice.type
+
+        if (totalCidAnt != pDevice.totalCellId) {
+            val openCellIdInterface = retrofitFactory()
+            findTower(openCellIdInterface, pDevice)
+            { coordenadas ->
+                tvLat.text = "lat: " + "%.4f".format(coordenadas.lat)
+                tvLon.text = "lon: " + "%.4f".format(coordenadas.lon)
+            }
+            totalCidAnt = pDevice.totalCellId
+        }
+
+
+
+        if (pDevice.dbm!! >= -100) {
+            ivIconLevel.setImageResource(R.drawable.ic_network_green)
+        } else if (pDevice.dbm!! >= -115) {
+            ivIconLevel.setImageResource(R.drawable.ic_network_yellow)
+        } else {
+            ivIconLevel.setImageResource(R.drawable.ic_network_red)
+        }
+
+
     }
 
 }

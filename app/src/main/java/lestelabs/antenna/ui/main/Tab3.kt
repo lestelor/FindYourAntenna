@@ -84,7 +84,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private var towerinListInt: Int = -1
     private var requestingLocationUpdates = true
     private var minDist: Float? = null
-    private var minTime:Long? =null
+    private var minTime:Long? = null
     private var okSaveTowers:Int? = null
     private var okSaveSamples: Int? = null
     private var previousTower: String? = null

@@ -57,13 +57,10 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
         tvChannelInt.setText(channel.toString());
 
         if (deviceWiFi.getLevel()>=-67) {
-            Log.d("cfauli","GREEN " + deviceWiFi.getLevel() + "dBm");
             ivIconLevel.setImageResource(R.drawable.ic_network_green);
         } else if (deviceWiFi.getLevel()>=-80) {
-            Log.d("cfauli","YELLOW " + deviceWiFi.getLevel() + "dBm");
             ivIconLevel.setImageResource(R.drawable.ic_network_yellow);
         } else {
-            Log.d("cfauli","RED " + deviceWiFi.getLevel() + "dBm");
             ivIconLevel.setImageResource(R.drawable.ic_network_red);
         }
 
