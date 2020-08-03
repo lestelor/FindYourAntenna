@@ -282,7 +282,7 @@ class Tab1 : Fragment() {
                 button.setBackgroundResource(R.drawable.ic_switch_on_off_grey)
             }
         }
-        fillNetworkTextView(view)
+        //fillNetworkTextView(view)
         return view
     }
 
@@ -393,13 +393,22 @@ class Tab1 : Fragment() {
         if (Connectivity.isConnectedMobile(requireContext())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 pDevice = Connectivity.getpDevice(requireContext())
-                tvNetwork.text = pDevice.type + " " + calculateFreq(pDevice.type, pDevice.band) + "MHz id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
+                tvNetwork.text = pDevice.type + " " + calculateFreq(pDevice.type, pDevice.band) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
             } else {
                 TODO("VERSION.SDK_INT < P")
             }
         } else if (Connectivity.isConnectedWifi(requireContext()))  {
-            val listWifiParam = Connectivity.getWifiParam(requireContext())
-            tvNetwork.text = "WiFi" + listWifiParam[0]
+            val deviceWifi = Connectivity.getWifiParam(requireContext())
+            val freq = deviceWifi.centerFreq2
+            val channel: Int
+            channel = if (freq!! > 5000) {
+                (freq - 5180) / 5 + 36
+            } else {
+                (freq - 2412) / 5 + 1
+            }
+            tvNetwork.text = "WIFI " + deviceWifi.ssid + " ch: " + channel + " " + deviceWifi.centerFreq2 + "MHz " + deviceWifi.level + "dBm"
+
+
         }
     }
 

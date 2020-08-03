@@ -54,6 +54,7 @@
     <string name="MobileTxt">Mobile Network</string>
     <string name="Tower">"Tower "</string>
     <string name="Frequency">" frequency: "</string>
+    <string name="MobileDetected">No mobile network detected</string>
 
 
 </resources>

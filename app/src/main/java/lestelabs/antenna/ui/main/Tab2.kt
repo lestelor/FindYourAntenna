@@ -282,7 +282,9 @@ class Tab2 : Fragment() {
 
         tvMobile.text = getString(R.string.MobileTxt)
         tvLevel.text = pDevice.dbm.toString() + "dBm"
-        tvOperator.text = getString(R.string.Operator) + pDevice.mcc.toString() + "-" + pDevice.mnc.toString()
+        if (pDevice.mcc==0) {
+            tvOperator.text = getString(R.string.MobileDetected)
+        } else tvOperator.text = getString(R.string.Operator) + pDevice.mcc.toString() + "-" + pDevice.mnc.toString()
         tvLac.text = "lac: " + pDevice.lac.toString()
         tvId.text = "id: " + pDevice.cid.toString()
         tvNetwork.text = getString(R.string.Network)

@@ -15,11 +15,18 @@ public object Connectivity {
 
 
     @RequiresApi(Build.VERSION_CODES.M)
-    fun getWifiParam(context: Context): List<String?> {
+    fun getWifiParam(context: Context): DeviceWiFi {
+        val deviceWiFi: DeviceWiFi = DeviceWiFi()
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         var wifiInfo: WifiInfo? = null
         wifiInfo = wifiManager.connectionInfo
-        return arrayListOf(wifiInfo.ssid.toString(), wifiInfo.hiddenSSID.toString(), wifiInfo.rssi.toString(),wifiInfo.frequency.toString(),wifiInfo.ipAddress.toString(),wifiInfo.macAddress.toString())/*you will get SSID <unknown ssid> if location turned off*/
+        deviceWiFi.ssid = wifiInfo.ssid
+        deviceWiFi.level = wifiInfo.rssi
+        deviceWiFi.mac = wifiInfo.macAddress
+        val freq = wifiInfo.frequency
+        deviceWiFi.centerFreq2 = freq
+
+        return deviceWiFi
     }
 
     fun getNetworkInfo(context: Context): NetworkInfo? {
