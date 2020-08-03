@@ -52,6 +52,8 @@
     <string name="Network">"Network: "</string>
     <string name="Operator">"Operator (mcc-mnc): "</string>
     <string name="MobileTxt">Mobile Network</string>
+    <string name="Tower">"Tower "</string>
+    <string name="Frequency">" frequency: "</string>
 
 
 </resources>

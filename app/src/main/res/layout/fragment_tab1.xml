@@ -7,11 +7,12 @@
     android:orientation="vertical"
     tools:context=".ui.main.Tab1">
 <androidx.appcompat.widget.AppCompatTextView
-    android:id="@+id/tv_networkname"
+    android:id="@+id/tvTab1MobileNetworkType"
     android:text=""
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginStart="20dp"
+    android:layout_gravity="center_horizontal"
+    android:textColor="@color/cpb_blue"
     android:layout_marginTop="20dp" />
 
 

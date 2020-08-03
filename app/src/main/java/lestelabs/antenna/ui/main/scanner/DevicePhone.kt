@@ -9,7 +9,7 @@ class DevicePhone (
     var mcc: Int? = 0,
     var cid: Int? = 0,
     var dbm: Int? = 0,
-    var band:Int? =0,
+    var band:Int? = 0,
     var networkType: Int? = 0,
     var totalCellId : String = "",
     var lat: Double = 0.0,

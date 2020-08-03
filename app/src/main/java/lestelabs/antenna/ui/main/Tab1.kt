@@ -11,10 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.TextView
+import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.github.anastr.speedviewlib.SpeedView
@@ -29,6 +26,8 @@ import fr.bmartel.speedtest.utils.SpeedTestUtils
 import kotlinx.android.synthetic.main.fragment_tab1.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.Connectivity
+import lestelabs.antenna.ui.main.scanner.DevicePhone
+import lestelabs.antenna.ui.main.scanner.calculateFreq
 import kotlin.math.pow
 
 
@@ -73,7 +72,6 @@ class Tab1 : Fragment() {
         val tvDownload = view.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
         val tvUpload = view.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
         val tvLatency = view.findViewById<View>(R.id.tvLatency) as TextView
-        val tvNetType = view.findViewById<View>(R.id.tv_networkname) as TextView
         val speedometer = view.findViewById<SpeedView>(R.id.speedView)
         val button: Button = view.findViewById(R.id.btSpeedTest)
         val rbHttp = view.findViewById<View>(R.id.rbHttp) as RadioButton
@@ -222,7 +220,7 @@ class Tab1 : Fragment() {
         StrictMode.setThreadPolicy(policy)
 
         button.setOnClickListener {
-            tvNetType.text=setNetworkType(requireContext()).toString()
+            fillNetworkTextView(requireView())
             if (speedTestRunningStep==0) {
                 tvDownload.text="-"
                 tvUpload.text="-"
@@ -284,7 +282,7 @@ class Tab1 : Fragment() {
                 button.setBackgroundResource(R.drawable.ic_switch_on_off_grey)
             }
         }
-        tvNetType.text=setNetworkType(requireContext()).toString()
+        fillNetworkTextView(view)
         return view
     }
 
@@ -373,15 +371,36 @@ class Tab1 : Fragment() {
         return timeofping.average().toLong()/2
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    /*@RequiresApi(Build.VERSION_CODES.M)
     fun setNetworkType(context:Context):List<Any?> {
         var type:String = ""
      if (Connectivity.isConnectedWifi(context)){
-         type = Connectivity.getSsid(context).toString()
+         type = Connectivity.getWifiParam(context).toString()
      } else if (Connectivity.isConnected(context)) {
          type = listOf(Connectivity.connectionType(Connectivity.networkType(context), Connectivity.networkSubtype(context)).toString()).toString()
      } else type =""
         return listOf(type)
+    }*/
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun fillNetworkTextView(view: View) {
+        /// fill the mobile layout --------------------------------------------
+        // Lookup view for data population
+        Log.d("cfauli", "fillMobileTextView")
+        val tvNetwork = view.findViewById<View>(R.id.tvTab1MobileNetworkType) as TextView
+        var pDevice: DevicePhone = DevicePhone()
+
+        if (Connectivity.isConnectedMobile(requireContext())) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                pDevice = Connectivity.getpDevice(requireContext())
+                tvNetwork.text = pDevice.type + " " + calculateFreq(pDevice.type, pDevice.band) + "MHz id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
+            } else {
+                TODO("VERSION.SDK_INT < P")
+            }
+        } else if (Connectivity.isConnectedWifi(requireContext()))  {
+            val listWifiParam = Connectivity.getWifiParam(requireContext())
+            tvNetwork.text = "WiFi" + listWifiParam[0]
+        }
     }
 
 }

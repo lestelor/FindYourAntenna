@@ -67,6 +67,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.mnc = identityCdma.systemId
                 pDevicePhone.lac = identityCdma.networkId
                 pDevicePhone.operator=identityCdma.operatorAlphaShort.toString()
+
             } else if (info is CellInfoLte) {
                 pDevicePhone.type = "LTE"
                 val lte =
@@ -78,7 +79,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.mnc = identityLte.mncString.toInt()
                 pDevicePhone.lac = identityLte.tac
                 pDevicePhone.cid = identityLte.ci
-                pDevicePhone.band = identityLte.bandwidth
+                pDevicePhone.band = identityLte.earfcn
                 pDevicePhone.operator = identityLte.mobileNetworkOperator
 
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && info is CellInfoNr) {

@@ -54,7 +54,7 @@ class Tab2 : Fragment() {
 
         super.onCreate(savedInstanceState)
 
-
+        Log.d("cfauli", "OnCreate Tab2")
         if (arguments != null) {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
@@ -78,7 +78,7 @@ class Tab2 : Fragment() {
         val wifiScanReceiver: BroadcastReceiver
 
         val view: View = inflater.inflate(R.layout.fragment_tab2, container, false)
-
+        Log.d("cfauli", "OnCreateView Tab2")
         // Adds -------------------------------------------------------------------------------------
         mAdView = view.findViewById(R.id.adViewFragment2)
         MobileAds.initialize(requireActivity())
@@ -112,6 +112,8 @@ class Tab2 : Fragment() {
             }
         }
         // fill the mobile list every mintime secs
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
         startMobileScanner(view)
 
         /// fill the wifi list --------------------------------------------
@@ -171,6 +173,7 @@ class Tab2 : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        Log.d("cfauli", "OnAttach Tab2")
         mListener = if (context is OnFragmentInteractionListener) {
             context
         } else {
@@ -225,16 +228,16 @@ class Tab2 : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    /*@RequiresApi(Build.VERSION_CODES.M)
     fun setNetworkType(context:Context):List<Any?> {
         var type:String = ""
         if (Connectivity.isConnectedWifi(context)){
-            type = Connectivity.getSsid(context).toString()
+            type = Connectivity.getWifiParam(context).toString()
         } else if (Connectivity.isConnected(context)) {
             type = listOf(Connectivity.connectionType(Connectivity.networkType(context), Connectivity.networkSubtype(context)).toString()).toString()
         } else type =""
         return listOf(type)
-    }
+    }*/
 
     fun startMobileScanner(view:View) {
         if (!clockTimerHanlerActive) {
@@ -283,13 +286,13 @@ class Tab2 : Fragment() {
         tvLac.text = "lac: " + pDevice.lac.toString()
         tvId.text = "id: " + pDevice.cid.toString()
         tvNetwork.text = getString(R.string.Network)
-        tvNetworkType.text = pDevice.type
+        tvNetworkType.text = pDevice.type + " " + calculateFreq(pDevice.type,pDevice.band) + " MHz"
 
         if (totalCidAnt != pDevice.totalCellId) {
             val openCellIdInterface = retrofitFactory()
             findTower(openCellIdInterface, pDevice)
             { coordenadas ->
-                tvLat.text = "lat: " + "%.4f".format(coordenadas.lat)
+                tvLat.text = getString(R.string.Tower) + "lat: " + "%.4f".format(coordenadas.lat)
                 tvLon.text = "lon: " + "%.4f".format(coordenadas.lon)
             }
             totalCidAnt = pDevice.totalCellId
