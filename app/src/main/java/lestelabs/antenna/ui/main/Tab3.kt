@@ -47,9 +47,9 @@ import java.time.LocalDateTime
 /**
  * A simple [Fragment] subclass.
  * Activities that contain this fragment must implement the
- * [Tab2.OnFragmentInteractionListener] interface
+ * [Tab3.OnFragmentInteractionListener] interface
  * to handle interaction events.
- * Use the [Tab2.newInstance] factory method to
+ * Use the [Tab3.newInstance] factory method to
  * create an instance of this fragment.
  */
 
@@ -60,7 +60,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
     private var mParam1: String? = null
     private var mParam2: String? = null
-    private var mListener: OnFragmentInteractionListener? = null
+    //private var mListener: Tab3.OnFragmentInteractionListener? = null
     private var location:Location? = null
     private lateinit var mAdView : AdView
     private var gpsActive = false
@@ -101,10 +101,19 @@ class Tab3 : Fragment() , OnMapReadyCallback {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
-        Log.d("cfauli","OnCreate")
+        Log.d("cfauli","OnCreate Tab3")
         readInitialConfiguration()
     }
-
+    override fun onStart() {
+        // call the superclass method first
+        super.onStart()
+        Log.d("cfauli","OnStart Tab3")
+    }
+    override fun onStop() {
+        // call the superclass method first
+        super.onStop()
+        Log.d("cfauli","OnStop Tab3")
+    }
 
 
     // Called at the end of the active lifetime.
@@ -115,7 +124,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         // Persist all edits or state changes
         // as after this call the process is likely to be killed.
         super.onPause()
-        Log.d("cfauli","OnPause")
+        Log.d("cfauli","OnPause Tab3")
         endGPS()
     }
 
@@ -129,41 +138,48 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
-        Log.d("cfauli","OnCreateView")
+        Log.d("cfauli","OnCreateView Tab3")
         return fragmentView
 
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri?) {
-        if (mListener != null) {
-            mListener!!.onFragmentInteraction(uri)
-        }
-    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        mListener = if (context is OnFragmentInteractionListener) {
+        Log.d("cfauli","OnAtach Tab3")
+        /*mListener = if (context is Tab3.OnFragmentInteractionListener) {
             context
         } else {
             throw RuntimeException(
                 context.toString()
                         + " must implement OnFragmentInteractionListener"
             )
-        }
+        }*/
         try {
            listener = activity as GetfileState
             // listener.showFormula(show?);
         } catch (castException: ClassCastException) {
             /** The activity does not implement the listener.  */
         }
-        Log.d("cfauli","OnAtach")
+
     }
 
     override fun onDetach() {
         super.onDetach()
-        mListener = null
-        Log.d("cfauli","OnDetach")
+        listener = null
+        Log.d("cfauli","OnDetach Tab3")
+    }
+
+
+
+    override fun onResume() {
+        super.onResume()
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
+        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        Log.d("cfauli","OnResume tab3")
+        if (!firstOnResume) startGPS()
+        firstOnResume = false
     }
 
     /**
@@ -179,17 +195,6 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         // TODO: Update argument type and name
         fun onFragmentInteraction(uri: Uri?)
 
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
-        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
-        Log.d("cfauli","OnResume")
-        if (!firstOnResume) startGPS()
-        firstOnResume = false
     }
 
 
@@ -379,11 +384,11 @@ class Tab3 : Fragment() , OnMapReadyCallback {
          *
          * @param param1 Parameter 1.
          * @param param2 Parameter 2.
-         * @return A new instance of fragment Tab2.
+         * @return A new instance of fragment Tab3.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(param1: String?, param2: String?): Tab2 {
-            val fragment = Tab2()
+        fun newInstance(param1: String?, param2: String?): Tab3 {
+            val fragment = Tab3()
             val args = Bundle()
             args.putString(ARG_PARAM1, param1)
             args.putString(ARG_PARAM2, param2)
@@ -423,7 +428,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                 }
             }
             // Save samples in file
-            if (listener?.getFileState()!! && okSaveSamples == 1)  {
+            if (listener?.getFileState()?.get(0)  == 1 && okSaveSamples == 1)  {
                 if (!isFileOpened) {
 
                     //create file
@@ -444,7 +449,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                 }
                 Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
                 File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.operator.toString() + ";" + pDevice.band.toString() + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude) + ";" +  pDevice.dbm)
-            } else if (!listener?.getFileState()!! && isFileOpened) {
+            } else if (listener?.getFileState()?.get(0)  == 0 && isFileOpened) {
                 isFileOpened = false
             }
 
@@ -512,6 +517,6 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
 
 
-interface FetchCompleteListener {
+/*interface FetchCompleteListener {
 
-}
+}*/

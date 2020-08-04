@@ -20,11 +20,7 @@
             android:background="?attr/colorPrimaryDark"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary" />
+
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -33,7 +29,13 @@
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary" />
+</androidx.viewpager.widget.ViewPager>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

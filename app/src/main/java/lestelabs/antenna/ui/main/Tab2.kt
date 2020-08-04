@@ -31,7 +31,7 @@ import lestelabs.antenna.ui.main.scanner.*
 /**
  * A simple [Fragment] subclass.
  * Activities that contain this fragment must implement the
- * [Tab1.OnFragmentInteractionListener] interface
+ * [Tab2.OnFragmentInteractionListener] interface
  * to handle interaction events.
  * Use the [Tab1.newInstance] factory method to
  * create an instance of this fragment.
@@ -40,7 +40,7 @@ class Tab2 : Fragment() {
     // TODO: Rename and change types of parameters
     private var mParam1: String? = null
     private var mParam2: String? = null
-    private var mListener: OnFragmentInteractionListener? = null
+    //private var mListener: Tab2.OnFragmentInteractionListener? = null
     lateinit var mAdView : AdView
     private var firstOnResume = true
     private var minTime:Long = 1000
@@ -48,12 +48,13 @@ class Tab2 : Fragment() {
     var clockTimerHanlerActive = false
     private lateinit var mHandlerTask: Runnable
     private var totalCidAnt = ""
+    private var listener: GetfileState? = null
+    private lateinit var fragmentView: View
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-
         Log.d("cfauli", "OnCreate Tab2")
         if (arguments != null) {
             mParam1 = requireArguments().getString(ARG_PARAM1)
@@ -64,7 +65,17 @@ class Tab2 : Fragment() {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    override fun onStart() {
+        // call the superclass method first
+        super.onStart()
+        Log.d("cfauli","OnStart Tab2")
+    }
+    override fun onStop() {
+        // call the superclass method first
+        super.onStop()
+        Log.d("cfauli","OnStop Tab2")
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -77,10 +88,10 @@ class Tab2 : Fragment() {
         val wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiScanReceiver: BroadcastReceiver
 
-        val view: View = inflater.inflate(R.layout.fragment_tab2, container, false)
+        fragmentView= inflater.inflate(R.layout.fragment_tab2, container, false)
         Log.d("cfauli", "OnCreateView Tab2")
         // Adds -------------------------------------------------------------------------------------
-        mAdView = view.findViewById(R.id.adViewFragment2)
+        mAdView = fragmentView.findViewById(R.id.adViewFragment2)
         MobileAds.initialize(requireActivity())
         val adRequest = AdRequest.Builder().build()
         mAdView.loadAd(adRequest)
@@ -114,7 +125,7 @@ class Tab2 : Fragment() {
         // fill the mobile list every mintime secs
         val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
-        startMobileScanner(view)
+        startMobileScanner(fragmentView)
 
         /// fill the wifi list --------------------------------------------
         // Construct the data source
@@ -122,7 +133,7 @@ class Tab2 : Fragment() {
         // Create the adapter to convert the array to views
         var adapter = WifiAdapter(activity, arrayOfWifis)
         // Attach the adapter to a ListView
-        val listView = view.findViewById(R.id.wifiList) as ListView
+        val listView = fragmentView.findViewById(R.id.wifiList) as ListView
         listView.adapter = adapter
 
         scanWifi.scanwifi(requireActivity(), wifiManager) {
@@ -144,19 +155,12 @@ class Tab2 : Fragment() {
 
 
 
-        return view
+        return fragmentView
     }
 
 
 
-    override fun onResume() {
-        super.onResume()
-        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
-        Log.d("cfauli","OnResume Tab2 " + firstOnResume)
-        if (!firstOnResume) startMobileScanner(requireView())
-        firstOnResume = false
-    }
+
 
     override fun onPause() {
         super.onPause()
@@ -164,69 +168,45 @@ class Tab2 : Fragment() {
         clockTimerHanlerActive = false
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri?) {
-        if (mListener != null) {
-            mListener!!.onFragmentInteraction(uri)
-        }
-    }
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         Log.d("cfauli", "OnAttach Tab2")
-        mListener = if (context is OnFragmentInteractionListener) {
+        /*mListener = if (context is Tab2.OnFragmentInteractionListener) {
             context
         } else {
             throw RuntimeException(
                 context.toString()
                         + " must implement OnFragmentInteractionListener"
             )
+        }*/
+        try {
+            listener = activity as GetfileState
+            // listener.showFormula(show?);
+        } catch (castException: ClassCastException) {
+            /** The activity does not implement the listener.  */
         }
     }
 
     override fun onDetach() {
         super.onDetach()
-        mListener = null
+        listener = null
+        Log.d ("cfauli", "OnDetach TAB2")
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     *
-     *
-     * See the Android Training lesson [Communicating with Other Fragments](http://developer.android.com/training/basics/fragments/communicating.html) for more information.
-     */
-    interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        fun onFragmentInteraction(uri: Uri?)
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("cfauli","OnResume Tab2 " + firstOnResume)
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        Log.d("cfauli","OnResume Tab2 " + firstOnResume)
+        if (!firstOnResume) startMobileScanner(requireView())
+        firstOnResume = false
     }
 
-    companion object {
-        // TODO: Rename parameter arguments, choose names that match
-        // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-        private const val ARG_PARAM1 = "param1"
-        private const val ARG_PARAM2 = "param2"
 
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment Tab1.
-         */
-        // TODO: Rename and change types and number of parameters
-        fun newInstance(param1: String?, param2: String?): Tab2 {
-            val fragment = Tab2()
-            val args = Bundle()
-            args.putString(ARG_PARAM1, param1)
-            args.putString(ARG_PARAM2, param2)
-            fragment.arguments = args
-            return fragment
-        }
-    }
 
     /*@RequiresApi(Build.VERSION_CODES.M)
     fun setNetworkType(context:Context):List<Any?> {
@@ -312,6 +292,38 @@ class Tab2 : Fragment() {
 
 
     }
+
+    /*interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        fun onFragmentInteraction(uri: Uri?)
+    }*/
+
+    companion object {
+        // TODO: Rename parameter arguments, choose names that match
+        // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+        private const val ARG_PARAM1 = "param1"
+        private const val ARG_PARAM2 = "param2"
+
+
+        /**
+         * Use this factory method to create a new instance of
+         * this fragment using the provided parameters.
+         *
+         * @param param1 Parameter 1.
+         * @param param2 Parameter 2.
+         * @return A new instance of fragment Tab2.
+         */
+        // TODO: Rename and change types and number of parameters
+        fun newInstance(param1: String?, param2: String?): Tab2 {
+            val fragment = Tab2()
+            val args = Bundle()
+            args.putString(ARG_PARAM1, param1)
+            args.putString(ARG_PARAM2, param2)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
 
 }
 

@@ -23,7 +23,6 @@ import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
 import fr.bmartel.speedtest.utils.SpeedTestUtils
-import kotlinx.android.synthetic.main.fragment_tab1.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.Connectivity
 import lestelabs.antenna.ui.main.scanner.DevicePhone
@@ -43,16 +42,18 @@ class Tab1 : Fragment() {
     // TODO: Rename and change types of parameters
     private var mParam1: String? = null
     private var mParam2: String? = null
-    private var mListener: OnFragmentInteractionListener? = null
+    //private var mListener: Tab1.OnFragmentInteractionListener? = null
     private val speedTestSocket = SpeedTestSocket()
     private var internetSpeedDownload: Float = 0.0f
     private var internetSpeedUpload: Float = 0.0f
     private var speedTestRunningStep = 0
     lateinit var mAdView : AdView
+    private lateinit var fragmentView: View
+    private var listener: GetfileState? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        Log.d ("cfauli", "OnCreate TAB1")
 
         if (arguments != null) {
             mParam1 = requireArguments().getString(ARG_PARAM1)
@@ -61,27 +62,48 @@ class Tab1 : Fragment() {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    override fun onStart() {
+        // call the superclass method first
+        super.onStart()
+        Log.d("cfauli","OnStart Tab1")
+    }
+    override fun onStop() {
+        // call the superclass method first
+        super.onStop()
+        Log.d("cfauli","OnStop Tab1")
+    }
+    override fun onPause() {
+        // Suspend UI updates, threads, or CPU intensive processes
+        // that don't need to be updated when the Activity isn't
+        // the active foreground activity.
+        // Persist all edits or state changes
+        // as after this call the process is likely to be killed.
+        super.onPause()
+        Log.d("cfauli","OnPause Tab1")
+    }
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        Log.d ("cfauli", "OnCreateView TAB1")
         // Inflate view
-        val view: View = inflater.inflate(R.layout.fragment_tab1, container, false)
+        fragmentView = inflater.inflate(R.layout.fragment_tab1, container, false)
         // layout widgets
-        val tvDownload = view.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
-        val tvUpload = view.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
-        val tvLatency = view.findViewById<View>(R.id.tvLatency) as TextView
-        val speedometer = view.findViewById<SpeedView>(R.id.speedView)
-        val button: Button = view.findViewById(R.id.btSpeedTest)
-        val rbHttp = view.findViewById<View>(R.id.rbHttp) as RadioButton
-        val rbBittorrent = view.findViewById<View>(R.id.rbBittorrent) as RadioButton
-        val rbFtp = view.findViewById<View>(R.id.rbFtp) as RadioButton
-        val rb1MB = view.findViewById<View>(R.id.rb1MB) as RadioButton
-        val rb10MB = view.findViewById<View>(R.id.rb10MB) as RadioButton
-        val rb100MB = view.findViewById<View>(R.id.rb100MB) as RadioButton
-        val radioGroupType = view.findViewById(R.id.rgType) as RadioGroup
-        val radioGroupFile = view.findViewById(R.id.rgFile) as RadioGroup
+        val tvDownload = fragmentView.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
+        val tvUpload = fragmentView.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
+        val tvLatency = fragmentView.findViewById<View>(R.id.tvLatency) as TextView
+        val speedometer = fragmentView.findViewById<SpeedView>(R.id.speedView)
+        val button: Button = fragmentView.findViewById(R.id.btSpeedTest)
+        val rbHttp = fragmentView.findViewById<View>(R.id.rbHttp) as RadioButton
+        val rbBittorrent = fragmentView.findViewById<View>(R.id.rbBittorrent) as RadioButton
+        val rbFtp = fragmentView.findViewById<View>(R.id.rbFtp) as RadioButton
+        val rb1MB = fragmentView.findViewById<View>(R.id.rb1MB) as RadioButton
+        val rb10MB = fragmentView.findViewById<View>(R.id.rb10MB) as RadioButton
+        val rb100MB = fragmentView.findViewById<View>(R.id.rb100MB) as RadioButton
+        val radioGroupType = fragmentView.findViewById(R.id.rgType) as RadioGroup
+        val radioGroupFile = fragmentView.findViewById(R.id.rgFile) as RadioGroup
 
         //Read shared preferences for speedtest
         val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
@@ -164,7 +186,7 @@ class Tab1 : Fragment() {
         }
 
         // Admod
-        mAdView = view.findViewById(R.id.adViewFragment1)
+        mAdView = fragmentView.findViewById(R.id.adViewFragment1)
         val adView = AdView(requireActivity())
 
         MobileAds.initialize(requireActivity())
@@ -220,7 +242,9 @@ class Tab1 : Fragment() {
         StrictMode.setThreadPolicy(policy)
 
         button.setOnClickListener {
-            fillNetworkTextView(requireView())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                fillNetworkTextView(requireView())
+            }
             if (speedTestRunningStep==0) {
                 tvDownload.text="-"
                 tvUpload.text="-"
@@ -283,33 +307,41 @@ class Tab1 : Fragment() {
             }
         }
         //fillNetworkTextView(view)
-        return view
+        return fragmentView
     }
 
 
-
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri?) {
-        if (mListener != null) {
-            mListener!!.onFragmentInteraction(uri)
-        }
-    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        mListener = if (context is OnFragmentInteractionListener) {
+        Log.d ("cfauli", "OnAttach TAB1")
+        /*mListener = if (context is Tab1.OnFragmentInteractionListener) {
             context
         } else {
             throw RuntimeException(
                 context.toString()
                         + " must implement OnFragmentInteractionListener"
             )
+        }*/
+        try {
+            listener = activity as GetfileState
+            // listener.showFormula(show?);
+        } catch (castException: ClassCastException) {
+            /** The activity does not implement the listener.  */
         }
+
     }
 
     override fun onDetach() {
         super.onDetach()
-        mListener = null
+        Log.d ("cfauli", "OnDetach TAB1")
+        listener = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("cfauli","OnResume tab1")
+
     }
 
     /**
@@ -321,10 +353,10 @@ class Tab1 : Fragment() {
      *
      * See the Android Training lesson [Communicating with Other Fragments](http://developer.android.com/training/basics/fragments/communicating.html) for more information.
      */
-    interface OnFragmentInteractionListener {
+    /*interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         fun onFragmentInteraction(uri: Uri?)
-    }
+    }*/
 
     companion object {
         // TODO: Rename parameter arguments, choose names that match

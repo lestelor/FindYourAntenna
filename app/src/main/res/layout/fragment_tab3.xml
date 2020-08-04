@@ -16,7 +16,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:keepScreenOn="true"
-        tools:context=".ui.main.Tab2">
+        >
     </androidx.fragment.app.FragmentContainerView>
 
 

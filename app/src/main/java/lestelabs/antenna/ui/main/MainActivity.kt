@@ -31,15 +31,17 @@ import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
 
 interface GetfileState {
-    fun getFileState():Boolean
+    fun getFileState():List<Int>
 }
 
-class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, Tab1.OnFragmentInteractionListener, Tab2.OnFragmentInteractionListener, Tab3.OnFragmentInteractionListener , FetchCompleteListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
+
+class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var drawerLayout: View? = null
-    private var getFileStateButtonPressed: Boolean = false
+    private var getFileStateButtonPressed: Int = 0
     private lateinit var toggle: ActionBarDrawerToggle
+    private var tabSelectedInt: Int = -1
 
 
 
@@ -102,6 +104,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
         val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
         viewPager.adapter = adapter
         viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
+        viewPager.offscreenPageLimit = 2
 
         tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
         tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
@@ -110,7 +113,9 @@ override fun onCreate(savedInstanceState: Bundle?) {
         tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 fab.isInvisible = tab.position == 0 || tab.position ==1
+                tabSelectedInt = tab.position
                 viewPager.currentItem = tab.position
+                tab.select()
 
                 Log.d("cfauli", "TAB" + tab.position)
             }
@@ -122,9 +127,9 @@ override fun onCreate(savedInstanceState: Bundle?) {
 }
 
 
-    override fun onFragmentInteraction(uri: Uri?) {
+    /*override fun onFragmentInteraction(uri: Uri?) {
     //TODO("Not yet implemented")
-    }
+    }*/
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main, menu)
@@ -149,17 +154,19 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
     fun changebutton(view:View) {
         fab.setBackgroundColor(resources.getColor(R.color.black));
-        if (getFileStateButtonPressed) {
+        if (getFileStateButtonPressed == 1) {
 
             fab.setImageResource(R.drawable.ic_diskette)
             fab.setBackgroundColor(resources.getColor(R.color.colorPrimary))
-
+            getFileStateButtonPressed = 0 // reverse
         } else {
             fab.setImageResource(R.drawable.ic_stop)
             fab.setBackgroundColor(resources.getColor(R.color.black))
+            getFileStateButtonPressed = 1 // reverse
         }
-        getFileStateButtonPressed = !getFileStateButtonPressed // reverse
+
     }
+
 
     companion object {
         const val PERMISSION_REQUEST_CODE = 1
@@ -202,8 +209,11 @@ override fun onCreate(savedInstanceState: Bundle?) {
         return true
     }
 
-    override fun getFileState():Boolean {
-        return getFileStateButtonPressed
+    override fun getFileState():List<Int> {
+        val outputListener: MutableList<Int> = mutableListOf(0,0)
+        outputListener[0] = getFileStateButtonPressed
+        outputListener[1] = tabSelectedInt
+        return outputListener
     }
 
     override fun onBackStackChanged() {
@@ -216,6 +226,11 @@ override fun onCreate(savedInstanceState: Bundle?) {
             finishAffinity()
         }
     }
+
+    /*override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
+        tabLayout.setupWithViewPager(view_pager)
+    }*/
 }
 
 

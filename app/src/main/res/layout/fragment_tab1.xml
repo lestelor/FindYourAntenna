@@ -4,8 +4,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#7fffad42"
-    android:orientation="vertical"
-    tools:context=".ui.main.Tab1">
+    android:orientation="vertical">
 <androidx.appcompat.widget.AppCompatTextView
     android:id="@+id/tvTab1MobileNetworkType"
     android:text=""
