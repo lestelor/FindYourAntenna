@@ -486,7 +486,9 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     fun startGPS() {
+        Log.d("cfauli", "startGPS locationmanager gpsactive " + gpsActive)
         if (!gpsActive) {
+
             locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 if (ActivityCompat.checkSelfPermission(requireActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -505,6 +507,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     fun endGPS() {
+        Log.d("cfauli", "stopGPS locationmanager gpsactive " + gpsActive)
         try {
             locationManager.removeUpdates(myLocListener)
         } catch (e: Exception) {

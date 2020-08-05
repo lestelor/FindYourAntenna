@@ -50,6 +50,7 @@ class Tab2 : Fragment() {
     private var totalCidAnt = ""
     private var listener: GetfileState? = null
     private lateinit var fragmentView: View
+    private lateinit var wifiManager: WifiManager
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +86,7 @@ class Tab2 : Fragment() {
         val arrayList: ArrayList<String> = ArrayList()
 
         //val listView: ListView = view.findViewById<View>((R.id.wifiList)) as ListView
-        val wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiScanReceiver: BroadcastReceiver
 
         fragmentView= inflater.inflate(R.layout.fragment_tab2, container, false)
@@ -164,7 +165,9 @@ class Tab2 : Fragment() {
 
     override fun onPause() {
         super.onPause()
+        Log.d("cfauli", "OnPause TAB2")
         mHandler.removeCallbacks(mHandlerTask)
+        wifiManager.disconnect()
         clockTimerHanlerActive = false
     }
 
@@ -201,7 +204,7 @@ class Tab2 : Fragment() {
         Log.d("cfauli","OnResume Tab2 " + firstOnResume)
         val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
-        Log.d("cfauli","OnResume Tab2 " + firstOnResume)
+        // firstOnResume = true if activity is destroyed (back) and goes trough a oncreateview, in order not to repeat the scanners
         if (!firstOnResume) startMobileScanner(requireView())
         firstOnResume = false
     }

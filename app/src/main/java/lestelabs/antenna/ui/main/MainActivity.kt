@@ -1,11 +1,9 @@
 package lestelabs.antenna.ui.main
 
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-
-
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -104,6 +102,12 @@ override fun onCreate(savedInstanceState: Bundle?) {
         val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
         viewPager.adapter = adapter
         viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
+        // Define the number of adjacent TABs that are preloaded. Cannot be set to 0.
+        // Lifecycle:
+        // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
+        // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
+        // Home -> OnPause/OnStop -> OnStart/OnResume
+
         viewPager.offscreenPageLimit = 2
 
         tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
@@ -223,7 +227,12 @@ override fun onCreate(savedInstanceState: Bundle?) {
         val drawer = findViewById<View>(R.id.drawer_layout) as DrawerLayout
         if (drawer.isDrawerOpen(GravityCompat.START)) drawer.closeDrawer(GravityCompat.START)
         else {
-            finishAffinity()
+            //finishAffinity() // back
+            // Implement back as home so as no to trigger oncreateview which would leak memory
+            val startMain = Intent(Intent.ACTION_MAIN)
+            startMain.addCategory(Intent.CATEGORY_HOME)
+            startMain.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(startMain)
         }
     }
 
