@@ -39,6 +39,7 @@ import lestelabs.antenna.ui.main.rest.Coordenadas
 import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
+import lestelabs.antenna.ui.main.scanner.calculateFreq
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import java.io.File
 import java.time.LocalDateTime
@@ -89,7 +90,12 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private var okSaveSamples: Int? = null
     private var previousTower: String? = null
     private var listener: GetfileState? = null
-    private var isFileOpened: Boolean = false
+    private var isFileSamplesOpened: Boolean = false
+    private var isFileTowersCreated: Boolean = false
+
+    val fileTowers = "towers.txt"
+
+    
     private var sampleFilePath: File? = null
     var myLocListener:MyLocationListener = MyLocationListener()
 
@@ -416,9 +422,28 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                 sameTowerBool = false
             }
 
-            Log.d("cfauli", "TowerinListInt " + towerinListInt.toString())
 
-            if (!sameTowerBool){
+
+            // Create towers file
+            val storageDir = getStorageDir()
+            val storageDirTowers = File(storageDir)
+            if (!storageDirTowers.exists()) {
+                storageDirTowers.mkdirs()
+            }
+            val towersFilePath = File(storageDirTowers, fileTowers)
+            if (!towersFilePath.exists()) {
+                File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon;")
+            }
+            if (!isFileTowersCreated) {
+                File(towersFilePath.toString()).appendText(
+                    "\n" + LocalDateTime.now() +";" + pDevice.mcc +
+                            ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
+                            ";" + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude))
+                isFileTowersCreated = true
+            }
+
+
+            if (!sameTowerBool) {
                 findTower(openCellIdInterface, pDevice)
                 { coordenadas ->
                     pDevice.lat = coordenadas.lat!!
@@ -426,14 +451,32 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                     locateTowerMap(location, coordenadas)
 
                 }
+
+                // Save towers in file
+                Log.d("cfauli", "Save towers file filestate " + listener?.getFileState()?.get(0) + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
+                if (listener?.getFileState()?.get(0) == 1 && okSaveTowers == 1) {
+                    Log.d("cfauli", "Save tower file opened: " + isFileTowersCreated)
+                     if (isFileTowersCreated) {
+                        File(towersFilePath.toString()).appendText(
+                            "\n" + LocalDateTime.now() +";" + pDevice.mcc +
+                                    ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
+                                    ";" + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude)
+                        )
+                    }
+
+                }
             }
+
+
             // Save samples in file
+            Log.d ("cfauli", "Save file filestate " + listener?.getFileState()?.get(0) + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
             if (listener?.getFileState()?.get(0)  == 1 && okSaveSamples == 1)  {
-                if (!isFileOpened) {
+                Log.d ("cfauli", "Save file opened: " + isFileSamplesOpened)
+                if (!isFileSamplesOpened) {
 
                     //create file
                     val sampleFile = "samples_" + LocalDateTime.now() + ".txt"
-                    val storageDir=getStorageDir()
+
 
                     Log.d("cfauli", "File first created" + LocalDateTime.now())
                     val storageDirFile = File(storageDir)
@@ -441,16 +484,22 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                         storageDirFile.mkdirs()
                     }
                     sampleFilePath = File(storageDirFile, sampleFile)
-                    File(sampleFilePath.toString()).writeText("time;operator;band;mcc;mnc;cid;lat;lon")
-                    File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() +";" + pDevice.operator.toString() + ";" + pDevice.band.toString() + ";" + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude)  + ";" +  pDevice.dbm)
+                    File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;ferquency;dBm;lat;lon")
+                    File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.mcc  +
+                            ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
+                            ";" + calculateFreq(pDevice.type,pDevice.band) + ";" + pDevice.dbm + ";"
+                            + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude))
                     Log.d("cfauli", sampleFilePath.toString())
-                    isFileOpened = true
+                    isFileSamplesOpened = true
 
                 }
                 Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
-                File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.operator.toString() + ";" + pDevice.band.toString() + pDevice.mcc.toString() + ";" + pDevice.mnc.toString() + ";" + pDevice.cid.toString() + ";" + "%.4f".format(location.latitude) +  ";" + "%.4f".format(location.longitude) + ";" +  pDevice.dbm)
-            } else if (listener?.getFileState()?.get(0)  == 0 && isFileOpened) {
-                isFileOpened = false
+                File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.mcc  +
+                        ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
+                        ";" + calculateFreq(pDevice.type,pDevice.band) + ";" + pDevice.dbm + ";"
+                        + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude))
+            } else if (listener?.getFileState()?.get(0)  == 0 && isFileSamplesOpened) {
+                isFileSamplesOpened = false
             }
 
         }

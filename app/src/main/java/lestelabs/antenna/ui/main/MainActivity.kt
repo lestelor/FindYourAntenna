@@ -107,6 +107,9 @@ override fun onCreate(savedInstanceState: Bundle?) {
         // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
         // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
         // Home -> OnPause/OnStop -> OnStart/OnResume
+        // Since Back is implementd as home button, the oncreateview is only trigered once.
+        // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
+        // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
 
         viewPager.offscreenPageLimit = 2
 
