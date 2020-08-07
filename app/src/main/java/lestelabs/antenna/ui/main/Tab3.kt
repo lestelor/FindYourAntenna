@@ -34,6 +34,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.android.synthetic.main.activity_pop_up_settings.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.rest.Coordenadas
 import lestelabs.antenna.ui.main.rest.findTower
@@ -86,8 +87,8 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private var requestingLocationUpdates = true
     private var minDist: Float? = null
     private var minTime:Long? = null
-    private var okSaveTowers:Int? = null
-    private var okSaveSamples: Int? = null
+    private var okSaveTowers:Boolean? = null
+    private var okSaveSamples: Boolean? = null
     private var previousTower: String? = null
     private var listener: GetfileState? = null
     private var isFileSamplesOpened: Boolean = false
@@ -432,7 +433,8 @@ class Tab3 : Fragment() , OnMapReadyCallback {
             }
             val towersFilePath = File(storageDirTowers, fileTowers)
             if (!towersFilePath.exists()) {
-                File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon;")
+                Log.d("cfauli towersfilepath " , towersFilePath.toString())
+                File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon")
             }
             if (!isFileTowersCreated) {
                 File(towersFilePath.toString()).appendText(
@@ -454,7 +456,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
                 // Save towers in file
                 Log.d("cfauli", "Save towers file filestate " + listener?.getFileState()?.get(0) + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
-                if (listener?.getFileState()?.get(0) == 1 && okSaveTowers == 1) {
+                if (listener?.getFileState()?.get(0) == 1 && okSaveTowers == true) {
                     Log.d("cfauli", "Save tower file opened: " + isFileTowersCreated)
                      if (isFileTowersCreated) {
                         File(towersFilePath.toString()).appendText(
@@ -470,7 +472,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
             // Save samples in file
             Log.d ("cfauli", "Save file filestate " + listener?.getFileState()?.get(0) + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
-            if (listener?.getFileState()?.get(0)  == 1 && okSaveSamples == 1)  {
+            if (listener?.getFileState()?.get(0)  == 1 && okSaveSamples == true)  {
                 Log.d ("cfauli", "Save file opened: " + isFileSamplesOpened)
                 if (!isFileSamplesOpened) {
 
@@ -521,8 +523,9 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong()* 1000
-        okSaveTowers = sharedPreferences.getInt("ok_save_towers",getString(R.string.oksavetowers).toInt())
-        okSaveSamples = sharedPreferences.getInt("ok_save_samples",getString(R.string.oksavesamples).toInt())
+        okSaveSamples = sharedPreferences.getBoolean("chkBoxSamples",true)
+        okSaveTowers = sharedPreferences.getBoolean("chkBoxTowers",true)
+
     }
     // The sdcard directory is equal to the partition storage/emulated/0 which corresponds to the public external storage
     // See https://imnotyourson.com/which-storage-directory-should-i-use-for-storing-on-android-6/
@@ -530,8 +533,10 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     // The pictures are in storage/emulated/0/Android/data/edu.uoc.android/files/Pictures/UOCImageAPP/
     // To save in other location needs to be analyzed if package_paths is to be used.
 
-    private fun getStorageDir(): String {
-        return requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
+    private fun getStorageDir(): String? {
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+
+        return sharedPreferences.getString("popFolder", requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString())
     }
 
     fun startGPS() {

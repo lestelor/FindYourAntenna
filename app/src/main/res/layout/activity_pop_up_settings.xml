@@ -99,6 +99,9 @@
 
 
             <androidx.appcompat.widget.LinearLayoutCompat
+                android:longClickable="false"
+                android:clickable="false"
+                android:focusable="false"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:orientation="horizontal">
@@ -106,6 +109,9 @@
                 <Button
                     android:layout_width="56dp"
                     android:layout_height="56dp"
+                    android:longClickable="false"
+                    android:clickable="false"
+                    android:focusable="false"
                     android:background="@drawable/ic_folder"
                     android:layout_marginStart="10dp"/>
 
@@ -113,12 +119,16 @@
                     android:id="@+id/popup_window_folder"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:longClickable="false"
+                    android:clickable="false"
+                    android:focusable="false"
                     android:gravity="top"
                     android:text="@string/pop_up_window_tv_folder"
                     android:textColor="#FFFFFF"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    app:layout_constraintTop_toBottomOf="@+id/popup_window_title" />
+                    app:layout_constraintTop_toBottomOf="@+id/popup_window_title"
+                    />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 

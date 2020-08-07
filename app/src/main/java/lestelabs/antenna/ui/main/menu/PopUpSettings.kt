@@ -1,19 +1,31 @@
 package lestelabs.antenna.ui.main.menu
 
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.FileUtils
+import android.os.storage.StorageManager
+import android.provider.DocumentsContract
 import android.util.Log
+import android.view.View
+import android.widget.CheckBox
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_pop_up_settings.*
 import lestelabs.antenna.R
+import java.lang.reflect.Array.get
+import java.lang.reflect.Array.getLength
+import java.lang.reflect.Method
 
 
 class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
@@ -33,6 +45,7 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
         this.seekBarDistance!!.setOnSeekBarChangeListener(this)
         this.seekBarTime!!.setOnSeekBarChangeListener(this)
 
+
         readInitialConfiguration()
         this.seekBarTime.min= 1
         this.seekBarTime.max = 60
@@ -46,21 +59,46 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
         textSeek = getString(R.string.textSampleDistance) + ": " + this.seekBarDistance.progress + "m"
         this.popup_window_text_distance.text = textSeek
 
-        this.popup_window_folder.text = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
+        //this.popup_window_folder.text = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
 
+        val chkBxTowers = findViewById<View>(R.id.pop_up_checkBox_towers) as CheckBox
+        chkBxTowers.setOnCheckedChangeListener { buttonView, isChecked ->
+            val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+            val editor:SharedPreferences.Editor =  sharedPreferences.edit()
+            editor.putBoolean("chkBoxTowers",isChecked)
+            editor.apply()
+        }
+        val chkBxSamples = findViewById<View>(R.id.pop_up_checkBox_samples) as CheckBox
+        chkBxSamples.setOnCheckedChangeListener { buttonView, isChecked ->
+            val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+            val editor:SharedPreferences.Editor =  sharedPreferences.edit()
+            editor.putBoolean("chkBoxSamples",isChecked)
+            editor.apply()
+        }
+        // Finally not implemented due to the restrictions to write in external storage
+        /*
+        val popFolder = findViewById<View>(R.id.popup_window_folder) as TextView
+        popFolder.setOnClickListener {
+            performFileSearch()
+            }
 
+         */
         popup_window_button.setOnClickListener {
             val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
             val editor:SharedPreferences.Editor =  sharedPreferences.edit()
             editor.commit()
             finish()
         }
+
     }
 
     private fun readInitialConfiguration() {
         val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        this.seekBarDistance.progress = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt())
-        this.seekBarTime.progress  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt())
+        this.pop_up_checkBox_samples.isChecked = sharedPreferences.getBoolean("chkBoxSamples",true)
+        this.pop_up_checkBox_towers.isChecked = sharedPreferences.getBoolean("chkBoxTowers",true)
+        this.popup_window_folder.text = sharedPreferences.getString("popFolder",getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString())
+        this.seekBarDistance.progress = sharedPreferences.getInt("num_dist_samples",10)
+        this.seekBarTime.progress  = sharedPreferences.getInt("num_time_samples",10)
     }
 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -92,8 +130,35 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
 
     }
 
+    fun performFileSearch() {
+        // The PopFolder textview is not clickable since this reports an writing error in folders which are different to /storage/emulated/0/Android...
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        startActivityForResult(intent, 0)
+    }
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
+            // The document selected by the user won't be returned in the intent.
+            // Instead, a URI to that document will be contained in the return intent
+            // provided to this method as a parameter.
+            // Pull the path using resultData.getData().
+            resultData?.data?.also { uri ->
+
+                Log.d("cfauli", "folder " + resultData.data?.path)
+                val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+                val pathString = resultData.data?.path?.replace("/tree/primary:","/storage/emulated/0/")
+                this.popup_window_folder.text = pathString
+                val editor:SharedPreferences.Editor =  sharedPreferences.edit()
+                editor.putString("popFolder",pathString)
+                editor.apply()
+            }
+        }
+    }
+
 
 }
+
 
 
 
