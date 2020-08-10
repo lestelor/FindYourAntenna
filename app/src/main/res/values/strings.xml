@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Drive.Test</string>
+    <string name="app_name">Drive Test</string>
     <string name="tab_text_1">Radio</string>
     <string name="tab_text_2">Map</string>
     <string name="distance" translatable="false">"Dist: "</string>
