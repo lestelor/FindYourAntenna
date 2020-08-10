@@ -1,13 +1,13 @@
 <resources>
-    <string name="app_name">FindYourAntenna</string>
+    <string name="app_name">Drive.Test</string>
     <string name="tab_text_1">Radio</string>
     <string name="tab_text_2">Map</string>
     <string name="distance" translatable="false">"Dist: "</string>
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
-    <string name="nav_header_title" translatable="false">Android Studio</string>
-    <string name="nav_header_subtitle" translatable="false">android.studio@android.com</string>
+    <string name="nav_header_title" translatable="false">Drive Test</string>
+    <string name="nav_header_subtitle" translatable="false">shinnystar@gmail.com</string>
     <string name="nav_header_desc" translatable="false">Navigation header</string>
     <string name="action_settings">Settings</string>
 
