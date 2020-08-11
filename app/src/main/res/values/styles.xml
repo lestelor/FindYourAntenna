@@ -1,7 +1,10 @@
 <resources>
     <!-- Theme for the laucher splash activity. -->
+    <!-- Create patch file in https://romannurik.github.io/AndroidAssetStudio/nine-patches.html -->
+    <!-- set content and patches to the size of the vertical screen -->
+    <!-- put the xxxhpi in anyhdpi. The picture is 512*512 reescaled to 1024x1024 filled with transparent background using 3Dpaint -->
     <style name="AppTheme.SplashScreen" parent="AppTheme">
-        <item name="android:windowBackground">@drawable/shinnystar3072</item>
+        <item name="android:windowBackground">@drawable/logoshinny1024</item>
     </style>
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
