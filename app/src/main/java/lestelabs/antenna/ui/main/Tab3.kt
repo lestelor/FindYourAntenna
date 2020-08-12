@@ -30,10 +30,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_pop_up_settings.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.rest.Coordenadas
@@ -470,7 +467,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
             }
 
 
-            // Save samples in file
+            // Save samples in file and draw colored dot
             Log.d ("cfauli", "Save file filestate " + listener?.getFileState()?.get(0) + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
             if (listener?.getFileState()?.get(0)  == 1 && okSaveSamples == true)  {
                 Log.d ("cfauli", "Save file opened: " + isFileSamplesOpened)
@@ -478,9 +475,8 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
                     //create file
                     val sampleFile = "samples_" + LocalDateTime.now() + ".txt"
-
-
                     Log.d("cfauli", "File first created" + LocalDateTime.now())
+
                     val storageDirFile = File(storageDir)
                     if (!storageDirFile.exists()) {
                         storageDirFile.mkdirs()
@@ -492,14 +488,34 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                             ";" + calculateFreq(pDevice.type,pDevice.band) + ";" + pDevice.dbm + ";"
                             + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude))
                     Log.d("cfauli", sampleFilePath.toString())
+                    plotColoredDot()
                     isFileSamplesOpened = true
 
+                } else {
+                    Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
+                    File(sampleFilePath.toString()).appendText(
+                        "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
+                                ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
+                                ";" + calculateFreq(pDevice.type, pDevice.band) + ";" + pDevice.dbm + ";"
+                                + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude)
+                    )
                 }
-                Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
-                File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.mcc  +
-                        ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
-                        ";" + calculateFreq(pDevice.type,pDevice.band) + ";" + pDevice.dbm + ";"
-                        + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude))
+                // Plot colored dots
+                val markerDot:Int
+                if (pDevice.dbm!! >= -100) {
+                    markerDot = R.drawable.circle_dot_green_icon
+                } else if (pDevice.dbm!! >= -115) {
+                    markerDot = R.drawable.circle_dot_yellow_icon
+                } else {
+                    markerDot = R.drawable.circle_dot_red_icon
+                }
+                mMap.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(location.latitude, location.longitude))
+                        .title(pDevice.dbm.toString() + " dBm")
+                        .icon(BitmapDescriptorFactory.fromResource(markerDot))
+                )
+
             } else if (listener?.getFileState()?.get(0)  == 0 && isFileSamplesOpened) {
                 isFileSamplesOpened = false
             }
@@ -568,6 +584,10 @@ class Tab3 : Fragment() , OnMapReadyCallback {
             e.printStackTrace()
         }
         gpsActive = false
+    }
+
+    fun plotColoredDot() {
+
     }
 
 }
