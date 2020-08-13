@@ -18,6 +18,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.ListView
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -32,6 +34,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_pop_up_settings.*
+import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.rest.Coordenadas
 import lestelabs.antenna.ui.main.rest.findTower
@@ -64,6 +68,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private lateinit var mAdView : AdView
     private var gpsActive = false
     private var firstOnResume = true
+    private var getFileStateButtonPressed: Int = 0
 
     // As indicated in android developers https://developers.google.com/maps/documentation/android-sdk/start
     // Previously it is necessary to get the google API key from the Google Cloud Platform Console
@@ -90,6 +95,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private var listener: GetfileState? = null
     private var isFileSamplesOpened: Boolean = false
     private var isFileTowersCreated: Boolean = false
+    private var fabSaveClicked = false
 
     val fileTowers = "towers.txt"
 
@@ -138,11 +144,41 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+
         // Inflate the layout for this fragment
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
+        val fab_save = fragmentView.findViewById(R.id.fab_tab3_save) as ImageView
+        val fab_clear = fragmentView.findViewById(R.id.fab_tab3_clear) as ImageView
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
         Log.d("cfauli","OnCreateView Tab3")
+
+        // Floating button
+        fab_save.setBackgroundResource(R.drawable.ic_diskette)
+        fab_save.setOnClickListener { view ->
+            changebutton(fragmentView)
+            Log.d("cfauli","onclick buttom")
+        }
+        fab_clear.setOnClickListener { view ->
+            mMap.clear()
+            pDevice = loadCellInfo(telephonyManager)
+            Log.d("cfauli","fab clear " + pDevice.lat)
+            findTower(openCellIdInterface, pDevice)
+            { coordenadas ->
+                pDevice.lat = coordenadas.lat!!
+                pDevice.lon = coordenadas.lon!!
+
+                mMap.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(pDevice.lat, pDevice.lon))
+                        .title("serving id: " + pDevice.totalCellId + " lat:" + "%.4f".format(pDevice.lat) + " lon: " + "%.4f".format(pDevice.lon))
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                )
+            }
+        }
+
+
         return fragmentView
 
     }
@@ -288,7 +324,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         boundsMapTowerGpsMax.lon =
             maxOf(location.longitude, locationTower.lon!!) + 0.001 * distance/839*/
 
-        mMap.clear()
+        //mMap.clear()
         /*mMap.addMarker(
             MarkerOptions()
                 .position(LatLng(locationTower.lat!!, locationTower.lon!!))
@@ -410,6 +446,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
             pDevice = loadCellInfo(telephonyManager)
             towerinListInt = ckeckTowerinList(pDevice)
+            Log.d("cfauli", " onlocationchanged")
             Log.d("cfauli", "previoustower " + previousTower)
             Log.d("cfauli", "currentTower " + pDevice.totalCellId)
             var sameTowerBool = false
@@ -452,8 +489,8 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                 }
 
                 // Save towers in file
-                Log.d("cfauli", "Save towers file filestate " + listener?.getFileState()?.get(0) + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
-                if (listener?.getFileState()?.get(0) == 1 && okSaveTowers == true) {
+                Log.d("cfauli", "Save towers file filestate " + fabSaveClicked + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
+                if (fabSaveClicked && okSaveTowers == true) {
                     Log.d("cfauli", "Save tower file opened: " + isFileTowersCreated)
                      if (isFileTowersCreated) {
                         File(towersFilePath.toString()).appendText(
@@ -468,8 +505,8 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
 
             // Save samples in file and draw colored dot
-            Log.d ("cfauli", "Save file filestate " + listener?.getFileState()?.get(0) + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
-            if (listener?.getFileState()?.get(0)  == 1 && okSaveSamples == true)  {
+            Log.d ("cfauli", "Save file filestate " + fabSaveClicked + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
+            if (fabSaveClicked && okSaveSamples == true)  {
                 Log.d ("cfauli", "Save file opened: " + isFileSamplesOpened)
                 if (!isFileSamplesOpened) {
 
@@ -516,7 +553,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                         .icon(BitmapDescriptorFactory.fromResource(markerDot))
                 )
 
-            } else if (listener?.getFileState()?.get(0)  == 0 && isFileSamplesOpened) {
+            } else if (!fabSaveClicked  && isFileSamplesOpened) {
                 isFileSamplesOpened = false
             }
 
@@ -589,6 +626,20 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     fun plotColoredDot() {
 
     }
+
+    fun changebutton(view:View) {
+        fab_tab3_save.setBackgroundColor(resources.getColor(R.color.black));
+        if (fabSaveClicked) {
+            fab_tab3_save.setImageResource(R.drawable.ic_diskette)
+            fab_tab3_save.setBackgroundColor(resources.getColor(R.color.colorPrimary))
+
+        } else {
+            fab_tab3_save.setImageResource(R.drawable.ic_stop)
+            fab_tab3_save.setBackgroundColor(resources.getColor(R.color.black))
+        }
+        fabSaveClicked = !fabSaveClicked // reverse
+    }
+
 
 }
 

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mapScreen"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.main.MainActivity">
+
+<LinearLayout
+    android:id="@+id/mapScreen"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-
-    <androidx.fragment.app.FragmentContainerView
+<androidx.fragment.app.FragmentContainerView
 
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -28,10 +30,52 @@
     <com.google.android.gms.ads.AdView
         xmlns:ads="http://schemas.android.com/apk/res-auto"
         android:id="@+id/adViewFragment3"
-        ads:adSize="SMART_BANNER"
-        android:layout_width="wrap_content"
+        ads:adSize="BANNER"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         ads:adUnitId="ca-app-pub-3940256099942544/6300978111">
 
     </com.google.android.gms.ads.AdView>
+
+
 </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:translationY="-150sp">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_tab3_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:src="@drawable/ic_diskette"
+
+            app:layout_constraintBottom_toTopOf="@id/fab_tab3_open"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_tab3_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:src="@drawable/ic_layer_open"
+
+            app:layout_constraintBottom_toTopOf="@+id/fab_tab3_clear"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_tab3_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:layout_marginEnd="25dp"
+            android:src="@drawable/ic_layer_clear"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

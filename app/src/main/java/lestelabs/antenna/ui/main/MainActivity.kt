@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
@@ -27,6 +28,7 @@ import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
+import java.util.*
 
 interface GetfileState {
     fun getFileState():List<Int>
@@ -43,32 +45,28 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
 
 
 
-override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
 
 
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_main)
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-    val navigationView: NavigationView = findViewById(R.id.nav_view)
+        val navigationView: NavigationView = findViewById(R.id.nav_view)
 
-    //val toolbar = findViewById<Toolbar>(R.id.toolbar)
-    val drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout?
-    val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
-    val fab = findViewById<View>(R.id.fab) as ImageView
-
-
-    // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
-    MobileAds.initialize(this, "ca-app-pub-8346072505648333~5697526220")
-
-    // Floating button
-    fab.setBackgroundResource(R.drawable.ic_diskette)
-    fab.setOnClickListener { view ->
-        changebutton(view)
-        Log.d("cfauli","onclick buttom")
-    }
+        //val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        val drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout?
+        val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
 
 
-    setSupportActionBar(toolbar)
+
+        // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
+        RequestConfiguration.Builder().setTestDeviceIds(Arrays.asList("9E4FF26E78ADE9DFD73A3F51A0D208CA"))
+        MobileAds.initialize(this)
+
+
+
+
+        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(true)
         supportActionBar?.setDisplayUseLogoEnabled(true)
 
@@ -83,55 +81,55 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
 
 
-    if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
-        (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
-        ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
-        Thread.sleep(1000)
+        if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
+            (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+            ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
+            Thread.sleep(1000)
+        }
+
+
+
+        checkAllPermission(){
+
+            tabLayout.addTab(tabLayout.newTab())
+            tabLayout.addTab(tabLayout.newTab())
+            tabLayout.addTab(tabLayout.newTab())
+            tabLayout.tabGravity = TabLayout.GRAVITY_FILL
+            val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
+            tabLayout.setupWithViewPager(viewPager)
+            val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
+            viewPager.adapter = adapter
+            viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
+            // Define the number of adjacent TABs that are preloaded. Cannot be set to 0.
+            // Lifecycle:
+            // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
+            // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
+            // Home -> OnPause/OnStop -> OnStart/OnResume
+            // Since Back is implementd as home button, the oncreateview is only trigered once.
+            // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
+            // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
+
+            viewPager.offscreenPageLimit = 2
+
+            tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
+            tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
+            tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
+
+            tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+
+                    tabSelectedInt = tab.position
+                    viewPager.currentItem = tab.position
+                    tab.select()
+
+                    Log.d("cfauli", "TAB" + tab.position)
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab) {}
+                override fun onTabReselected(tab: TabLayout.Tab) {}
+            })
+        }
     }
-
-
-
-    checkAllPermission(){
-
-        tabLayout.addTab(tabLayout.newTab())
-        tabLayout.addTab(tabLayout.newTab())
-        tabLayout.addTab(tabLayout.newTab())
-        tabLayout.tabGravity = TabLayout.GRAVITY_FILL
-        val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
-        tabLayout.setupWithViewPager(viewPager)
-        val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
-        viewPager.adapter = adapter
-        viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
-        // Define the number of adjacent TABs that are preloaded. Cannot be set to 0.
-        // Lifecycle:
-        // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
-        // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
-        // Home -> OnPause/OnStop -> OnStart/OnResume
-        // Since Back is implementd as home button, the oncreateview is only trigered once.
-        // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
-        // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
-
-        viewPager.offscreenPageLimit = 2
-
-        tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
-        tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
-        tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
-
-        tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                fab.isInvisible = tab.position == 0 || tab.position ==1
-                tabSelectedInt = tab.position
-                viewPager.currentItem = tab.position
-                tab.select()
-
-                Log.d("cfauli", "TAB" + tab.position)
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab) {}
-            override fun onTabReselected(tab: TabLayout.Tab) {}
-        })
-    }
-}
 
 
     /*override fun onFragmentInteraction(uri: Uri?) {
@@ -152,27 +150,14 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
     fun checkAllPermission(callback: (Boolean) -> Unit) {
         while ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
-                (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+            (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
             Thread.sleep(1000)
         }
         callback(true)
     }
 
 
-    fun changebutton(view:View) {
-        fab.setBackgroundColor(resources.getColor(R.color.black));
-        if (getFileStateButtonPressed == 1) {
 
-            fab.setImageResource(R.drawable.ic_diskette)
-            fab.setBackgroundColor(resources.getColor(R.color.colorPrimary))
-            getFileStateButtonPressed = 0 // reverse
-        } else {
-            fab.setImageResource(R.drawable.ic_stop)
-            fab.setBackgroundColor(resources.getColor(R.color.black))
-            getFileStateButtonPressed = 1 // reverse
-        }
-
-    }
 
 
     companion object {
@@ -244,15 +229,4 @@ override fun onCreate(savedInstanceState: Bundle?) {
         tabLayout.setupWithViewPager(view_pager)
     }*/
 }
-
-
-
-
-
-
-
-
-
-
-
 

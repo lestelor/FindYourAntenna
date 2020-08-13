@@ -15,10 +15,7 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.github.anastr.speedviewlib.SpeedView
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.*
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
@@ -27,6 +24,7 @@ import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.Connectivity
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.calculateFreq
+import java.util.*
 import kotlin.math.pow
 
 
@@ -189,8 +187,12 @@ class Tab1 : Fragment() {
         mAdView = fragmentView.findViewById(R.id.adViewFragment1)
         val adView = AdView(requireActivity())
 
+
         MobileAds.initialize(requireActivity())
-        val adRequest = AdRequest.Builder().build()
+
+        val adRequest = AdRequest.Builder()
+            .addTestDevice("9E4FF26E78ADE9DFD73A3F51A0D208CA")
+            .build()
 
         mAdView.loadAd(adRequest)
         mAdView.adListener = object: AdListener() {
@@ -200,6 +202,7 @@ class Tab1 : Fragment() {
 
             override fun onAdFailedToLoad(errorCode : Int) {
                 // Code to be executed when an ad request fails.
+                Log.d("cfauli"," ad TAB1 failed")
             }
 
             override fun onAdOpened() {
