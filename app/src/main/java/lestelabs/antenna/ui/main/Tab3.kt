@@ -19,7 +19,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.ListView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -32,9 +32,9 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
-import kotlinx.android.synthetic.main.activity_pop_up_settings.*
-import kotlinx.android.synthetic.main.app_bar_main.*
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.rest.Coordenadas
@@ -43,7 +43,9 @@ import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.calculateFreq
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
+import java.io.BufferedReader
 import java.io.File
+import java.io.FileReader
 import java.time.LocalDateTime
 
 
@@ -97,10 +99,15 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private var isFileTowersCreated: Boolean = false
     private var fabSaveClicked = false
 
-    val fileTowers = "towers.txt"
+    private val fileTowers = "towers.csv"
+    private var sampleFile: String? = null
+    private var storageDir: String? = null
+    private  var towersFilePath: File? = null
+    private  var storageDirTowers: File? = null
+    private  var sampleFilePath: File? = null
+    private  var storageDirFile: File? = null
 
-    
-    private var sampleFilePath: File? = null
+
     var myLocListener:MyLocationListener = MyLocationListener()
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -150,16 +157,67 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
         val fab_save = fragmentView.findViewById(R.id.fab_tab3_save) as ImageView
         val fab_clear = fragmentView.findViewById(R.id.fab_tab3_clear) as ImageView
+        val fab_load = fragmentView.findViewById(R.id.fab_tab3_open) as ImageView
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment!!.getMapAsync(this)
         Log.d("cfauli","OnCreateView Tab3")
 
-        // Floating button
+        // Floating button save
         fab_save.setBackgroundResource(R.drawable.ic_diskette)
         fab_save.setOnClickListener { view ->
             changebutton(fragmentView)
             Log.d("cfauli","onclick buttom")
+            if (fabSaveClicked) {
+                // Create towers file
+                storageDir = getStorageDir()
+                storageDirTowers = File(storageDir!!)
+                if (!storageDirTowers!!.exists()) {
+                    storageDirTowers!!.mkdirs()
+                }
+                towersFilePath = File(storageDirTowers, fileTowers)
+
+                if (!towersFilePath!!.exists()) {
+                    Log.d("cfauli towersfilepath " , towersFilePath.toString())
+                    File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon")
+                }
+                // Save tower
+                pDevice = loadCellInfo(telephonyManager)
+                findTower(openCellIdInterface, pDevice)
+                { coordenadas ->
+                    pDevice.lat = coordenadas.lat!!
+                    pDevice.lon = coordenadas.lon!!
+                    File(towersFilePath.toString()).appendText(
+                        "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
+                                ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
+                                ";" + "%.4f".format(pDevice.lat) + ";" + "%.4f".format(pDevice.lon)
+                    )
+                    isFileTowersCreated = true
+                }
+                //create samples file
+                sampleFile = "samples_" + LocalDateTime.now() + ".csv"
+                Log.d("cfauli", "File first created" + LocalDateTime.now())
+                storageDirFile = File(storageDir!!)
+
+                if (!storageDirFile!!.exists()) {
+                    storageDirFile!!.mkdirs()
+                }
+                sampleFilePath = File(storageDirFile, sampleFile!!)
+                File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;ferquency;dBm;lat;lon")
+                File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.mcc  +
+                        ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
+                        ";" + calculateFreq(pDevice.type,pDevice.band) + ";" + pDevice.dbm + ";"
+                        + "%.4f".format(locationAnt!!.latitude) + ";" + "%.4f".format(locationAnt!!.longitude))
+                Log.d("cfauli", sampleFilePath.toString())
+                plotColoredDot(LatLng(locationAnt!!.latitude,locationAnt!!.longitude)!!,pDevice.dbm!!)
+                isFileSamplesOpened = true
+
+            }
+
+
+
+
         }
+        // Floating button clear
         fab_clear.setOnClickListener { view ->
             mMap.clear()
             pDevice = loadCellInfo(telephonyManager)
@@ -175,6 +233,44 @@ class Tab3 : Fragment() , OnMapReadyCallback {
                         .title("serving id: " + pDevice.totalCellId + " lat:" + "%.4f".format(pDevice.lat) + " lon: " + "%.4f".format(pDevice.lon))
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 )
+            }
+        }
+        // Floating button load
+        var nextLine: String? = null
+        fab_load.setOnClickListener { view ->
+              Log.d("cfauli","onclick buttom")
+            storageDir = getStorageDir()
+            storageDirTowers = File(storageDir!!)
+
+            towersFilePath = File(storageDirTowers, fileTowers)
+
+
+            try {
+                val csvfile = towersFilePath
+                Log.d ("cfauli","csvfile" + csvfile!!.absolutePath)
+                //val reader = CSVReader(FileReader(csvfile))
+                //val reader = FileReader(csvfile)
+                val reader = BufferedReader(FileReader(csvfile))
+                Log.d ("cfauli","csvfile" + reader)
+                nextLine = reader.readLine()
+                var i =0
+                while (nextLine != null) {
+
+                    val tokens: List<String> = nextLine!!.split(";")
+                    if (i>0) {
+                        val latFileDouble = tokens[5].replace(",",".").toDouble()
+                        val lonFileDouble = tokens[6].replace(",",".").toDouble()
+                        Log.d ("cfauli", " nextLine: " + latFileDouble)
+                        plotColoredDot(LatLng(latFileDouble,lonFileDouble),0)
+                    }
+
+
+                    nextLine = reader.readLine()
+                    i += 1
+                }
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                Toast.makeText(context, "The specified file was not found", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -443,7 +539,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
         @RequiresApi(Build.VERSION_CODES.P)
         override fun onLocationChanged(location: Location) {
-
+            locationAnt = location
             pDevice = loadCellInfo(telephonyManager)
             towerinListInt = ckeckTowerinList(pDevice)
             Log.d("cfauli", " onlocationchanged")
@@ -459,24 +555,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
 
 
-            // Create towers file
-            val storageDir = getStorageDir()
-            val storageDirTowers = File(storageDir)
-            if (!storageDirTowers.exists()) {
-                storageDirTowers.mkdirs()
-            }
-            val towersFilePath = File(storageDirTowers, fileTowers)
-            if (!towersFilePath.exists()) {
-                Log.d("cfauli towersfilepath " , towersFilePath.toString())
-                File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon")
-            }
-            if (!isFileTowersCreated) {
-                File(towersFilePath.toString()).appendText(
-                    "\n" + LocalDateTime.now() +";" + pDevice.mcc +
-                            ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
-                            ";" + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude))
-                isFileTowersCreated = true
-            }
+
 
 
             if (!sameTowerBool) {
@@ -490,68 +569,36 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
                 // Save towers in file
                 Log.d("cfauli", "Save towers file filestate " + fabSaveClicked + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
-                if (fabSaveClicked && okSaveTowers == true) {
+                if (fabSaveClicked && okSaveTowers == true && isFileTowersCreated) {
                     Log.d("cfauli", "Save tower file opened: " + isFileTowersCreated)
                      if (isFileTowersCreated) {
                         File(towersFilePath.toString()).appendText(
                             "\n" + LocalDateTime.now() +";" + pDevice.mcc +
                                     ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
-                                    ";" + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude)
+                                    ";" + "%.4f".format(pDevice.lat) + ";" + "%.4f".format(pDevice.lon)
                         )
                     }
 
-                }
+                }  else if (!fabSaveClicked  && isFileTowersCreated) {
+                isFileTowersCreated = false
+            }
             }
 
 
             // Save samples in file and draw colored dot
             Log.d ("cfauli", "Save file filestate " + fabSaveClicked + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
-            if (fabSaveClicked && okSaveSamples == true)  {
+            if (fabSaveClicked && okSaveSamples == true && isFileSamplesOpened)  {
                 Log.d ("cfauli", "Save file opened: " + isFileSamplesOpened)
-                if (!isFileSamplesOpened) {
-
-                    //create file
-                    val sampleFile = "samples_" + LocalDateTime.now() + ".txt"
-                    Log.d("cfauli", "File first created" + LocalDateTime.now())
-
-                    val storageDirFile = File(storageDir)
-                    if (!storageDirFile.exists()) {
-                        storageDirFile.mkdirs()
-                    }
-                    sampleFilePath = File(storageDirFile, sampleFile)
-                    File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;ferquency;dBm;lat;lon")
-                    File(sampleFilePath.toString()).appendText("\n" + LocalDateTime.now() + ";" + pDevice.mcc  +
+                Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
+                File(sampleFilePath.toString()).appendText(
+                    "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
                             ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
-                            ";" + calculateFreq(pDevice.type,pDevice.band) + ";" + pDevice.dbm + ";"
-                            + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude))
-                    Log.d("cfauli", sampleFilePath.toString())
-                    plotColoredDot()
-                    isFileSamplesOpened = true
-
-                } else {
-                    Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
-                    File(sampleFilePath.toString()).appendText(
-                        "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
-                                ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
-                                ";" + calculateFreq(pDevice.type, pDevice.band) + ";" + pDevice.dbm + ";"
-                                + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude)
-                    )
-                }
-                // Plot colored dots
-                val markerDot:Int
-                if (pDevice.dbm!! >= -100) {
-                    markerDot = R.drawable.circle_dot_green_icon
-                } else if (pDevice.dbm!! >= -115) {
-                    markerDot = R.drawable.circle_dot_yellow_icon
-                } else {
-                    markerDot = R.drawable.circle_dot_red_icon
-                }
-                mMap.addMarker(
-                    MarkerOptions()
-                        .position(LatLng(location.latitude, location.longitude))
-                        .title(pDevice.dbm.toString() + " dBm")
-                        .icon(BitmapDescriptorFactory.fromResource(markerDot))
+                            ";" + calculateFreq(pDevice.type, pDevice.band) + ";" + pDevice.dbm + ";"
+                            + "%.4f".format(location.latitude) + ";" + "%.4f".format(location.longitude)
                 )
+                plotColoredDot(LatLng(location.latitude,location.longitude),pDevice.dbm!!)
+
+
 
             } else if (!fabSaveClicked  && isFileSamplesOpened) {
                 isFileSamplesOpened = false
@@ -623,8 +670,22 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         gpsActive = false
     }
 
-    fun plotColoredDot() {
-
+    fun plotColoredDot(location: LatLng, pDevicedbm:Int) {
+        // Plot colored dots
+        val markerDot:Int
+        if (pDevicedbm!! >= -100) {
+            markerDot = R.drawable.circle_dot_green_icon
+        } else if (pDevicedbm!! >= -115) {
+            markerDot = R.drawable.circle_dot_yellow_icon
+        } else {
+            markerDot = R.drawable.circle_dot_red_icon
+        }
+        mMap.addMarker(
+            MarkerOptions()
+                .position(location)
+                .title(pDevice.dbm.toString() + " dBm")
+                .icon(BitmapDescriptorFactory.fromResource(markerDot))
+        )
     }
 
     fun changebutton(view:View) {
