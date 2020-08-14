@@ -2,14 +2,15 @@ package lestelabs.antenna.ui.main
 
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -46,6 +47,7 @@ import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
+import java.io.FilenameFilter
 import java.time.LocalDateTime
 
 
@@ -59,7 +61,7 @@ import java.time.LocalDateTime
  */
 
 
-class Tab3 : Fragment() , OnMapReadyCallback {
+open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
 
@@ -71,6 +73,8 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private var gpsActive = false
     private var firstOnResume = true
     private var getFileStateButtonPressed: Int = 0
+    private var listener: GetfileState? = null
+
 
     // As indicated in android developers https://developers.google.com/maps/documentation/android-sdk/start
     // Previously it is necessary to get the google API key from the Google Cloud Platform Console
@@ -94,7 +98,6 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private var okSaveTowers:Boolean? = null
     private var okSaveSamples: Boolean? = null
     private var previousTower: String? = null
-    private var listener: GetfileState? = null
     private var isFileSamplesOpened: Boolean = false
     private var isFileTowersCreated: Boolean = false
     private var fabSaveClicked = false
@@ -106,6 +109,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
     private  var storageDirTowers: File? = null
     private  var sampleFilePath: File? = null
     private  var storageDirFile: File? = null
+    private var pathString:String?=null
 
 
     var myLocListener:MyLocationListener = MyLocationListener()
@@ -236,7 +240,7 @@ class Tab3 : Fragment() , OnMapReadyCallback {
             }
         }
         // Floating button load
-        var nextLine: String? = null
+
         fab_load.setOnClickListener { view ->
               Log.d("cfauli","onclick buttom")
             storageDir = getStorageDir()
@@ -244,34 +248,14 @@ class Tab3 : Fragment() , OnMapReadyCallback {
 
             towersFilePath = File(storageDirTowers, fileTowers)
 
-
-            try {
-                val csvfile = towersFilePath
-                Log.d ("cfauli","csvfile" + csvfile!!.absolutePath)
-                //val reader = CSVReader(FileReader(csvfile))
-                //val reader = FileReader(csvfile)
-                val reader = BufferedReader(FileReader(csvfile))
-                Log.d ("cfauli","csvfile" + reader)
-                nextLine = reader.readLine()
-                var i =0
-                while (nextLine != null) {
-
-                    val tokens: List<String> = nextLine!!.split(";")
-                    if (i>0) {
-                        val latFileDouble = tokens[5].replace(",",".").toDouble()
-                        val lonFileDouble = tokens[6].replace(",",".").toDouble()
-                        Log.d ("cfauli", " nextLine: " + latFileDouble)
-                        plotColoredDot(LatLng(latFileDouble,lonFileDouble),0)
-                    }
+            performFileSearch()
+            Log.d("cfauli","performfilesearch")
+            /*val intent: Intent = Intent(getBaseContext(), FileDialog::class.java)
+            intent.putExtra FileDialog.START_PATH, "/sdcard")
+            //val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            startActivityForResult(intent, 0)*/
 
 
-                    nextLine = reader.readLine()
-                    i += 1
-                }
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-                Toast.makeText(context, "The specified file was not found", Toast.LENGTH_SHORT).show()
-            }
         }
 
 
@@ -327,10 +311,8 @@ class Tab3 : Fragment() , OnMapReadyCallback {
      *
      * See the Android Training lesson [Communicating with Other Fragments](http://developer.android.com/training/basics/fragments/communicating.html) for more information.
      */
-    interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        fun onFragmentInteraction(uri: Uri?)
-
+    interface GetfileState {
+        fun getFileState():String
     }
 
 
@@ -701,9 +683,85 @@ class Tab3 : Fragment() , OnMapReadyCallback {
         fabSaveClicked = !fabSaveClicked // reverse
     }
 
+    /*override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
+            // The document selected by the user won't be returned in the intent.
+            // Instead, a URI to that document will be contained in the return intent
+            // provided to this method as a parameter.
+            // Pull the path using resultData.getData().
+            resultData?.data?.also { uri ->
+
+                Log.d("cfauli", "folder " + resultData.data?.path)
+                pathString = resultData.data?.path?.replace("/tree/primary:", "/storage/emulated/0/")
+
+            }
+        }
+    }*/
+
+    fun performFileSearch() {
+        // The PopFolder textview is not clickable since this reports an writing error in folders which are different to /storage/emulated/0/Android...
+        //val intent = Intent(Intent.ACTION_GET_CONTENT)
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.type = "text/*"
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        startActivityForResult(intent, 0)
+    }
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
+            // The document selected by the user won't be returned in the intent.
+            // Instead, a URI to that document will be contained in the return intent
+            // provided to this method as a parameter.
+            // Pull the path using resultData.getData().
+            resultData?.data?.also { uri ->
+
+                val dotsFilePath = resultData.data?.path?.replace("/document/primary:", "/storage/emulated/0/")
+                Log.d("cfauli", "performfilesearch folder " + resultData.data?.path?.replace("/document/primary:", "/storage/emulated/0/"))
+                var nextLine: String? = null
+                try {
+                    //val filePath = File(getStorageDir())
+                    //val csvfile = File(filePath, "samples.csv")
+                    val csvfile = File(dotsFilePath)
+                    Log.d ("cfauli","csvfile" + csvfile!!.absolutePath)
+
+
+
+                    //val reader = CSVReader(FileReader(csvfile))
+                    //val reader = FileReader(csvfile)
+                    val reader = BufferedReader(FileReader(csvfile))
+                    Log.d ("cfauli","csvfile" + reader)
+                    nextLine = reader.readLine()
+                    var i =0
+                    while (nextLine != null) {
+
+                        val tokens: List<String> = nextLine!!.split(";")
+                        if (i>0) {
+                            val latFileDouble = tokens[8].replace(",",".").toDouble()
+                            val lonFileDouble = tokens[9].replace(",",".").toDouble()
+                            Log.d ("cfauli", " nextLine: " + tokens[8] + " " + tokens[9])
+                            plotColoredDot(LatLng(latFileDouble,lonFileDouble),0)
+                        }
+
+
+                        nextLine = reader.readLine()
+                        i += 1
+                    }
+                } catch (e: java.lang.Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(context, "The specified file was not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+
+        }
+    }
+
+
+
 
 }
-
 
 
 /*interface FetchCompleteListener {

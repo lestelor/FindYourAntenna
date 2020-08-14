@@ -2,20 +2,23 @@ package lestelabs.antenna.ui.main
 
 
 import android.Manifest
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ImageView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
-import androidx.core.view.isInvisible
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
@@ -28,6 +31,8 @@ import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
+import java.io.File
+import java.io.FilenameFilter
 import java.util.*
 
 interface GetfileState {
@@ -35,7 +40,7 @@ interface GetfileState {
 }
 
 
-class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
+ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var drawerLayout: View? = null
@@ -43,6 +48,11 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
     private lateinit var toggle: ActionBarDrawerToggle
     private var tabSelectedInt: Int = -1
 
+     private var mFileList: Array<String>? = null
+     private var mPath: File = File(Environment.DIRECTORY_DOWNLOADS)
+     private var mChosenFile: String? = null
+     private val FTYPE = ".txt"
+     private val DIALOG_LOAD_FILE = 1000
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -224,6 +234,29 @@ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedList
         }
     }
 
+
+
+
+     override fun onCreateDialog(id: Int): Dialog? {
+         var dialog: Dialog? = null
+         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+         when (id) {
+             DIALOG_LOAD_FILE -> {
+                 builder.setTitle("Choose your file")
+                 if (mFileList == null) {
+                     Log.e("cfauli", "Showing file picker before loading the file list")
+                     dialog = builder.create()
+                     return dialog
+                 }
+                 builder.setItems(mFileList) { dialog, which ->
+                     mChosenFile = mFileList!![which]
+                     //you can do stuff with the file here too
+                 }
+             }
+         }
+         dialog = builder.show()
+         return dialog
+     }
     /*override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
         tabLayout.setupWithViewPager(view_pager)
