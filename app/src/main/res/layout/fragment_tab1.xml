@@ -1,119 +1,43 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#7fffad42"
+    tools:context=".ui.main.MainActivity">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical">
+
 <androidx.appcompat.widget.AppCompatTextView
     android:id="@+id/tvTab1MobileNetworkType"
-    android:text=""
+    android:text="Click to start the test"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_gravity="center_horizontal"
     android:textColor="@color/cpb_blue"
-    android:layout_marginTop="20dp" />
+    android:layout_gravity="center_horizontal"
+    android:layout_marginTop="10dp" />
 
 
     <com.github.anastr.speedviewlib.SpeedView
         android:id="@+id/speedView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="214dp"
+        android:layout_height="199dp"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp"/>
+        android:layout_marginTop="5dp" />
 
     <TableRow
         android:id="@+id/hr"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#444" />
+        android:layout_height="2dp"
+        android:background="#f57c00" />
+
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-
-
-        <RadioGroup
-            android:id="@+id/rgType"
-            android:layout_width="118dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginLeft="10dp"
-
-            android:layout_weight="0.33">
-
-            <RadioButton
-                android:id="@+id/rbHttp"
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/rbHTTP" />
-
-            <RadioButton
-                android:id="@+id/rbBittorrent"
-
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/rbBitTorrent" />
-
-            <RadioButton
-                android:id="@+id/rbFtp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/rbFTP" />
-
-        </RadioGroup>
-
-
-        <Button
-
-            android:id="@+id/btSpeedTest"
-            android:layout_width="56sp"
-            android:layout_height="56sp"
-            android:layout_gravity="center"
-            android:layout_marginStart="5dp"
-            android:background="@drawable/ic_switch_on_off" />
-
-        <RadioGroup
-            android:id="@+id/rgFile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.33"
-            android:layout_marginStart="20dp"
-
->
-
-            <RadioButton
-                android:id="@+id/rb1MB"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/rb1MB"
-                />
-
-            <RadioButton
-                android:id="@+id/rb10MB"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/rb10MB" />
-
-            <RadioButton
-                android:id="@+id/rb100MB"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/rb100MB" />
-        </RadioGroup>
-
-
-    </LinearLayout>
-    <TableRow
-        android:id="@+id/hr2"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#444" />
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_weight="1"
         android:orientation="horizontal"
         android:baselineAligned="false">
 
@@ -188,6 +112,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+
                 android:text="@string/latency" />
 
             <TextView
@@ -206,7 +131,29 @@
                 android:layout_gravity="center"
                 android:text="ms" />
         </LinearLayout>
+
     </LinearLayout>
+    <TableRow
+        android:id="@+id/hr2"
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background ="#f57c00" />
+
+    <TextView
+        android:id="@+id/tvResultsFixed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_gravity="center_horizontal"
+        android:text="Results" />
+
+    <ListView
+        android:id="@+id/speedList"
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.97"/>
 
     <com.google.android.gms.ads.AdView
 
@@ -223,3 +170,5 @@
     </com.google.android.gms.ads.AdView>
 
 </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

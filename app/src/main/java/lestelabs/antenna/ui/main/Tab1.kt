@@ -3,7 +3,6 @@ package lestelabs.antenna.ui.main
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
@@ -11,20 +10,23 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ListView
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.github.anastr.speedviewlib.SpeedView
-import com.google.android.gms.ads.*
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
 import fr.bmartel.speedtest.utils.SpeedTestUtils
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.scanner.Connectivity
-import lestelabs.antenna.ui.main.scanner.DevicePhone
-import lestelabs.antenna.ui.main.scanner.calculateFreq
+import lestelabs.antenna.ui.main.scanner.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.pow
 
 
@@ -44,10 +46,17 @@ class Tab1 : Fragment() {
     private val speedTestSocket = SpeedTestSocket()
     private var internetSpeedDownload: Float = 0.0f
     private var internetSpeedUpload: Float = 0.0f
+    private var listLatency = ""
+    private var listNetwork = ""
+    private var listDownload = ""
+    private var listUpload = ""
     private var speedTestRunningStep = 0
     lateinit var mAdView : AdView
     private lateinit var fragmentView: View
     private var listener: GetfileState? = null
+
+    private val speedTestType = 0
+    private val speedTestFile = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,16 +102,10 @@ class Tab1 : Fragment() {
         val tvUpload = fragmentView.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
         val tvLatency = fragmentView.findViewById<View>(R.id.tvLatency) as TextView
         val speedometer = fragmentView.findViewById<SpeedView>(R.id.speedView)
-        val button: Button = fragmentView.findViewById(R.id.btSpeedTest)
-        val rbHttp = fragmentView.findViewById<View>(R.id.rbHttp) as RadioButton
-        val rbBittorrent = fragmentView.findViewById<View>(R.id.rbBittorrent) as RadioButton
-        val rbFtp = fragmentView.findViewById<View>(R.id.rbFtp) as RadioButton
-        val rb1MB = fragmentView.findViewById<View>(R.id.rb1MB) as RadioButton
-        val rb10MB = fragmentView.findViewById<View>(R.id.rb10MB) as RadioButton
-        val rb100MB = fragmentView.findViewById<View>(R.id.rb100MB) as RadioButton
-        val radioGroupType = fragmentView.findViewById(R.id.rgType) as RadioGroup
-        val radioGroupFile = fragmentView.findViewById(R.id.rgFile) as RadioGroup
+        //val fab: ImageView = fragmentView.findViewById(R.id.btSpeedTest)
 
+
+/* Not used, by default speedTestType = 0 and speedTestFile = 0
         //Read shared preferences for speedtest
         val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         val editor:SharedPreferences.Editor =  sharedPreferences.edit()
@@ -129,8 +132,11 @@ class Tab1 : Fragment() {
             1 -> rb10MB.isChecked =true
             2 -> rb100MB.isChecked=true
         }
+   */
 
-        downLoadFile = Constants.SPEEDTESTDOWNLOAD[3*(speedTestType)+speedTestFile]
+
+        var downLoadFile = Constants.SPEEDTESTDOWNLOAD[3*(speedTestType)+speedTestFile]
+        var upLoadFile: String =""
         when(speedTestType) {
             0,1-> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
             2-> {
@@ -142,7 +148,7 @@ class Tab1 : Fragment() {
         Log.d ("cfauli", "down file " + downLoadFile)
         Log.d ("cfauli", "up file " + upLoadFile)
 
-
+        /*
         var checkedIdConverted: Int = 0
         radioGroupType.setOnCheckedChangeListener { group, checkedId ->
 
@@ -182,6 +188,7 @@ class Tab1 : Fragment() {
             editor.putInt("speed_test_file",checkedIdConverted)
             editor.commit()
         }
+        */
 
         // Admod
         mAdView = fragmentView.findViewById(R.id.adViewFragment1)
@@ -244,7 +251,7 @@ class Tab1 : Fragment() {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        button.setOnClickListener {
+        speedometer.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 fillNetworkTextView(requireView())
             }
@@ -259,11 +266,12 @@ class Tab1 : Fragment() {
                         override fun onCompletion(report: SpeedTestReport) {
 
                             internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
-                            requireActivity().runOnUiThread(Runnable {
+                            listDownload = "%.1f".format(internetSpeedDownload)
+                                requireActivity().runOnUiThread(Runnable {
                                 speedometer.speedTo(0.0f,1000)
                                 speedTestRunningStep = 1
                                 Log.d("cfauli","[COMPLETED] step" + speedTestRunningStep)
-                                tvDownload.text = "%.1f".format(internetSpeedDownload)
+                                tvDownload.text = listDownload
                                 Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
                                 // Start upload test (once the download test finishes)---------------------------------------------------------
                                 speedTestSocket.startUploadRepeat(upLoadFile,
@@ -271,17 +279,35 @@ class Tab1 : Fragment() {
 
                                         override fun onCompletion(report: SpeedTestReport) {
                                             Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
-                                            internetSpeedDownload = report.transferRateBit.toFloat()/1000000.0f
+                                            internetSpeedUpload= report.transferRateBit.toFloat()/1000000.0f
+                                            listUpload = "%.1f".format(internetSpeedUpload)
                                             requireActivity().runOnUiThread(Runnable {
                                                 speedometer.speedTo(0.0f,1000)
                                                 speedTestRunningStep = 2
-                                                tvUpload.text = "%.1f".format(internetSpeedUpload)
+                                                tvUpload.text = listUpload
 
 
                                                 // Test latency (once the upload test finishes)-----------------
-                                                tvLatency.text = pingg("http://www.google.com").toString()
+                                                 pingg("http://www.google.com") { it ->
+                                                     listLatency = it.toString()
+                                                     tvLatency.text = listLatency
+                                                     // Fill the Speed List fragment view
+                                                     // Create the adapter to convert the array to views
+
+                                                     val listOfSpeedTest =fillSpeedList(listNetwork, listDownload, listUpload, listLatency)
+
+                                                         val arrayOfSpeed: ArrayList<SpeedTest> = ArrayList<SpeedTest>()
+                                                         val adapter = SpeedAdapter(activity, arrayOfSpeed)
+                                                         // Attach the adapter to a ListView
+                                                         val listView = fragmentView.findViewById(R.id.speedList) as ListView
+                                                         listView.adapter = adapter
+                                                         adapter.clear()
+                                                         adapter.addAll(listOfSpeedTest)
+                                                         adapter.notifyDataSetChanged()
+
+                                                 }
                                                 speedTestRunningStep = 0
-                                                button.setBackgroundResource(R.drawable.ic_switch_on_off)
+                                                //fab.setBackgroundResource(R.drawable.ic_switch_on_off)
                                                 // End test latency  --------------------------------------------
                                             })
                                         }
@@ -306,7 +332,7 @@ class Tab1 : Fragment() {
                             })
                         }
                     })
-                button.setBackgroundResource(R.drawable.ic_switch_on_off_grey)
+                //fab.setBackgroundResource(R.drawable.ic_switch_on_off_grey)
             }
         }
         //fillNetworkTextView(view)
@@ -386,7 +412,7 @@ class Tab1 : Fragment() {
         }
     }
 
-    fun pingg(domain: String): Long {
+    fun pingg(domain: String, callback: (Long) -> Unit) {
         val runtime = Runtime.getRuntime()
         var timeofping: Array<Long> = arrayOf(0,0,0,0)
         try {
@@ -403,7 +429,7 @@ class Tab1 : Fragment() {
             }
         } catch (e: Exception) {
         }
-        return timeofping.average().toLong()/2
+        callback(timeofping.min()?.toLong()!!)
     }
 
     /*@RequiresApi(Build.VERSION_CODES.M)
@@ -428,7 +454,8 @@ class Tab1 : Fragment() {
         if (Connectivity.isConnectedMobile(requireContext())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 pDevice = Connectivity.getpDevice(requireContext())
-                tvNetwork.text = pDevice.type + " " + calculateFreq(pDevice.type, pDevice.band) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
+                listNetwork = pDevice.type + " " + calculateFreq(pDevice.type, pDevice.band) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
+                tvNetwork.text = listNetwork
             } else {
                 TODO("VERSION.SDK_INT < P")
             }
@@ -445,6 +472,53 @@ class Tab1 : Fragment() {
 
 
         }
+    }
+
+    fun fillSpeedList(network:String, download:String, upload:String, ping:String): List<SpeedTest> {
+
+        val calendar = Calendar.getInstance()
+        val day = calendar[Calendar.DAY_OF_MONTH].toString() + "/" + calendar[Calendar.MONTH] + "/" + calendar[Calendar.YEAR] + " " + calendar[Calendar.HOUR_OF_DAY] + ":" + calendar[Calendar.MINUTE]
+
+        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val editor:SharedPreferences.Editor =  sharedPreferences.edit()
+        var numSpeedTest = sharedPreferences.getInt("num_speed_test",0)
+        Log.d("cfauli","numspeedtest " + numSpeedTest)
+        numSpeedTest +=1
+
+        editor.putInt("num_speed_test", numSpeedTest)
+        editor.apply()
+
+        var textDate = "speed_test_date" + numSpeedTest
+        var textNetwork = "speed_test_network" + numSpeedTest
+        var textSpeed = "speed_test_speed" + numSpeedTest
+
+        editor.putString(textDate,day)
+        editor.apply()
+
+        editor.putString(textNetwork,network)
+        editor.apply()
+
+        editor.putString(textSpeed,"Download: " + download + "Mbps " + "Upload: " + upload + "Mbps " + "Ping: " + ping + "ms")
+        editor.apply()
+        editor.commit()
+
+
+
+        var listOfSpeedTest: ArrayList<SpeedTest> = arrayListOf()
+        if (numSpeedTest>=1) {
+            for (i in 1..numSpeedTest) {
+                textNetwork = "speed_test_network" + i
+                textSpeed = "speed_test_speed" + i
+                textDate = "speed_test_date" + i
+
+                Log.d("cfauli", "textNetwork " + textNetwork)
+                listOfSpeedTest.add (SpeedTest(sharedPreferences.getString(textDate, ""),sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeed, "")))
+            }
+        }
+
+
+        return listOfSpeedTest.sortedByDescending { it.date }
+
     }
 
 }

@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#7fffad42"
     android:orientation="vertical">
     <TextView
         android:id="@+id/tv_mobile_txt"
@@ -142,4 +141,6 @@
         android:layout_gravity="bottom"
         ads:adUnitId="ca-app-pub-3940256099942544/6300978111">
     </com.google.android.gms.ads.AdView>
+
+
 </LinearLayout>
