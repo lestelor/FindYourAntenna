@@ -104,6 +104,15 @@ class Tab1 : Fragment() {
         val speedometer = fragmentView.findViewById<SpeedView>(R.id.speedView)
         //val fab: ImageView = fragmentView.findViewById(R.id.btSpeedTest)
 
+        val arrayOfSpeed: ArrayList<SpeedTest> = ArrayList<SpeedTest>()
+        val adapter = SpeedAdapter(activity, arrayOfSpeed)
+        // Attach the adapter to a ListView
+        val listView = fragmentView.findViewById(R.id.speedList) as ListView
+        listView.adapter = adapter
+        adapter.clear()
+        var listOfSpeedTest =fillSpeedList(false, "", "", "", "")
+        adapter.addAll(listOfSpeedTest)
+        adapter.notifyDataSetChanged()
 
 /* Not used, by default speedTestType = 0 and speedTestFile = 0
         //Read shared preferences for speedtest
@@ -293,17 +302,10 @@ class Tab1 : Fragment() {
                                                      tvLatency.text = listLatency
                                                      // Fill the Speed List fragment view
                                                      // Create the adapter to convert the array to views
-
-                                                     val listOfSpeedTest =fillSpeedList(listNetwork, listDownload, listUpload, listLatency)
-
-                                                         val arrayOfSpeed: ArrayList<SpeedTest> = ArrayList<SpeedTest>()
-                                                         val adapter = SpeedAdapter(activity, arrayOfSpeed)
-                                                         // Attach the adapter to a ListView
-                                                         val listView = fragmentView.findViewById(R.id.speedList) as ListView
-                                                         listView.adapter = adapter
-                                                         adapter.clear()
-                                                         adapter.addAll(listOfSpeedTest)
-                                                         adapter.notifyDataSetChanged()
+                                                     adapter.clear()
+                                                     listOfSpeedTest =fillSpeedList(true, listNetwork, listDownload, listUpload, listLatency)
+                                                     adapter.addAll(listOfSpeedTest)
+                                                     adapter.notifyDataSetChanged()
 
                                                  }
                                                 speedTestRunningStep = 0
@@ -474,35 +476,43 @@ class Tab1 : Fragment() {
         }
     }
 
-    fun fillSpeedList(network:String, download:String, upload:String, ping:String): List<SpeedTest> {
+    fun fillSpeedList(new: Boolean, network:String, download:String, upload:String, ping:String): List<SpeedTest> {
 
-        val calendar = Calendar.getInstance()
-        val day = calendar[Calendar.DAY_OF_MONTH].toString() + "/" + calendar[Calendar.MONTH] + "/" + calendar[Calendar.YEAR] + " " + calendar[Calendar.HOUR_OF_DAY] + ":" + calendar[Calendar.MINUTE]
 
         val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         val editor:SharedPreferences.Editor =  sharedPreferences.edit()
         var numSpeedTest = sharedPreferences.getInt("num_speed_test",0)
-        Log.d("cfauli","numspeedtest " + numSpeedTest)
-        numSpeedTest +=1
-
-        editor.putInt("num_speed_test", numSpeedTest)
-        editor.apply()
-
-        var textDate = "speed_test_date" + numSpeedTest
-        var textNetwork = "speed_test_network" + numSpeedTest
-        var textSpeed = "speed_test_speed" + numSpeedTest
-
-        editor.putString(textDate,day)
-        editor.apply()
-
-        editor.putString(textNetwork,network)
-        editor.apply()
-
-        editor.putString(textSpeed,"Download: " + download + "Mbps " + "Upload: " + upload + "Mbps " + "Ping: " + ping + "ms")
-        editor.apply()
-        editor.commit()
+        var textDate:String
+        var textNetwork:String
+        var textSpeed:String
 
 
+        if (new) {
+            val calendar = Calendar.getInstance()
+            val day =
+                calendar[Calendar.DAY_OF_MONTH].toString() + "/" + calendar[Calendar.MONTH] + "/" + calendar[Calendar.YEAR] + " " + calendar[Calendar.HOUR_OF_DAY] + ":" + calendar[Calendar.MINUTE]
+
+            Log.d("cfauli", "numspeedtest " + numSpeedTest)
+            numSpeedTest += 1
+
+            editor.putInt("num_speed_test", numSpeedTest)
+            editor.apply()
+
+            var textDate = "speed_test_date" + numSpeedTest
+            var textNetwork = "speed_test_network" + numSpeedTest
+            var textSpeed = "speed_test_speed" + numSpeedTest
+
+            editor.putString(textDate, day)
+            editor.apply()
+
+            editor.putString(textNetwork, network)
+            editor.apply()
+
+            editor.putString(textSpeed, "Download: " + download + "Mbps " + "Upload: " + upload + "Mbps " + "Ping: " + ping + "ms")
+            editor.apply()
+            editor.commit()
+
+        }
 
         var listOfSpeedTest: ArrayList<SpeedTest> = arrayListOf()
         if (numSpeedTest>=1) {

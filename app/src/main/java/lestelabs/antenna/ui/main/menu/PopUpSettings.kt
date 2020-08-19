@@ -21,6 +21,8 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import kotlinx.android.synthetic.main.activity_pop_up_settings.*
 import lestelabs.antenna.R
 import java.lang.reflect.Array.get
@@ -54,7 +56,7 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
         this.popup_window_text_time.text = textSeek
 
         this.seekBarDistance.min= 5
-        this.seekBarDistance.max = 100
+        this.seekBarDistance.max = 50
 
         textSeek = getString(R.string.textSampleDistance) + ": " + this.seekBarDistance.progress + "m"
         this.popup_window_text_distance.text = textSeek
@@ -83,12 +85,12 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
             }
 
          */
-        popup_window_button.setOnClickListener {
+        /*popup_window_button.setOnClickListener {
             val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
             val editor:SharedPreferences.Editor =  sharedPreferences.edit()
             editor.commit()
             finish()
-        }
+        }*/
 
     }
 
@@ -155,7 +157,22 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
             }
         }
     }
+    override fun onBackPressed() {
 
+            //finishAffinity() // back
+            // Implement back as home so as no to trigger oncreateview which would leak memory
+        /*
+            val startMain = Intent(Intent.ACTION_MAIN)
+            startMain.addCategory(Intent.CATEGORY_HOME)
+            startMain.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(startMain)*/
+
+        val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val editor:SharedPreferences.Editor =  sharedPreferences.edit()
+        editor.commit()
+        finish()
+
+    }
 
 }
 

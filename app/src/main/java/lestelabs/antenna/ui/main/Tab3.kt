@@ -740,8 +740,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                         if (i>0) {
                             val latFileDouble = tokens[8].replace(",",".").toDouble()
                             val lonFileDouble = tokens[9].replace(",",".").toDouble()
+                            val dBm = tokens[7].toInt()
                             Log.d ("cfauli", " nextLine: " + tokens[8] + " " + tokens[9])
-                            plotColoredDot(LatLng(latFileDouble,lonFileDouble),0)
+                            plotColoredDot(LatLng(latFileDouble,lonFileDouble),dBm)
                         }
 
 
