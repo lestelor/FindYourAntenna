@@ -191,6 +191,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     pDevice.lat = coordenadas.lat!!
                     pDevice.lon = coordenadas.lon!!
                     previousTower = pDevice
+                    distance = distance(location!!.latitude,location!!.longitude,previousTower!!.lat,previousTower!!.lon)
+                    tv_fr3_distance.text = distance.toInt().toString()
                     File(towersFilePath.toString()).appendText(
                         "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
                                 ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
@@ -232,6 +234,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 pDevice.lat = coordenadas.lat!!
                 pDevice.lon = coordenadas.lon!!
                 previousTower = pDevice
+                distance = distance(location!!.latitude,location!!.longitude,previousTower!!.lat,previousTower!!.lon)
+                tv_fr3_distance.text = distance.toInt().toString()
                 mMap.addMarker(
                     MarkerOptions()
                         .position(LatLng(previousTower!!.lat, previousTower!!.lon))
@@ -424,6 +428,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     )
                 } else {
                     if (distance != 0.0) {
+
+                        previousTower!!.lat=listTowersFound[i].lat
+                        previousTower!!.lon = listTowersFound[i].lon
+                        distance = distance(location!!.latitude,location!!.longitude,previousTower!!.lat,previousTower!!.lon)
+                        tv_fr3_distance.text = distance.toInt().toString()
                         mMap.addMarker(
                             MarkerOptions()
                                 .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
@@ -542,6 +551,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     listTowersFound[towerinListInt].lon = coordenadas.lon!!
                     locateTowerMap(location, coordenadas)
                     previousTower = pDevice
+                    distance = distance(location!!.latitude,location!!.longitude,previousTower!!.lat,previousTower!!.lon)
+                    tv_fr3_distance.text = distance.toInt().toString()
                 }
 
                 // Save towers in file
@@ -558,7 +569,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
                 }  else if (!fabSaveClicked  && isFileTowersCreated)  isFileTowersCreated = false
 
-                previousTower = pDevice
             }
 
 
