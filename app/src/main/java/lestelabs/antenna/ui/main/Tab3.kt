@@ -113,6 +113,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     var myLocListener:MyLocationListener = MyLocationListener()
 
+    private var distance:Double=0.0
+
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -232,7 +234,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 mMap.addMarker(
                     MarkerOptions()
                         .position(LatLng(pDevice.lat, pDevice.lon))
-                        .title("serving id: " + pDevice.totalCellId + " lat:" + "%.4f".format(pDevice.lat) + " lon: " + "%.4f".format(pDevice.lon))
+                        .title("lat:" + "%.4f".format(pDevice.lat) + " lon: " + "%.4f".format(pDevice.lon))
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 )
             }
@@ -389,7 +391,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             locationTower.lon = location.longitude
         }*/
 
-        val distance = distance(locationTower.lat!!,locationTower.lon!!,location.latitude,location.longitude)
+        distance = distance(locationTower.lat!!,locationTower.lon!!,location.latitude,location.longitude)
 
         /*boundsMapTowerGpsMin.lat =
             minOf(location.latitude, locationTower.lat!!) - 0.001 * distance/11119
@@ -416,7 +418,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     mMap.addMarker(
                         MarkerOptions()
                             .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
-                            .title("id: " + listTowersFound[i].totalCellId + " lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
+                            .title("lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                     )
                 } else {
@@ -424,7 +426,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                         mMap.addMarker(
                             MarkerOptions()
                                 .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
-                                .title("serving id: " + listTowersFound[i].totalCellId + " lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
+                                .title("lat:" + "%.4f".format(listTowersFound[i].lat) + " lon: " + "%.4f".format(listTowersFound[i].lon))
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                         )
                     }
@@ -441,11 +443,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         var mZoom = 13f
         when {
-            distance < 20000  -> mZoom = 13f
-            distance < 10000  -> mZoom = 14f
-            distance < 5000  -> mZoom = 15f
-            distance < 2000  -> mZoom = 16f
-            distance < 1000  -> mZoom = 17f
+            distance < 20000  -> mZoom = 12f
+            distance < 10000  -> mZoom = 13f
+            distance < 5000  -> mZoom = 14f
+            distance < 2000  -> mZoom = 15f
+            distance < 1000  -> mZoom = 16f
             distance < 500  -> mZoom = 19f
         }
         val myLocation = LatLng(location.latitude, location.longitude)
@@ -583,6 +585,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             } else if (!fabSaveClicked  && isFileSamplesOpened) {
                 isFileSamplesOpened = false
             }
+
+            // fill the distance and tower textview
+            distance = distance(location.latitude,location.longitude,pDevice.lat,pDevice.lon)
+            tv_fr3_distance.text = distance.toInt().toString() + "m"
+            tv_fr3_tower.text = pDevice.totalCellId
+
 
         }
 
