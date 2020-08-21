@@ -97,7 +97,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var minTime:Long? = null
     private var okSaveTowers:Boolean? = null
     private var okSaveSamples: Boolean? = null
-    private var previousTower: String? = null
+    private var previousTower: DevicePhone? = DevicePhone()
     private var isFileSamplesOpened: Boolean = false
     private var isFileTowersCreated: Boolean = false
     private var fabSaveClicked = false
@@ -190,6 +190,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 { coordenadas ->
                     pDevice.lat = coordenadas.lat!!
                     pDevice.lon = coordenadas.lon!!
+                    previousTower = pDevice
                     File(towersFilePath.toString()).appendText(
                         "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
                                 ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
@@ -230,10 +231,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             { coordenadas ->
                 pDevice.lat = coordenadas.lat!!
                 pDevice.lon = coordenadas.lon!!
-
+                previousTower = pDevice
                 mMap.addMarker(
                     MarkerOptions()
-                        .position(LatLng(pDevice.lat, pDevice.lon))
+                        .position(LatLng(previousTower!!.lat, previousTower!!.lon))
                         .title("lat:" + "%.4f".format(pDevice.lat) + " lon: " + "%.4f".format(pDevice.lon))
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 )
@@ -523,21 +524,13 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         override fun onLocationChanged(location: Location) {
             locationAnt = location
             pDevice = loadCellInfo(telephonyManager)
+
             towerinListInt = ckeckTowerinList(pDevice)
             Log.d("cfauli", " onlocationchanged")
             Log.d("cfauli", "previoustower " + previousTower)
             Log.d("cfauli", "currentTower " + pDevice.totalCellId)
             var sameTowerBool = false
-            if (pDevice.totalCellId == previousTower) {
-                sameTowerBool = true
-            } else {
-                previousTower = pDevice.totalCellId
-                sameTowerBool = false
-            }
-
-
-
-
+            sameTowerBool = pDevice.totalCellId == previousTower!!.totalCellId
 
 
             if (!sameTowerBool) {
@@ -545,8 +538,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 { coordenadas ->
                     pDevice.lat = coordenadas.lat!!
                     pDevice.lon = coordenadas.lon!!
+                    listTowersFound[towerinListInt].lat = coordenadas.lat!!
+                    listTowersFound[towerinListInt].lon = coordenadas.lon!!
                     locateTowerMap(location, coordenadas)
-
+                    previousTower = pDevice
                 }
 
                 // Save towers in file
@@ -561,9 +556,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                         )
                     }
 
-                }  else if (!fabSaveClicked  && isFileTowersCreated) {
-                isFileTowersCreated = false
-            }
+                }  else if (!fabSaveClicked  && isFileTowersCreated)  isFileTowersCreated = false
+
+                previousTower = pDevice
             }
 
 
@@ -587,9 +582,16 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             }
 
             // fill the distance and tower textview
-            distance = distance(location.latitude,location.longitude,pDevice.lat,pDevice.lon)
-            tv_fr3_distance.text = distance.toInt().toString() + "m"
-            tv_fr3_tower.text = pDevice.totalCellId
+            Log.d("cfauli distance",location.latitude.toString() + " " + location.longitude + " " + previousTower!!.lat + " " + previousTower!!.lon)
+            distance = distance(location.latitude,location.longitude,previousTower!!.lat,previousTower!!.lon)
+            if (distance < 100000) {
+                tv_fr3_distance.text = distance.toInt().toString() + "m"
+            } else {
+                tv_fr3_distance.text = "tower not found"
+                Log.d("cfauli towerinlist", towerinListInt.toString())
+            }
+
+            tv_fr3_tower.text = pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
 
 
         }
