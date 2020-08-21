@@ -44,6 +44,13 @@ class Tab2 : Fragment() {
     lateinit var mAdView : AdView
     private var firstOnResume = true
     private var minTime:Long = 1000
+
+    private var thresMobBlack: Int = Constants.MINMOBILESIGNALBLACK.toInt()
+    private var thresMobRed: Int = Constants.MINMOBILESIGNALRED.toInt()
+    private var thresMobYellow: Int = Constants.MINMOBILESIGNALYELLOW.toInt()
+    private var thresMobGreen: Int = Constants.MINMOBILESIGNALGREEN.toInt()
+
+
     var mHandler: Handler = Handler()
     var clockTimerHanlerActive = false
     private lateinit var mHandlerTask: Runnable
@@ -61,7 +68,7 @@ class Tab2 : Fragment() {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
-        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
 
     }
@@ -84,7 +91,7 @@ class Tab2 : Fragment() {
         val size = 0
         var results: List<ScanResult?>
         val arrayList: ArrayList<String> = ArrayList()
-
+        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         //val listView: ListView = view.findViewById<View>((R.id.wifiList)) as ListView
         wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiScanReceiver: BroadcastReceiver
@@ -124,7 +131,7 @@ class Tab2 : Fragment() {
             }
         }
         // fill the mobile list every mintime secs
-        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
         startMobileScanner(fragmentView)
 
@@ -202,8 +209,9 @@ class Tab2 : Fragment() {
     override fun onResume() {
         super.onResume()
         Log.d("cfauli","OnResume Tab2 " + firstOnResume)
-        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        minTime  = sharedPreferences.getInt("num_time_samples",10).toLong() * 1000
+
         // firstOnResume = true if activity is destroyed (back) and goes trough a oncreateview, in order not to repeat the scanners
         if (!firstOnResume) startMobileScanner(requireView())
         firstOnResume = false
@@ -282,15 +290,20 @@ class Tab2 : Fragment() {
             }
             totalCidAnt = pDevice.totalCellId
         }
+        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        thresMobBlack = sharedPreferences.getString("thres_mob_black",Constants.MINMOBILESIGNALBLACK)!!.toInt()
+        thresMobRed = sharedPreferences.getString("thres_mob_red",Constants.MINMOBILESIGNALRED)!!.toInt()
+        thresMobYellow = sharedPreferences.getString("thres_mob_yellow",Constants.MINMOBILESIGNALYELLOW)!!.toInt()
+        thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
 
-
-
-        if (pDevice.dbm!! >= -100) {
+        if (pDevice.dbm!! >= (-1*thresMobYellow)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_green)
-        } else if (pDevice.dbm!! >= -115) {
+        } else if (pDevice.dbm!! >= (-1*thresMobRed)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_yellow)
-        } else {
+        } else if (pDevice.dbm!! >= (-1*thresMobBlack)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_red)
+        } else {
+            ivIconLevel.setImageResource(R.drawable.ic_network_black)
         }
 
 

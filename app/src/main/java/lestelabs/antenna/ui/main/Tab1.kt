@@ -246,12 +246,12 @@ class Tab1 : Fragment() {
         speedometer.maxSpeed = 120.0f
         speedometer.withTremble = false
         speedometer.sections[0].color = Color.RED
-        speedometer.sections[0].endOffset = (1f/1.2f) * 0.2f
+        speedometer.sections[0].endOffset = (1f/1.2f) * 0.1f
         speedometer.sections[1].color = Color.YELLOW
-        speedometer.sections[1].startOffset = (1f/1.2f) * 0.2f
-        speedometer.sections[1].endOffset = (1f/1.2f) * 0.5f
+        speedometer.sections[1].startOffset = (1f/1.2f) * 0.1f
+        speedometer.sections[1].endOffset = (1f/1.2f) * 0.2f
         speedometer.sections[2].color = Color.GREEN
-        speedometer.sections[2].startOffset = (1f/1.2f) * 0.5f
+        speedometer.sections[2].startOffset = (1f/1.2f) * 0.2f
 
         speedTestSocket.downloadSetupTime = 1000
         speedTestSocket.uploadSetupTime = 1000

@@ -26,6 +26,16 @@ object Constants {
         "ftp://speedtest.tele2.net/upload/"
     )
 
+    const val MINMOBILESIGNALBLACK: String = "120"
+    const val MINMOBILESIGNALRED: String = "115"
+    const val MINMOBILESIGNALYELLOW: String = "100"
+    const val MINMOBILESIGNALGREEN: String = "50"
+
+    const val MINWIFISIGNALBLACK: String = "90"
+    const val MINWIFISIGNALRED: String = "80"
+    const val MINWIFISIGNALYELLOW: String = "67"
+    const val MINWIFISIGNALGREEN: String = "30"
+
 
 }
 

@@ -121,8 +121,252 @@
             android:text="@string/pop_up_checkbox_samples"
             android:textStyle="bold" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Thresholds"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="10dp"
+            android:gravity="center"/>
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_gravity="center">
 
 
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            android:baselineAligned="false"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:text="" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:src="@drawable/circle_dot_green_icon" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:src="@drawable/circle_dot_yellow_icon" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:src="@drawable/circle_dot_red_icon"
+                android:layout_weight="0.33"/>
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:src="@drawable/circle_dot_black_icon"
+                android:layout_weight="0.33"/>
+        </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:baselineAligned="false"
+        android:layout_marginLeft="50dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:text="Mobile"
+            android:textSize="12dp"
+            />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/threMobGreen"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_gravity="center"
+            android:layout_weight="0.9"
+            android:inputType="number"
+            android:text="50"
+            android:textColor="#000"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:gravity="center"/>
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/threMobYellow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="-120"
+            android:textColor="#000"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:layout_weight="0.33"
+            android:inputType="number"  />
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/threMobRed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="-120"
+            android:textColor="#000"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:layout_weight="0.33"
+            android:inputType="number"  />
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/threMobBlack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="-120"
+            android:textColor="#000"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:layout_weight="0.33"
+            android:inputType="number"  />
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:baselineAligned="false"
+        android:layout_marginLeft="50dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:text="WIFI"
+            android:textSize="12dp"
+            />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/threWifiGreen"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_gravity="center"
+            android:layout_weight="0.9"
+            android:inputType="number"
+            android:text="30"
+            android:textColor="#000"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:gravity="center"/>
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/threWifiYellow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="-120"
+            android:textColor="#000"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:layout_weight="0.33"
+            android:inputType="number"  />
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/threWifiRed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="-120"
+            android:textColor="#000"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:layout_weight="0.33"
+            android:inputType="number"  />
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/threWifiBlack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="-120"
+            android:textColor="#000"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:layout_weight="0.33"
+            android:inputType="number"  />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:baselineAligned="false"
+        android:layout_marginLeft="40dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:layout_gravity="center"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_marginTop="14dp"
+            android:textSize="12dp"
+            android:text="(-) dBm"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_marginTop="28dp"
+            android:textSize="12dp"
+            android:text="(-) dBm"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_marginTop="36dp"
+            android:textSize="12dp"
+            android:text="(-) dBm"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_marginTop="36dp"
+            android:textSize="12dp"
+            android:text="(-) dBm"/>
+    </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

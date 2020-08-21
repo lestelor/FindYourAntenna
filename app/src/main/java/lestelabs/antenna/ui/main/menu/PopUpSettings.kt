@@ -1,7 +1,6 @@
 package lestelabs.antenna.ui.main.menu
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -9,25 +8,21 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.os.FileUtils
-import android.os.storage.StorageManager
-import android.provider.DocumentsContract
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.CheckBox
+import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
+import androidx.core.widget.doOnTextChanged
 import kotlinx.android.synthetic.main.activity_pop_up_settings.*
 import lestelabs.antenna.R
-import java.lang.reflect.Array.get
-import java.lang.reflect.Array.getLength
-import java.lang.reflect.Method
+import lestelabs.antenna.ui.main.Constants
 
 
 class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
@@ -41,7 +36,8 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pop_up_settings)
 
-
+        val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val editor:SharedPreferences.Editor =  sharedPreferences.edit()
 
 
         this.seekBarDistance!!.setOnSeekBarChangeListener(this)
@@ -65,18 +61,62 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
 
         val chkBxTowers = findViewById<View>(R.id.pop_up_checkBox_towers) as CheckBox
         chkBxTowers.setOnCheckedChangeListener { buttonView, isChecked ->
-            val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-            val editor:SharedPreferences.Editor =  sharedPreferences.edit()
+
             editor.putBoolean("chkBoxTowers",isChecked)
             editor.apply()
         }
         val chkBxSamples = findViewById<View>(R.id.pop_up_checkBox_samples) as CheckBox
         chkBxSamples.setOnCheckedChangeListener { buttonView, isChecked ->
-            val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-            val editor:SharedPreferences.Editor =  sharedPreferences.edit()
+
             editor.putBoolean("chkBoxSamples",isChecked)
             editor.apply()
         }
+
+        val threMobBlack = findViewById<View>(R.id.threMobBlack) as EditText
+        threMobBlack.doOnTextChanged { text, start, before, count ->
+
+            editor.putString("thres_mob_black", threMobBlack.text.toString())
+            editor.apply()
+
+        }
+        val threMobRed = findViewById<View>(R.id.threMobRed) as EditText
+        threMobRed.doOnTextChanged { text, start, before, count ->
+
+            editor.putString("thres_mob_red", threMobRed.text.toString())
+            editor.apply()
+
+        }
+        val threMobYellow = findViewById<View>(R.id.threMobYellow) as EditText
+        threMobYellow.doOnTextChanged { text, start, before, count ->
+
+            editor.putString("thres_mob_yellow", threMobYellow.text.toString())
+            editor.apply()
+
+        }
+
+
+        val threWifiBlack = findViewById<View>(R.id.threWifiBlack) as EditText
+        threWifiBlack.doOnTextChanged { text, start, before, count ->
+
+            editor.putString("thres_wifi_black", threWifiBlack.text.toString())
+            editor.apply()
+
+        }
+        val threWifiRed = findViewById<View>(R.id.threWifiRed) as EditText
+        threWifiRed.doOnTextChanged { text, start, before, count ->
+
+            editor.putString("thres_wifi_red", threWifiRed.text.toString())
+            editor.apply()
+
+        }
+        val threWifiYellow = findViewById<View>(R.id.threWifiYellow) as EditText
+        threWifiYellow.doOnTextChanged { text, start, before, count ->
+
+            editor.putString("thres_wifi_yellow", threWifiYellow.text.toString())
+            editor.apply()
+
+        }
+        
         // Finally not implemented due to the restrictions to write in external storage
         /*
         val popFolder = findViewById<View>(R.id.popup_window_folder) as TextView
@@ -101,6 +141,25 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
         this.popup_window_folder.text = sharedPreferences.getString("popFolder",getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString())
         this.seekBarDistance.progress = sharedPreferences.getInt("num_dist_samples",10)
         this.seekBarTime.progress  = sharedPreferences.getInt("num_time_samples",10)
+
+        val threMobBlack = findViewById<View>(R.id.threMobBlack) as TextView
+        val threMobRed = findViewById<View>(R.id.threMobRed) as TextView
+        val threMobYellow = findViewById<View>(R.id.threMobYellow) as TextView
+        val threMobGreen = findViewById<View>(R.id.threMobGreen) as TextView
+        val threWifiBlack = findViewById<View>(R.id.threWifiBlack) as TextView
+        val threWifiRed = findViewById<View>(R.id.threWifiRed) as TextView
+        val threWifiYellow = findViewById<View>(R.id.threWifiYellow) as TextView
+        val threWifiGreen = findViewById<View>(R.id.threWifiGreen) as TextView
+
+        threMobBlack.text = sharedPreferences.getString("thres_mob_black",Constants.MINMOBILESIGNALBLACK)
+        threMobRed.text = sharedPreferences.getString("thres_mob_red",Constants.MINMOBILESIGNALRED)
+        threMobYellow.text = sharedPreferences.getString("thres_mob_yellow",Constants.MINMOBILESIGNALYELLOW)
+        threMobGreen.text = Constants.MINMOBILESIGNALGREEN
+
+        threWifiBlack.text = sharedPreferences.getString("thres_wifi_black",Constants.MINWIFISIGNALBLACK)
+        threWifiRed.text = sharedPreferences.getString("thres_wifi_red",Constants.MINWIFISIGNALRED)
+        threWifiYellow.text = sharedPreferences.getString("thres_wifi_yellow",Constants.MINWIFISIGNALYELLOW)
+        threWifiGreen.text = Constants.MINWIFISIGNALGREEN
     }
 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {

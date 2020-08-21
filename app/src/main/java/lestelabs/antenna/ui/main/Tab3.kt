@@ -111,7 +111,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private  var storageDirFile: File? = null
     private var pathString:String?=null
 
-
     var myLocListener:MyLocationListener = MyLocationListener()
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -155,7 +154,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
 
         // Inflate the layout for this fragment
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
@@ -294,7 +292,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
-        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
         Log.d("cfauli","OnResume tab3")
@@ -443,11 +441,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         var mZoom = 13f
         when {
-            distance < 20000  -> mZoom = 14f
-            distance < 10000  -> mZoom = 15f
-            distance < 5000  -> mZoom = 16f
-            distance < 2000  -> mZoom = 17f
-            distance < 1000  -> mZoom = 18f
+            distance < 20000  -> mZoom = 13f
+            distance < 10000  -> mZoom = 14f
+            distance < 5000  -> mZoom = 15f
+            distance < 2000  -> mZoom = 16f
+            distance < 1000  -> mZoom = 17f
             distance < 500  -> mZoom = 19f
         }
         val myLocation = LatLng(location.latitude, location.longitude)
@@ -602,7 +600,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     private fun readInitialConfiguration() {
-        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong()* 1000
         okSaveSamples = sharedPreferences.getBoolean("chkBoxSamples",true)
@@ -616,8 +614,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     // To save in other location needs to be analyzed if package_paths is to be used.
 
     private fun getStorageDir(): String? {
-        val sharedPreferences: SharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
 
+        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         return sharedPreferences.getString("popFolder", requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString())
     }
 
@@ -655,12 +653,20 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     fun plotColoredDot(location: LatLng, pDevicedbm:Int) {
         // Plot colored dots
         val markerDot:Int
-        if (pDevicedbm!! >= -100) {
+        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val thresMobBlack = sharedPreferences.getString("thres_mob_black",Constants.MINMOBILESIGNALBLACK)!!.toInt()
+        val thresMobRed = sharedPreferences.getString("thres_mob_red",Constants.MINMOBILESIGNALRED)!!.toInt()
+        val thresMobYellow = sharedPreferences.getString("thres_mob_yellow",Constants.MINMOBILESIGNALYELLOW)!!.toInt()
+        val thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
+
+        if (pDevicedbm!! >= -1*thresMobYellow) {
             markerDot = R.drawable.circle_dot_green_icon
-        } else if (pDevicedbm!! >= -115) {
+        } else if (pDevicedbm!! >= -1*thresMobRed) {
             markerDot = R.drawable.circle_dot_yellow_icon
-        } else {
+        } else if (pDevicedbm!! >= -1*thresMobBlack) {
             markerDot = R.drawable.circle_dot_red_icon
+        } else {
+            markerDot = R.drawable.circle_dot_black_icon
         }
         mMap.addMarker(
             MarkerOptions()

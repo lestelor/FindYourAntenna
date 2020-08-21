@@ -2,6 +2,7 @@
 package lestelabs.antenna.ui.main.scanner;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import lestelabs.antenna.R;
+import lestelabs.antenna.ui.main.Constants;
 
 public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
 
@@ -23,6 +25,15 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
+
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE);
+        String thresWifiBlack = sharedPreferences.getString("thres_wifi_black", Constants.MINWIFISIGNALBLACK);
+        String thresWifiRed = sharedPreferences.getString("thres_wifi_red",Constants.MINWIFISIGNALRED);
+        String thresWifiYellow = sharedPreferences.getString("thres_wifi_yellow",Constants.MINWIFISIGNALYELLOW);
+        String thresWifiGreen = Constants.MINWIFISIGNALGREEN;
+
+
         // Get the data item for this position
         DeviceWiFi deviceWiFi = getItem(position);
         // Check if an existing view is being reused, otherwise inflate the view
@@ -56,12 +67,14 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
 
         tvChannelInt.setText(channel.toString());
 
-        if (deviceWiFi.getLevel()>=-67) {
+        if (deviceWiFi.getLevel()>=-1* Integer.parseInt(thresWifiYellow)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_green);
-        } else if (deviceWiFi.getLevel()>=-80) {
+        } else if (deviceWiFi.getLevel()>=-1*Integer.parseInt(thresWifiRed)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_yellow);
-        } else {
+        } else if (deviceWiFi.getLevel()>=-1*Integer.parseInt(thresWifiBlack)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_red);
+        } else {
+            ivIconLevel.setImageResource(R.drawable.ic_network_black);
         }
 
         // Return the completed view to render on screen
