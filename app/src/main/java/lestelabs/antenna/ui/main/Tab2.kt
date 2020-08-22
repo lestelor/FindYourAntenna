@@ -285,8 +285,13 @@ class Tab2 : Fragment() {
             val openCellIdInterface = retrofitFactory()
             findTower(openCellIdInterface, pDevice)
             { coordenadas ->
-                tvLat.text = getString(R.string.Tower) + "lat: " + "%.4f".format(coordenadas.lat)
-                tvLon.text = "lon: " + "%.4f".format(coordenadas.lon)
+                if (coordenadas.lat!! >0.0) {
+                    tvLat.text = getString(R.string.Tower) + "lat: " + "%.4f".format(coordenadas.lat)
+                    tvLon.text = "lon: " + "%.4f".format(coordenadas.lon)
+                } else {
+                    tvLat.text = "Tower coordinates not found"
+                    tvLon.text = ""
+                }
             }
             totalCidAnt = pDevice.totalCellId
         }

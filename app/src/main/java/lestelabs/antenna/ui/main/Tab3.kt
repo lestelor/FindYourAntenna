@@ -531,11 +531,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
             towerinListInt = checkTowerinList(pDevice)
-            Log.d("cfauli", " onlocationchanged")
-            Log.d("cfauli", "previoustower " + previousTower)
-            Log.d("cfauli", "currentTower " + pDevice.totalCellId)
+
+            Log.d("cfauli", "onlocationchanged previoustower " + previousTower)
+            Log.d("cfauli", "onlocationchanged currentTower " + pDevice.totalCellId)
             var sameTowerBool = false
             sameTowerBool = pDevice.totalCellId == previousTower!!.totalCellId
+
             // fill the distance and tower textview
             updateTextViewDistanceTower(location)
 
