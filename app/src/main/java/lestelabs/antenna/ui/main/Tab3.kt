@@ -171,6 +171,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             if (fabSaveClicked) {
                 // Create towers file
                 storageDir = getStorageDir()
+                Toast.makeText(context, "File saved in " + storageDir, Toast.LENGTH_LONG).show()
                 storageDirTowers = File(storageDir!!)
                 if (!storageDirTowers!!.exists()) {
                     storageDirTowers!!.mkdirs()
@@ -254,7 +255,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             storageDirTowers = File(storageDir!!)
 
             towersFilePath = File(storageDirTowers, fileTowers)
-
+            performTowerSearch()
             performFileSearch()
             Log.d("cfauli","performfilesearch")
         }
@@ -535,7 +536,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             Log.d("cfauli", "currentTower " + pDevice.totalCellId)
             var sameTowerBool = false
             sameTowerBool = pDevice.totalCellId == previousTower!!.totalCellId
-
+            // fill the distance and tower textview
+            updateTextViewDistanceTower(location)
 
             if (!sameTowerBool) {
                 findTower(openCellIdInterface, pDevice)
@@ -546,6 +548,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     listTowersFound[towerinListInt].lon = coordenadas.lon!!
                     locateTowerMap(pDevice, location)
                     previousTower = pDevice
+                    // fill the distance and tower textview, repeated since it is an async function
+                    updateTextViewDistanceTower(location)
                 }
 
                 // Save towers in file
@@ -591,8 +595,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
             locationAnt = location
 
-            // fill the distance and tower textview
-            updateTextViewDistanceTower(location)
+
 
         }
 
@@ -664,6 +667,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         gpsActive = false
     }
 
+
     fun plotColoredDot(location: LatLng, pDevicedbm:Int) {
         // Plot colored dots
         val markerDot:Int
@@ -719,6 +723,47 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
     }*/
 
+    fun performTowerSearch() {
+
+        var nextLine: String? = null
+        try {
+            val csvfile = File(towersFilePath.toString())
+            Log.d ("cfauli","csvfile" + csvfile!!.absolutePath)
+
+            val reader = BufferedReader(FileReader(csvfile))
+            Log.d ("cfauli","csvfile" + reader)
+            nextLine = reader.readLine()
+            var i =0
+            while (nextLine != null) {
+
+                val tokens: List<String> = nextLine!!.split(";")
+                if (i>0) {
+                    val latFileDouble = tokens[5].replace(",",".").toDouble()
+                    val lonFileDouble = tokens[6].replace(",",".").toDouble()
+                    val cid = tokens[1] + "-" + tokens[2] + "-" + tokens[3] + "-" + tokens[4]
+
+                    mMap.addMarker(
+                        MarkerOptions()
+                            .position(LatLng(latFileDouble,lonFileDouble))
+                            .title(cid)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                    )
+
+                }
+
+
+                nextLine = reader.readLine()
+                i += 1
+            }
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "The tower file was not found", Toast.LENGTH_SHORT).show()
+        }
+
+
+    }
+
+
     fun performFileSearch() {
         // The PopFolder textview is not clickable since this reports an writing error in folders which are different to /storage/emulated/0/Android...
         //val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -771,7 +816,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     }
                 } catch (e: java.lang.Exception) {
                     e.printStackTrace()
-                    Toast.makeText(context, "The specified file was not found", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Not a valid file", Toast.LENGTH_SHORT).show()
                 }
             }
 
