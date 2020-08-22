@@ -541,8 +541,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             // fill the distance and tower textview
             updateTextViewDistanceTower(location)
 
-            Log.d("cfauli", "onlocationchanged " + previousTower?.totalCellId + " " + pDevice.totalCellId)
-
+            Log.d("cfauli", "onlocationchanged " + previousTower?.totalCellId + " " + pDevice.totalCellId + " " + towerinListInt + " " + towerinListSize)
+            Toast.makeText(context, "onlocationchanged " + previousTower?.cid + " " + pDevice.cid + " " + towerinListInt + " " + towerinListSize, Toast.LENGTH_LONG).show()
             // First check, if tower is the same as previous do nothing except update the textview.
             if (previousTower?.totalCellId != pDevice.totalCellId && previousTower?.totalCellId != "") {
 
@@ -557,7 +557,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                         previousTower = pDevice
                         // fill the distance and tower textview, repeated since it is an async function
                         // print the tower markers (green the serving and red the others) and make appropriate zoom
-                        locateTowerMap(pDevice, location)
+                        locateTowerMap(listTowersFound[towerinListInt], location)
                         updateTextViewDistanceTower(location)
 
 
@@ -580,7 +580,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
                     // if tower exists in list, only update the colors of the markers and the textview
-                    locateTowerMap(pDevice, location)
+                    locateTowerMap(listTowersFound[towerinListInt], location)
                     updateTextViewDistanceTower(location)
 
                     //val mZoom = mZoom(pDevice, location!!)
@@ -590,7 +590,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
             } else {
                 // first time previous tower == "", then needs to be updated to pDevice
-                previousTower = pDevice
+                previousTower = listTowersFound[towerinListInt]
                 // needs to be repeated since the previous (if=true) is async
                 updateTextViewDistanceTower(location)
             }
