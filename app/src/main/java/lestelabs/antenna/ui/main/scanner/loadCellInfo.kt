@@ -40,7 +40,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
             pDevicePhone.networkType=tm.networkType
 
             if (info is CellInfoGsm) {
-                pDevicePhone.type = "GSM"
+                pDevicePhone.type = "2G"
                 val gsm =
                     info.cellSignalStrength
                 val identityGsm = info.cellIdentity
@@ -55,7 +55,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.operator = identityGsm.mobileNetworkOperator
 
             } else if (info is CellInfoCdma) {
-                pDevicePhone.type = "CDMA"
+                pDevicePhone.type = "3G"
                 val cdma =
                     info.cellSignalStrength
                 val identityCdma =
@@ -69,7 +69,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.operator=identityCdma.operatorAlphaShort.toString()
 
             } else if (info is CellInfoLte) {
-                pDevicePhone.type = "LTE"
+                pDevicePhone.type = "4G"
                 val lte =
                     info.cellSignalStrength
                 val identityLte = info.cellIdentity

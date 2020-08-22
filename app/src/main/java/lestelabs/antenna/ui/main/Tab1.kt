@@ -456,7 +456,7 @@ class Tab1 : Fragment() {
         if (Connectivity.isConnectedMobile(requireContext())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 pDevice = Connectivity.getpDevice(requireContext())
-                listNetwork = pDevice.type + " " + calculateFreq(pDevice.type, pDevice.band) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
+                listNetwork = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type, pDevice.band)) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
                 tvNetwork.text = listNetwork
             } else {
                 TODO("VERSION.SDK_INT < P")

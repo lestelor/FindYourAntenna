@@ -279,7 +279,7 @@ class Tab2 : Fragment() {
         tvLac.text = "lac: " + pDevice.lac.toString()
         tvId.text = "id: " + pDevice.cid.toString()
         tvNetwork.text = getString(R.string.Network)
-        tvNetworkType.text = pDevice.type + " " + calculateFreq(pDevice.type,pDevice.band) + " MHz"
+        tvNetworkType.text = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type,pDevice.band)) + " MHz"
 
         if (totalCidAnt != pDevice.totalCellId) {
             val openCellIdInterface = retrofitFactory()
