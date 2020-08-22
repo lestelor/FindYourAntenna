@@ -6,7 +6,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -39,7 +38,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.rest.Coordenadas
 import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
@@ -48,7 +46,6 @@ import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
-import java.io.FilenameFilter
 import java.time.LocalDateTime
 
 
@@ -73,7 +70,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private lateinit var mAdView : AdView
     private var gpsActive = false
     private var firstOnResume = true
-    private var getFileStateButtonPressed: Int = 0
     private var listener: GetfileState? = null
 
 
@@ -91,13 +87,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private val openCellIdInterface = retrofitFactory()
     private var listTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
     private var locationAnt: Location? = null
-    private var lastLocation: Location? = null
-    private var distanceBetweenLocations:Double = 0.0
-    private var distanceBetweenLocationsBool: Boolean = false
-    private var maxDistanceBetweenLocations:Double = 100.0
+    private var locationOk: Location? = null
     private lateinit var locationManager: LocationManager
     private var towerinListInt: Int = -1
-    private var requestingLocationUpdates = true
     private var minDist: Float? = null
     private var minTime:Long? = null
     private var okSaveTowers:Boolean? = null
@@ -114,11 +106,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private  var storageDirTowers: File? = null
     private  var sampleFilePath: File? = null
     private  var storageDirFile: File? = null
-    private var pathString:String?=null
 
     var myLocListener:MyLocationListener = MyLocationListener()
 
     private var distance:Double=0.0
+    private var distanceAnt:Double = 100000.0
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -196,7 +188,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     pDevice.lat = coordenadas.lat!!
                     pDevice.lon = coordenadas.lon!!
                     previousTower = pDevice
-                    if (distanceBetweenLocationsBool) updateTexViewDistanceTower()
 
                     File(towersFilePath.toString()).appendText(
                         "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
@@ -215,21 +206,17 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 }
                 sampleFilePath = File(storageDirFile, sampleFile!!)
                 File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;ferquency;dBm;lat;lon;arfcn")
-                if (distanceBetweenLocationsBool || locationAnt==null && location!=null) {
+
                     File(sampleFilePath.toString()).appendText(
                         "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
                                 ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
                                 ";" + calculateFreq(pDevice.type, pDevice.band) + ";" + pDevice.dbm +
-                                ";" + "%.5f".format(locationAnt!!.latitude) + ";" + "%.5f".format(locationAnt!!.longitude) +
+                                ";" + "%.5f".format(locationOk!!.latitude) + ";" + "%.5f".format(locationOk!!.longitude) +
                                 ";" + pDevice.band
                     )
 
                     Log.d("cfauli", sampleFilePath.toString())
-                    plotColoredDot(LatLng(location!!.latitude, location!!.longitude)!!, pDevice.dbm!!)
-
-
-
-                }
+                    plotColoredDot(LatLng(locationOk!!.latitude, locationOk!!.longitude)!!, pDevice.dbm!!)
 
                 isFileSamplesOpened = true
 
@@ -253,7 +240,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 mMap.addMarker(
                     MarkerOptions()
                         .position(LatLng(previousTower!!.lat, previousTower!!.lon))
-                        .title("lat:" + "%.5f".format(pDevice.lat) + " lon: " + "%.5f".format(pDevice.lon))
+                        .title(pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 )
 
@@ -270,14 +257,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
             performFileSearch()
             Log.d("cfauli","performfilesearch")
-            /*val intent: Intent = Intent(getBaseContext(), FileDialog::class.java)
-            intent.putExtra FileDialog.START_PATH, "/sdcard")
-            //val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-            startActivityForResult(intent, 0)*/
-
-
         }
-
 
         return fragmentView
 
@@ -347,19 +327,18 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         mMap.isMyLocationEnabled = true
 
-        //val myLocListener:MyLocationListener = MyLocationListener()
 
         startGPS()
-        /*locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
-        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime!!,minDist!!,myLocListener)
-        }
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime!!,minDist!!,myLocListener)
-        }*/
 
-        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        //val view: View = inflater.inflate(R.layout.fragment_tab2, container, false)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location : Location? ->
+                if (location != null) {
+                    addMarkerAnimateCameraUdateTextView(location)
+                }
+                checkTowerinList(pDevice)
+                }
+
 
 
 
@@ -397,24 +376,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             }
         }
 
-        pDevice = loadCellInfo(telephonyManager)
-        findTower(openCellIdInterface, pDevice)
-        { coordenadas ->
-            pDevice.lat = coordenadas.lat!!
-            pDevice.lon = coordenadas.lon!!
-            listTowersFound[0] = pDevice
-            previousTower = pDevice
 
-            mMap.addMarker(
-                MarkerOptions()
-                    .position(LatLng(pDevice.lat, pDevice.lon))
-                    .title("lat:" + "%.5f".format(pDevice.lat) + " lon: " + "%.5f".format(pDevice.lon))
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-            )
-
-            updateTexViewDistanceTower()
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pDevice.lat, pDevice.lon), 12f))
-        }
 
 
     }
@@ -422,7 +384,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
 
-    private fun locateTowerMap(location: Location, locationTower:Coordenadas) {
+    private fun locateTowerMap(pDevice: DevicePhone, location: Location) {
 
         /*val boundsMapTowerGpsMin:Coordenadas = Coordenadas()
         val boundsMapTowerGpsMax:Coordenadas = Coordenadas()*/
@@ -432,7 +394,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             locationTower.lon = location.longitude
         }*/
 
-        distance = distance(locationTower.lat!!,locationTower.lon!!,location.latitude,location.longitude)
+
 
         /*boundsMapTowerGpsMin.lat =
             minOf(location.latitude, locationTower.lat!!) - 0.001 * distance/11119
@@ -451,31 +413,30 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
         )*/
         Log.d("cfauli","listTowersize " + listTowersFound.size)
-        if (listTowersFound.size > 0) {
+        if (listTowersFound.size > 1) {
             Log.d("cfauli", "listTowertotalcid " + listTowersFound[1].totalCellId)
             Log.d("cfauli", "listTowerlat " + listTowersFound[1].lat)
-            for (i in 0..listTowersFound.size - 1) {
+            for (i in 1..listTowersFound.size - 1) {
                 if (i != towerinListInt) {
                     mMap.addMarker(
                         MarkerOptions()
                             .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
-                            .title("lat:" + "%.5f".format(listTowersFound[i].lat) + " lon: " + "%.5f".format(listTowersFound[i].lon))
+                            .title(listTowersFound[i].mcc.toString() + "-" + listTowersFound[i].mnc + "-" + listTowersFound[i].lac + "-" + listTowersFound[i].cid)
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                     )
                 } else {
                     if (distance != 0.0) {
 
                         previousTower = listTowersFound[i]
-                        pDevice = listTowersFound[i]
+                        //pDevice = listTowersFound[i]
 
 
                         mMap.addMarker(
                             MarkerOptions()
                                 .position(LatLng(listTowersFound[i].lat, listTowersFound[i].lon))
-                                .title("lat:" + "%.5f".format(listTowersFound[i].lat) + " lon: " + "%.5f".format(listTowersFound[i].lon))
+                                .title(listTowersFound[i].mcc.toString() + "-" + listTowersFound[i].mnc + "-" + listTowersFound[i].lac + "-" + listTowersFound[i].cid)
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                         )
-                        updateTexViewDistanceTower()
                     }
                 }
             }
@@ -489,24 +450,16 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             LatLng(boundsMapTowerGpsMax.lat!!, boundsMapTowerGpsMax.lon!!)
         )*/
 
-        var mZoom = 13f
-        when {
-            distance < 20000  -> mZoom = 11f
-            distance < 10000  -> mZoom = 12f
-            distance < 5000  -> mZoom = 13f
-            distance < 2000  -> mZoom = 14f
-            distance < 1000  -> mZoom = 15f
-            distance < 500  -> mZoom = 19f
-        }
-        val myLocation = LatLng(location.latitude, location.longitude)
-        Log.d("cfauli", "lastlocation" + lastLocation?.latitude.toString())
+        val mZoom = mZoom(pDevice, location)
+        val myLocation = LatLng(location!!.latitude, location!!.longitude)
+
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
         //mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
-        lastLocation = location
+
     }
 
-    private fun ckeckTowerinList(devicePhone: DevicePhone):Int {
+    private fun checkTowerinList(devicePhone: DevicePhone):Int {
         //var devicePhonecheck: DevicePhone? = listTowersFound.find { it.totalCellId == devicePhone.totalCellId }
         var indexOfTower = listTowersFound.indexOfFirst { it.totalCellId == devicePhone.totalCellId }
         Log.d("cfauli", "checkTowerList indexofTower " + indexOfTower)
@@ -571,16 +524,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         @RequiresApi(Build.VERSION_CODES.P)
         override fun onLocationChanged(location: Location) {
             readInitialConfiguration()
-            /*if (lastLocation!=null) {
-                distanceBetweenLocations = location.distanceTo(locationAnt!!).toDouble()
-                Log.d("cfauli", "distanceBetweenLocations" + distanceBetweenLocations)
-                distanceBetweenLocationsBool = distanceBetweenLocations < maxDistanceBetweenLocations
-            }*/
-            distanceBetweenLocationsBool=true
+
+            locationOk = location
             pDevice = loadCellInfo(telephonyManager)
 
 
-            towerinListInt = ckeckTowerinList(pDevice)
+            towerinListInt = checkTowerinList(pDevice)
             Log.d("cfauli", " onlocationchanged")
             Log.d("cfauli", "previoustower " + previousTower)
             Log.d("cfauli", "currentTower " + pDevice.totalCellId)
@@ -595,7 +544,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     pDevice.lon = coordenadas.lon!!
                     listTowersFound[towerinListInt].lat = coordenadas.lat!!
                     listTowersFound[towerinListInt].lon = coordenadas.lon!!
-                    locateTowerMap(location, coordenadas)
+                    locateTowerMap(pDevice, location)
                     previousTower = pDevice
                 }
 
@@ -619,6 +568,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             // Save samples in file and draw colored dot
             Log.d ("cfauli", "Save file filestate " + fabSaveClicked + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
             if (fabSaveClicked && okSaveSamples == true && isFileSamplesOpened)  {
+
+
+
                 Log.d ("cfauli", "Save file opened: " + isFileSamplesOpened)
                 Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
                 File(sampleFilePath.toString()).appendText(
@@ -627,7 +579,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                             ";" + calculateFreq(pDevice.type, pDevice.band) + ";" + pDevice.dbm + ";"
                             + "%.5f".format(location.latitude) + ";" + "%.5f".format(location.longitude)
                 )
-                if (distanceBetweenLocationsBool || locationAnt==null) plotColoredDot(LatLng(location.latitude,location.longitude),pDevice.dbm!!)
+
+                plotColoredDot(LatLng(location.latitude,location.longitude),pDevice.dbm!!)
 
 
 
@@ -637,8 +590,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             }
 
             locationAnt = location
+
             // fill the distance and tower textview
-            if (distanceBetweenLocationsBool) updateTexViewDistanceTower()
+            updateTextViewDistanceTower(location)
 
         }
 
@@ -825,20 +779,60 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
     }
 
-fun updateTexViewDistanceTower() {
-
-    if (location!=null) {
-        distance = distance(location!!.latitude, location!!.longitude, pDevice.lat, pDevice.lon)
+    fun mZoom(pDevice:DevicePhone, location: Location): Float {
+        distance = distance(pDevice.lat,pDevice.lon,location.latitude,location.longitude)
+        var mZoom = 13f
+        when {
+            distance < 20000  -> mZoom = 11f
+            distance < 10000  -> mZoom = 12f
+            distance < 5000  -> mZoom = 13f
+            distance < 2000  -> mZoom = 14f
+            distance < 1000  -> mZoom = 15f
+            distance < 500  -> mZoom = 19f
+        }
+        return mZoom
     }
-    if (distance==0.0 ) {
-        Log.d("cfauli","locationant ant" + location?.latitude)
-        tv_fr3_distance.text = "calculating ..."
-    } else if(distance < 100000) {
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun addMarkerAnimateCameraUdateTextView(location:Location) {
+
+        pDevice = loadCellInfo(telephonyManager)
+        findTower(openCellIdInterface, pDevice)
+        { coordenadas ->
+            pDevice.lat = coordenadas.lat!!
+            pDevice.lon = coordenadas.lon!!
+
+
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(LatLng(pDevice.lat, pDevice.lon))
+                    .title(pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+            )
+            updateTextViewDistanceTower(location)
+            val mZoom = mZoom(pDevice, location!!)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pDevice.lat, pDevice.lon), mZoom))
+        }
+    }
+
+
+fun updateTextViewDistanceTower(locationok:Location) {
+
+
+    distance = distance(locationok.latitude, locationok.longitude, pDevice.lat, pDevice.lon)
+    Log.d("cfauli towerinlist", distance.toString())
+    when {
+        distance==0.0 -> {
+            tv_fr3_distance.text = "waiting GPS ..."
+        }
+        distance < 100000.0  -> {
             tv_fr3_distance.text = distance.toInt().toString() + "m"
 
-    } else {
-        tv_fr3_distance.text = "tower not found"
-        Log.d("cfauli towerinlist", towerinListInt.toString())
+        }
+        distanceAnt > 100000.0 -> {
+            tv_fr3_distance.text = "tower not found"
+
+        }
     }
     tv_fr3_tower.text = pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
 }
@@ -846,7 +840,3 @@ fun updateTexViewDistanceTower() {
 
 }
 
-
-/*interface FetchCompleteListener {
-
-}*/
