@@ -32,7 +32,7 @@
         </menu>
     </item>
 
-    <item android:title="Close App">
+    <item android:title="@string/close_app">
         <menu>
             <item
                 android:checkable="true"

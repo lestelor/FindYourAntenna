@@ -102,13 +102,13 @@
                 android:layout_marginTop="10dp"
                 android:textAlignment="viewEnd"
                 android:textStyle="bold"
-                android:text="distance: "/>
+                android:text="@string/distancetxt"/>
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAlignment="viewEnd"
                 android:textStyle="bold"
-                android:text="tower: "/>
+                android:text="@string/towertxt"/>
         </LinearLayout>
         <LinearLayout
             android:layout_width="wrap_content"

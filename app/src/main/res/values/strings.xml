@@ -44,7 +44,7 @@
     <string name="rbBitTorrent" translatable="false">http:6881 BitTorrent</string>
     <string name="navExit">Exit</string>
     <string name="menu_tab1">Network Speed</string>
-    <string name="menu_tab2">Network Signal</string>
+    <string name="menu_tab2">Network Signal Scanner</string>
     <string name="menu_tab3">Cell Tower Location</string>
     <string name="channel">channel: </string>
     <string name="Network">Network: </string>
@@ -63,6 +63,9 @@
     <string name="Download">Download: </string>
     <string name="Upload">Upload: </string>
     <string name="distanceSamples">Sample Distance</string>
+    <string name="close_app">Close App</string>
+    <string name="distancetxt">"distance: "</string>
+    <string name="towertxt">"tower: "</string>
 
 
 </resources>

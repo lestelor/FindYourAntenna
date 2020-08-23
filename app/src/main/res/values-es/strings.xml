@@ -12,17 +12,17 @@
     <string name="menu_gallery">Galería</string>
     <string name="menu_slideshow">Diapositivas</string>
     <string name="hola">hola</string>
-    <string name="timeSamples">Tiempo entre muestras (s)</string>
-    <string name="distanceSamples">Distancia entre muestras (s)</string>
+    <string name="timeSamples">Tiempo entre muestras</string>
+    <string name="distanceSamples">Distancia entre muestras</string>
     <string name="titlepopup">Opciones</string>
     <string name="ok">OK</string>
-    <string name="textSampleTime">Tiempo entre muestras (s)</string>
-    <string name="textSampleDistance">Distancia entre muestras (s)</string>
+    <string name="textSampleTime">Tiempo entre muestras</string>
+    <string name="textSampleDistance">Distancia entre muestras</string>
     <string name="navSettings">Opciones</string>
     <string name="otherSettings">Acerca:</string>
     <string name="minDistSample">10</string>
     <string name="textDirectory">Carpeta muestras</string>
-    <string name="checkbox_Towers">Guarda archivo coordenadas de las torres móviles</string>
+    <string name="checkbox_Towers">Guarda archivo torres móviles</string>
     <string name="checkbox_samples">Guarda archivo muestras de señal</string>
     <string name="pop_up_window_tv_folder">Samples file folder</string>
     <string name="minTimeSample">10</string>
@@ -35,14 +35,14 @@
     <string name="download">Bajada</string>
     <string name="latency">Ping</string>
     <string name="navExit">Salir</string>
-    <string name="menu_tab1">Network Speed Test</string>
-    <string name="menu_tab2">Network Signal</string>
-    <string name="menu_tab3">Cell Tower Location</string>
+    <string name="menu_tab1">Speed Test</string>
+    <string name="menu_tab2">"Escáner de red "</string>
+    <string name="menu_tab3">Mapa de torres móviles</string>
     <string name="channel">canal: </string>
     <string name="Network">Red: </string>
     <string name="Operator">Operador (mcc-mnc): </string>
     <string name="MobileTxt">Red Móvil</string>
-    <string name="Tower">Torre</string>
+    <string name="Tower">Torre </string>
     <string name="Frequency"> frecuencia: </string>
     <string name="MobileDetected">Red móvil no detectada</string>
     <string name="towerFileNotFound">Archivo towers.csv no encontrado</string>
@@ -55,6 +55,9 @@
     <string name="Upload">Subida: </string>
     <string name="nav_header_title">Comprueba tu red</string>
     <string name="menu_home">Atrás</string>
+    <string name="close_app">Cerrar App</string>
+    <string name="distancetxt">"distancia: "</string>
+    <string name="towertxt">"torre: "</string>
 
 
 </resources>
