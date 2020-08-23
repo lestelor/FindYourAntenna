@@ -171,7 +171,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             if (fabSaveClicked) {
                 // Create towers file
                 storageDir = getStorageDir()
-                Toast.makeText(context, "File saved in " + storageDir, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, getString(R.string.FileSavedIn) + storageDir, Toast.LENGTH_LONG).show()
                 storageDirTowers = File(storageDir!!)
                 if (!storageDirTowers!!.exists()) {
                     storageDirTowers!!.mkdirs()
@@ -337,6 +337,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             .addOnSuccessListener { location : Location? ->
                 if (location != null) {
                     // create pDevice and add green marker
+                    locationOk = location
                     findPdeviceAddMarkerAnimateCameraUdateTextView(location)
                 }
                 // check if tower exists and returns the index. If doesnt, add pDevice to towerinlist and returns the index = prev_index+1.
@@ -451,7 +452,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         )*/
 
         val mZoom = mZoom(pDevice, location)
-        val myLocation = LatLng(pDevice.lat, pDevice.lon)
+        val myLocation = LatLng(location.latitude, location.longitude)
 
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
@@ -534,66 +535,54 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             towerinListInt = checkTowerinList(pDevice)
 
             Log.d("cfauli", "onlocationchanged towerinlist " + towerinListInt)
-
-            //var sameTowerBool = false
-            //sameTowerBool = pDevice.totalCellId == previousTower!!.totalCellId
-
-            // fill the distance and tower textview
-            updateTextViewDistanceTower(location)
-
             Log.d("cfauli", "onlocationchanged " + previousTower?.totalCellId + " " + pDevice.totalCellId + " " + towerinListInt + " " + towerinListSize)
-            Toast.makeText(context, "onlocationchanged " + previousTower?.cid + " " + pDevice.cid + " " + towerinListInt + " " + towerinListSize, Toast.LENGTH_LONG).show()
+            //Toast.makeText(context, "onlocationchanged " + previousTower?.cid + " " + pDevice.cid + " " + towerinListInt + " " + towerinListSize, Toast.LENGTH_LONG).show()
             // First check, if tower is the same as previous do nothing except update the textview.
-            if (previousTower?.totalCellId != pDevice.totalCellId && previousTower?.totalCellId != "") {
 
-                // In case the tower is not found (index = size, since new pDevice is added to listtowerfound) , then complete PDevice with the lat, lon information of the tower
-                if (towerinListInt == towerinListSize) {
-                    findTower(openCellIdInterface, pDevice)
-                    { coordenadas ->
-                        pDevice.lat = coordenadas.lat!!
-                        pDevice.lon = coordenadas.lon!!
-                        listTowersFound[towerinListInt].lat = coordenadas.lat!!
-                        listTowersFound[towerinListInt].lon = coordenadas.lon!!
-                        previousTower = pDevice
-                        // fill the distance and tower textview, repeated since it is an async function
-                        // print the tower markers (green the serving and red the others) and make appropriate zoom
-                        locateTowerMap(listTowersFound[towerinListInt], location)
-                        updateTextViewDistanceTower(location)
-
-
-                        // Save towers in file
-                        Log.d("cfauli", "Save towers file filestate " + fabSaveClicked + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
-                        if (fabSaveClicked && okSaveTowers == true && isFileTowersCreated) {
-                            Log.d("cfauli", "Save tower file opened: " + isFileTowersCreated)
-                            if (isFileTowersCreated) {
-                                File(towersFilePath.toString()).appendText(
-                                    "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
-                                            ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
-                                            ";" + "%.5f".format(pDevice.lat) + ";" + "%.5f".format(pDevice.lon)
-                                )
-                            }
-
-                        } else if (!fabSaveClicked && isFileTowersCreated) isFileTowersCreated = false
-
-                    }
-                } else {
-
-
-                    // if tower exists in list, only update the colors of the markers and the textview
+            // In case the tower is not found (index = size, since new pDevice is added to listtowerfound) , then complete PDevice with the lat, lon information of the tower
+            if (towerinListInt == towerinListSize) {
+                //Toast.makeText(context, "onlocationchanged newTower " + listTowersFound[towerinListInt].cid,Toast.LENGTH_LONG).show()
+                findTower(openCellIdInterface, pDevice)
+                { coordenadas ->
+                    pDevice.lat = coordenadas.lat!!
+                    pDevice.lon = coordenadas.lon!!
+                    listTowersFound[towerinListInt].lat = coordenadas.lat!!
+                    listTowersFound[towerinListInt].lon = coordenadas.lon!!
+                    previousTower = pDevice
+                    // fill the distance and tower textview, repeated since it is an async function
+                    // print the tower markers (green the serving and red the others) and make appropriate zoom
                     locateTowerMap(listTowersFound[towerinListInt], location)
                     updateTextViewDistanceTower(location)
 
-                    //val mZoom = mZoom(pDevice, location!!)
-                    //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pDevice.lat, pDevice.lon), mZoom))
+
+                    // Save towers in file
+                    Log.d("cfauli", "Save towers file filestate " + fabSaveClicked + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
+                    if (fabSaveClicked && okSaveTowers == true && isFileTowersCreated) {
+                        Log.d("cfauli", "Save tower file opened: " + isFileTowersCreated)
+                        if (isFileTowersCreated) {
+                            File(towersFilePath.toString()).appendText(
+                                "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
+                                        ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
+                                        ";" + "%.5f".format(pDevice.lat) + ";" + "%.5f".format(pDevice.lon)
+                            )
+                        }
+
+                    } else if (!fabSaveClicked && isFileTowersCreated) isFileTowersCreated = false
+
                 }
+            } else  {
 
-
-            } else {
-                // first time previous tower == "", then needs to be updated to pDevice
-                previousTower = listTowersFound[towerinListInt]
-                // needs to be repeated since the previous (if=true) is async
+                //Toast.makeText(context, "onlocationchanged previousTower " + listTowersFound[towerinListInt].cid + " " + location.latitude,Toast.LENGTH_LONG).show()
+                // if tower exists in list, only update the colors of the markers and the textview
+                locateTowerMap(listTowersFound[towerinListInt], location)
                 updateTextViewDistanceTower(location)
+                previousTower = listTowersFound[towerinListInt]
+                //val mZoom = mZoom(pDevice, location!!)
+                //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pDevice.lat, pDevice.lon), mZoom))
             }
+
+
+
 
 
 
@@ -786,7 +775,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             }
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
-            Toast.makeText(context, "The tower file was not found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, getString(R.string.towerFileNotFound), Toast.LENGTH_SHORT).show()
         }
 
 
@@ -845,7 +834,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     }
                 } catch (e: java.lang.Exception) {
                     e.printStackTrace()
-                    Toast.makeText(context, "Not a valid file", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.NotAValidFile), Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -885,26 +874,26 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             )
             updateTextViewDistanceTower(location)
             val mZoom = mZoom(pDevice, location!!)
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pDevice.lat, pDevice.lon), mZoom))
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), mZoom))
         }
     }
 
 
-fun updateTextViewDistanceTower(locationok:Location) {
+fun updateTextViewDistanceTower(location:Location) {
 
 
-    distance = distance(locationok.latitude, locationok.longitude, pDevice.lat, pDevice.lon)
-    Log.d("cfauli towerinlist", distance.toString())
+    distance = distance(location.latitude, location.longitude, listTowersFound[towerinListInt].lat, listTowersFound[towerinListInt].lon)
+    Log.d("cfauli distance", distance.toString() + " " + location.latitude + " " +  location.longitude +" " + listTowersFound[towerinListInt].lat + " " +  listTowersFound[towerinListInt].lon)
     when {
         distance==0.0 -> {
-            tv_fr3_distance.text = "waiting GPS ..."
+            tv_fr3_distance.text = getString(R.string.waitingGPS)
         }
         distance < 100000.0  -> {
-            tv_fr3_distance.text = distance.toInt().toString() + "m"
+            tv_fr3_distance.text = "%.0f".format(distance) + "m"
 
         }
         distanceAnt > 100000.0 -> {
-            tv_fr3_distance.text = "tower not found"
+            tv_fr3_distance.text = getString(R.string.towerNotFound)
 
         }
     }

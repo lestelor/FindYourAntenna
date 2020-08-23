@@ -55,6 +55,15 @@
     <string name="Tower">"Tower "</string>
     <string name="Frequency">" frequency: "</string>
     <string name="MobileDetected">No mobile network detected</string>
+    <string name="towerFileNotFound">The tower file was not found</string>
+    <string name="NotAValidFile">Not a valid file</string>
+    <string name="waitingGPS">waiting GPS ...</string>
+    <string name="towerNotFound">tower not found</string>
+    <string name="FileSavedIn">\"File saved in \"</string>
+    <string name="TowerCoordinatesNotFound">Tower coordinates not found</string>
+    <string name="TestDeviceID">9E4FF26E78ADE9DFD73A3F51A0D208CA</string>
+    <string name="Download">\"Download: \"</string>
+    <string name="Upload">\"Upload: \"</string>
 
 
 </resources>

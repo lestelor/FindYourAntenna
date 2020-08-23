@@ -289,7 +289,7 @@ class Tab2 : Fragment() {
                     tvLat.text = getString(R.string.Tower) + "lat: " + "%.4f".format(coordenadas.lat)
                     tvLon.text = "lon: " + "%.4f".format(coordenadas.lon)
                 } else {
-                    tvLat.text = "Tower coordinates not found"
+                    tvLat.text = getString(R.string.TowerCoordinatesNotFound)
                     tvLon.text = ""
                 }
             }

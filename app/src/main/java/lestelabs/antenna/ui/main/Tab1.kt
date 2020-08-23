@@ -207,7 +207,7 @@ class Tab1 : Fragment() {
         MobileAds.initialize(requireActivity())
 
         val adRequest = AdRequest.Builder()
-            .addTestDevice("9E4FF26E78ADE9DFD73A3F51A0D208CA")
+            .addTestDevice(getString(R.string.TestDeviceID))
             .build()
 
         mAdView.loadAd(adRequest)
@@ -508,7 +508,7 @@ class Tab1 : Fragment() {
             editor.putString(textNetwork, network)
             editor.apply()
 
-            editor.putString(textSpeed, "Download: " + download + "Mbps " + "Upload: " + upload + "Mbps " + "Ping: " + ping + "ms")
+            editor.putString(textSpeed, getString(R.string.Download) + download + "Mbps " + getString(R.string.Upload) + upload + "Mbps " + "ping: " + ping + "ms")
             editor.apply()
             editor.commit()
 

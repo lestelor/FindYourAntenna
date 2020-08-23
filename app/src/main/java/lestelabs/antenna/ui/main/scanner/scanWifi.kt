@@ -29,7 +29,6 @@ public object scanWifi {
         var results: List<ScanResult>? = null
         devices = mutableListOf()
         if (!wifiManager.isWifiEnabled) {
-            Toast.makeText(context, "WiFi is disabled, please enable it", Toast.LENGTH_LONG).show()
             wifiManager.isWifiEnabled = true
         }
         // Registering Wifi Receiver
