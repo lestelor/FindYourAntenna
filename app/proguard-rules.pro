@@ -7,7 +7,7 @@
 
 
 -dontwarn retrofit2.**
--keep class retrofit2.** { *; }
+-keep class retrofit2.* { *; }
 -keepattributes Signature
 -keepattributes Exceptions
 
@@ -15,7 +15,9 @@
     @retrofit2.http.* <methods>;
 }
 
--keep public class lestelabs.antenna.ui.main.rest.models.** {*;}
+-keep public class lestelabs.antenna.ui.main.rest.models.DataCell
+-keep public class lestelabs.antenna.ui.main.rest.models.Towers
+-keep public class lestelabs.antenna.ui.main.rest.models.* {*;}
 
 
 
