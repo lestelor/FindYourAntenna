@@ -4,13 +4,11 @@ package lestelabs.antenna.ui.main
 import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -18,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
@@ -32,7 +29,6 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
 import java.io.File
-import java.io.FilenameFilter
 import java.util.*
 
 interface GetfileState {
@@ -82,7 +78,7 @@ interface GetfileState {
 
 
         toggle = ActionBarDrawerToggle(
-            this, drawerLayout as DrawerLayout?, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
+            this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
         )
         drawerLayout?.addDrawerListener(toggle)
         toggle.syncState()
@@ -99,11 +95,12 @@ interface GetfileState {
 
 
 
-        checkAllPermission(){
+        checkAllPermission {
 
             tabLayout.addTab(tabLayout.newTab())
             tabLayout.addTab(tabLayout.newTab())
             tabLayout.addTab(tabLayout.newTab())
+
             tabLayout.tabGravity = TabLayout.GRAVITY_FILL
             val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
             tabLayout.setupWithViewPager(viewPager)
@@ -171,7 +168,7 @@ interface GetfileState {
     }
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
-        val title: Int
+
         when (p0.getItemId()) {
             R.id.nav_settings -> {
                 val intent = Intent(this, PopUpSettings::class.java)
@@ -234,7 +231,7 @@ interface GetfileState {
 
 
      override fun onCreateDialog(id: Int): Dialog? {
-         var dialog: Dialog? = null
+         val dialog: Dialog?
          val builder: AlertDialog.Builder = AlertDialog.Builder(this)
          when (id) {
              DIALOG_LOAD_FILE -> {

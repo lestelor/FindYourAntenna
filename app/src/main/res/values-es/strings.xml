@@ -26,11 +26,11 @@
     <string name="checkbox_samples">Guarda archivo muestras de señal</string>
     <string name="pop_up_window_tv_folder">Samples file folder</string>
     <string name="minTimeSample">10</string>
-    <string name="pop_up_checkbox_towers">Guarda archivo coordenadas de las torres móviles</string>
+    <string name="pop_up_checkbox_towers">Guarda archivo torres móviles</string>
     <string name="pop_up_checkbox_samples">Guarda archivo muestras de señal</string>
     <string name="oksavetowers">1</string>
     <string name="oksavesamples">1</string>
-    <string name="speed_test_button">Empieza Speed Test  </string>
+    <string name="speed_test_button">Empieza Speed Test</string>
     <string name="upload">Subida</string>
     <string name="download">Bajada</string>
     <string name="latency">Ping</string>
@@ -49,15 +49,16 @@
     <string name="NotAValidFile">Archivo no válido</string>
     <string name="waitingGPS">esperando GPS &#8230;</string>
     <string name="towerNotFound">torre no encontrada</string>
-    <string name="FileSavedIn">Archivo guardado en </string>
+    <string name="FileSavedIn">Guardando en </string>
     <string name="TowerCoordinatesNotFound">coordenadas no enontradas</string>
     <string name="Download">Bajada: </string>
     <string name="Upload">Subida: </string>
-    <string name="nav_header_title">Comprueba tu red</string>
+    <string name="nav_header_title">Network Test</string>
     <string name="menu_home">Atrás</string>
     <string name="close_app">Cerrar App</string>
     <string name="distancetxt">"distancia: "</string>
     <string name="towertxt">"torre: "</string>
+    <string name="NotAvailable">No disponible</string>
 
 
 </resources>

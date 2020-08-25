@@ -3,13 +3,14 @@ package lestelabs.antenna.ui.main.scanner;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -23,8 +24,9 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
         super(context, 0, wiFis);
     }
 
+    @NotNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NotNull ViewGroup parent) {
 
 
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE);

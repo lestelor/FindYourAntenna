@@ -1,10 +1,5 @@
 package lestelabs.antenna.ui.main
 
-import fr.bmartel.speedtest.utils.SpeedTestUtils
-
-
-
-
 
 object Constants {
 

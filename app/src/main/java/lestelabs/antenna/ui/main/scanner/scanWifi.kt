@@ -7,12 +7,9 @@ import android.content.IntentFilter
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Build
-
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.FragmentActivity
-
 import java.util.*
 
 
@@ -26,7 +23,7 @@ public object scanWifi {
 
     fun scanwifi (context: FragmentActivity, wifiManager: WifiManager, callback: (Boolean) -> Unit ) {
 
-        var results: List<ScanResult>? = null
+        var results: List<ScanResult>?
         devices = mutableListOf()
         if (!wifiManager.isWifiEnabled) {
             wifiManager.isWifiEnabled = true

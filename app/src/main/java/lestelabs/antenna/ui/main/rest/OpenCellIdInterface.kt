@@ -10,7 +10,6 @@ Here's an example:
 API LINK: https://api.mylnikov.org/geolocation/cell?v=1.1&data=open&mcc=268&mnc=06&lac=8280&cellid=5616
 */
 
-import com.squareup.okhttp.ResponseBody
 import lestelabs.antenna.ui.main.rest.models.Towers
 import retrofit2.Call
 import retrofit2.http.GET

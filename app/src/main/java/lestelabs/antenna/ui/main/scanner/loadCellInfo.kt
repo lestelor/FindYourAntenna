@@ -1,14 +1,10 @@
 package lestelabs.antenna.ui.main.scanner
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.os.Build
 import android.telephony.*
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import lestelabs.antenna.ui.main.MainActivity
 
 
 /**
@@ -98,7 +94,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
 
             }
             else if (lCurrentApiVersion >= Build.VERSION_CODES.JELLY_BEAN_MR2 && info is CellInfoWcdma) {
-                pDevicePhone.type = "WCDMA"
+                pDevicePhone.type = "3G"
                 val wcdma =
                     info.cellSignalStrength
                 val identityWcdma =

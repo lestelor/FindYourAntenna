@@ -10,7 +10,7 @@ import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
 
 
-public object Connectivity {
+object Connectivity {
 
 
 
@@ -53,11 +53,7 @@ public object Connectivity {
         return info != null && info.isConnected && info.type == ConnectivityManager.TYPE_MOBILE
     }
 
-    /**
-     * Check if there is fast connectivity
-     * @param context
-     * @return
-     */
+
     fun networkType(context: Context): Int? {
         val info = getNetworkInfo(context)
         if (info != null && info.isConnected) return info.type else return null
@@ -68,19 +64,14 @@ public object Connectivity {
         if (info != null && info.isConnected) return info.subtype else return null
     }
 
-    /**
-     * Check if the connection is fast
-     * @param type
-     * @param subType
-     * @return
-     */
+
     @RequiresApi(Build.VERSION_CODES.P)
     fun getpDevice(context: Context):DevicePhone {
-        val telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         return loadCellInfo(telephonyManager)
     }
 
-    fun connectionType(type: Int?, subType: Int?): String? {
+    /*fun connectionType(type: Int?, subType: Int?): String? {
         if (type == ConnectivityManager.TYPE_WIFI) {
             return "WIFI"
         } else if (type == ConnectivityManager.TYPE_MOBILE) {
@@ -106,7 +97,7 @@ public object Connectivity {
         } else {
             return ""
         }
-    }
+    } */
 }
 
 

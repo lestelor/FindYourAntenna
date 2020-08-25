@@ -2,8 +2,6 @@ package lestelabs.antenna.ui.main
 
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.SharedPreferences
-import android.net.Uri
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Build
@@ -16,7 +14,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -28,7 +25,7 @@ import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.*
 
 
-/**
+/*
  * A simple [Fragment] subclass.
  * Activities that contain this fragment must implement the
  * [Tab2.OnFragmentInteractionListener] interface

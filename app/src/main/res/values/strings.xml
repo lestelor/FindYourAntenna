@@ -66,6 +66,7 @@
     <string name="close_app">Close App</string>
     <string name="distancetxt">"distance: "</string>
     <string name="towertxt">"tower: "</string>
+    <string name="NotAvailable">Not Available</string>
 
 
 </resources>

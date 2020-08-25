@@ -1,7 +1,6 @@
 package lestelabs.antenna.ui.main.rest
 
 import android.util.Log
-import com.squareup.okhttp.ResponseBody
 import lestelabs.antenna.ui.main.rest.models.Towers
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import retrofit2.Call
@@ -52,6 +51,8 @@ fun findTower(openCellIdInterface: OpenCellIdInterface,pDevicePhone: DevicePhone
 
         }
     })
+
+
     }
 
 

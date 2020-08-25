@@ -6,8 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -20,8 +21,9 @@ public class SpeedAdapter extends ArrayAdapter<SpeedTest> {
         super(context, 0, tests);
     }
 
+    @NotNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NotNull ViewGroup parent) {
         // Get the data item for this position
         SpeedTest speedTest = getItem(position);
         // Check if an existing view is being reused, otherwise inflate the view
@@ -34,6 +36,7 @@ public class SpeedAdapter extends ArrayAdapter<SpeedTest> {
         TextView tvDate = (TextView) convertView.findViewById(R.id.tvF1Date);
 
         // Populate the data into the template view using the data object
+        assert speedTest != null;
         tvNetwork.setText(speedTest.getNetwork());
         tvSpeed.setText(speedTest.getSpeed());
         tvDate.setText(speedTest.getDate());

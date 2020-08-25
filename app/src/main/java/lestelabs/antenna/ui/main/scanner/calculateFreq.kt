@@ -1,7 +1,7 @@
 package lestelabs.antenna.ui.main.scanner
 
 fun calculateFreq (type:String?, arfcn:Int?):Double {
-    var offsetDL: Int = 0
+    var offsetDL = 0
     var initialDL: Int = 0
     var FREFOffs: Double = 0.0
     var FGlobal: Int = 0
@@ -10,8 +10,8 @@ fun calculateFreq (type:String?, arfcn:Int?):Double {
     when (type) {
         "2G" -> {
             return when {
-                arfcn!! <= 599 -> ((arfcn!! * 0.2 + 890) + 45)
-                arfcn!! <= 1023 -> (890 + 0.2 * (arfcn!! - 1024) + 45)
+                arfcn!! <= 599 -> ((arfcn * 0.2 + 890) + 45)
+                arfcn <= 1023 -> (890 + 0.2 * (arfcn - 1024) + 45)
                 else -> 0.0
             }
         }
@@ -25,27 +25,27 @@ fun calculateFreq (type:String?, arfcn:Int?):Double {
                     offsetDL = 0
                 }// band 1
 
-                arfcn!! <= 1949 -> {
+                arfcn <= 1949 -> {
                     initialDL = 1805
                     offsetDL = 1200
                 }// band 3
 
-                arfcn!! <= 3450 -> {
+                arfcn <= 3450 -> {
                     initialDL = 2620
                     offsetDL = 2750
                 }// band 7
 
-                arfcn!! <= 3800 -> {
+                arfcn <= 3800 -> {
                     initialDL = 925
                     offsetDL = 3450
                 }// band 8
 
-                arfcn!! <= 6450 -> {
+                arfcn <= 6450 -> {
                     initialDL = 791
                     offsetDL = 6150
                 }// band 20
 
-                arfcn!! <= 38250 -> {
+                arfcn <= 38250 -> {
                     initialDL = 2570
                     offsetDL = 37750
                 }// band 38
@@ -55,7 +55,7 @@ fun calculateFreq (type:String?, arfcn:Int?):Double {
                     offsetDL = 0
                 }
             }
-            return (initialDL + 0.1 * (arfcn!! - offsetDL))
+            return (initialDL + 0.1 * (arfcn - offsetDL))
         }
 
         // The formula for 5G NR ARFCN is described in 3GPP TS 38.104 chapter 5.4.2.1.
@@ -66,12 +66,12 @@ fun calculateFreq (type:String?, arfcn:Int?):Double {
                     FGlobal = 5
                     NREFOff = 0
                 }// band 0-3000MHz
-                arfcn!! <= 2016666 -> {
+                arfcn <= 2016666 -> {
                     FREFOffs = 3000.0
                     FGlobal = 15
                     NREFOff = 600000
                 }// band 3000-24.500MHz
-                arfcn!! <= 3279165 -> {
+                arfcn <= 3279165 -> {
                     FREFOffs = 24250.08
                     FGlobal = 60
                     NREFOff = 2016667

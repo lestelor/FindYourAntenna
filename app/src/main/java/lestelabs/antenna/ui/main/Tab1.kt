@@ -30,7 +30,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.pow
 
 
-/**
+/*
  * A simple [Fragment] subclass.
  * Activities that contain this fragment must implement the
  * [Tab1.OnFragmentInteractionListener] interface
@@ -201,13 +201,13 @@ class Tab1 : Fragment() {
 
         // Admod
         mAdView = fragmentView.findViewById(R.id.adViewFragment1)
-        val adView = AdView(requireActivity())
+
 
 
         MobileAds.initialize(requireActivity())
 
         val adRequest = AdRequest.Builder()
-            .addTestDevice(getString(R.string.TestDeviceID))
+            //.addTestDevice(getString(R.string.TestDeviceID))
             .build()
 
         mAdView.loadAd(adRequest)
@@ -281,13 +281,13 @@ class Tab1 : Fragment() {
                                 speedTestRunningStep = 1
                                 Log.d("cfauli","[COMPLETED] step" + speedTestRunningStep)
                                 tvDownload.text = listDownload
-                                Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
+                                //Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
                                 // Start upload test (once the download test finishes)---------------------------------------------------------
                                 speedTestSocket.startUploadRepeat(upLoadFile,
-                                    5000, 1000, ((10).toDouble().pow(speedTestFile).toInt())*1000000, object : IRepeatListener {
+                                    5000, 1000, (10.0.pow(speedTestFile).toInt())*1000000, object : IRepeatListener {
 
                                         override fun onCompletion(report: SpeedTestReport) {
-                                            Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
+                                            Log.d("cfauli up file size", (((10.0.pow(speedTestFile).toInt()))*1000000).toString())
                                             internetSpeedUpload= report.transferRateBit.toFloat()/1000000.0f
                                             listUpload = "%.1f".format(internetSpeedUpload)
                                             requireActivity().runOnUiThread(Runnable {
@@ -451,11 +451,11 @@ class Tab1 : Fragment() {
         // Lookup view for data population
         Log.d("cfauli", "fillMobileTextView")
         val tvNetwork = view.findViewById<View>(R.id.tvTab1MobileNetworkType) as TextView
-        var pDevice: DevicePhone = DevicePhone()
+
 
         if (Connectivity.isConnectedMobile(requireContext())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                pDevice = Connectivity.getpDevice(requireContext())
+                val pDevice = Connectivity.getpDevice(requireContext())
                 listNetwork = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type, pDevice.band)) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
                 tvNetwork.text = listNetwork
             } else {
@@ -498,9 +498,9 @@ class Tab1 : Fragment() {
             editor.putInt("num_speed_test", numSpeedTest)
             editor.apply()
 
-            var textDate = "speed_test_date" + numSpeedTest
-            var textNetwork = "speed_test_network" + numSpeedTest
-            var textSpeed = "speed_test_speed" + numSpeedTest
+            val textDate= "speed_test_date" + numSpeedTest
+            val textNetwork = "speed_test_network" + numSpeedTest
+            val textSpeed = "speed_test_speed" + numSpeedTest
 
             editor.putString(textDate, day)
             editor.apply()

@@ -23,8 +23,7 @@
             android:id="@+id/tvF1Network"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Network"
-            android:textSize="16sp" />
+            android:text="Network" />
 
         <TextView
             android:id="@+id/tvF1Speed"

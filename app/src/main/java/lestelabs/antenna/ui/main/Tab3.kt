@@ -49,7 +49,7 @@ import java.io.FileReader
 import java.time.LocalDateTime
 
 
-/**
+/*
  * A simple [Fragment] subclass.
  * Activities that contain this fragment must implement the
  * [Tab3.OnFragmentInteractionListener] interface
@@ -160,7 +160,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         val fab_clear = fragmentView.findViewById(R.id.fab_tab3_clear) as ImageView
         val fab_load = fragmentView.findViewById(R.id.fab_tab3_open) as ImageView
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
-        mapFragment!!.getMapAsync(this)
+        mapFragment.getMapAsync(this)
         Log.d("cfauli","OnCreateView Tab3")
 
         // Floating button save
@@ -217,7 +217,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     )
 
                     Log.d("cfauli", sampleFilePath.toString())
-                    plotColoredDot(LatLng(locationOk!!.latitude, locationOk!!.longitude)!!, pDevice.dbm!!)
+                    plotColoredDot(LatLng(locationOk!!.latitude, locationOk!!.longitude), pDevice.dbm!!)
 
                 isFileSamplesOpened = true
 
@@ -231,20 +231,23 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         fab_clear.setOnClickListener { view ->
             mMap.clear()
             pDevice = loadCellInfo(telephonyManager)
-            Log.d("cfauli","fab clear " + pDevice.lat)
-            findTower(openCellIdInterface, pDevice)
-            { coordenadas ->
-                pDevice.lat = coordenadas.lat!!
-                pDevice.lon = coordenadas.lon!!
-                previousTower = pDevice
 
-                mMap.addMarker(
-                    MarkerOptions()
-                        .position(LatLng(previousTower!!.lat, previousTower!!.lon))
-                        .title(pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                )
-
+            val towerinListSize = listTowersFound.size
+            towerinListInt = checkTowerinList(pDevice)
+            // Delete if since allways print all the markers
+            //if (towerinListSize == towerinListInt) {
+                Log.d("cfauli", "fab clear " + pDevice.lat)
+                findTower(openCellIdInterface, pDevice)
+                { coordenadas ->
+                    pDevice.lat = coordenadas.lat!!
+                    pDevice.lon = coordenadas.lon!!
+                    listTowersFound[towerinListInt].lat = coordenadas.lat!!
+                    listTowersFound[towerinListInt].lon = coordenadas.lon!!
+                    previousTower = pDevice
+                    // fill the distance and tower textview, repeated since it is an async function
+                    // print the tower markers (green the serving and red the others) and make appropriate zoom
+                    locateTowerMap(listTowersFound[towerinListInt], locationOk!!)
+                    updateTextViewDistanceTower(locationOk!!)
             }
         }
         // Floating button load
@@ -331,6 +334,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
         startGPS()
+        tv_fr3_distance.text = getString(R.string.waitingGPS)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         fusedLocationClient.lastLocation
@@ -695,11 +699,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         val thresMobYellow = sharedPreferences.getString("thres_mob_yellow",Constants.MINMOBILESIGNALYELLOW)!!.toInt()
         val thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
 
-        if (pDevicedbm!! >= -1*thresMobYellow) {
+        if (pDevicedbm >= -1*thresMobYellow) {
             markerDot = R.drawable.circle_dot_green_icon
-        } else if (pDevicedbm!! >= -1*thresMobRed) {
+        } else if (pDevicedbm >= -1*thresMobRed) {
             markerDot = R.drawable.circle_dot_yellow_icon
-        } else if (pDevicedbm!! >= -1*thresMobBlack) {
+        } else if (pDevicedbm >= -1*thresMobBlack) {
             markerDot = R.drawable.circle_dot_red_icon
         } else {
             markerDot = R.drawable.circle_dot_black_icon
@@ -746,7 +750,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         var nextLine: String? = null
         try {
             val csvfile = File(towersFilePath.toString())
-            Log.d ("cfauli","csvfile" + csvfile!!.absolutePath)
+            Log.d ("cfauli","csvfile" + csvfile.absolutePath)
 
             val reader = BufferedReader(FileReader(csvfile))
             Log.d ("cfauli","csvfile" + reader)
@@ -754,7 +758,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             var i =0
             while (nextLine != null) {
 
-                val tokens: List<String> = nextLine!!.split(";")
+                val tokens: List<String> = nextLine.split(";")
                 if (i>0) {
                     val latFileDouble = tokens[5].replace(",",".").toDouble()
                     val lonFileDouble = tokens[6].replace(",",".").toDouble()
@@ -807,7 +811,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     //val filePath = File(getStorageDir())
                     //val csvfile = File(filePath, "samples.csv")
                     val csvfile = File(dotsFilePath)
-                    Log.d ("cfauli","csvfile" + csvfile!!.absolutePath)
+                    Log.d ("cfauli","csvfile" + csvfile.absolutePath)
 
 
 
@@ -819,7 +823,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     var i =0
                     while (nextLine != null) {
 
-                        val tokens: List<String> = nextLine!!.split(";")
+                        val tokens: List<String> = nextLine.split(";")
                         if (i>0) {
                             val latFileDouble = tokens[8].replace(",",".").toDouble()
                             val lonFileDouble = tokens[9].replace(",",".").toDouble()
@@ -846,9 +850,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         distance = distance(pDevice.lat,pDevice.lon,location.latitude,location.longitude)
         var mZoom = 13f
         when {
-            distance < 20000  -> mZoom = 10f
-            distance < 10000  -> mZoom = 11f
-            distance < 5000  -> mZoom = 12f
+            distance < 20000  -> mZoom = 11f
+            distance < 10000  -> mZoom = 12f
+            distance < 5000  -> mZoom = 13f
             distance < 2000  -> mZoom = 13f
             //distance < 1000  -> mZoom = 14f
             distance < 500  -> mZoom = 19f
@@ -857,32 +861,37 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
-    fun findPdeviceAddMarkerAnimateCameraUdateTextView(location:Location) {
+    fun findPdeviceAddMarkerAnimateCameraUdateTextView(locationOk:Location) {
 
         pDevice = loadCellInfo(telephonyManager)
-        findTower(openCellIdInterface, pDevice)
-        { coordenadas ->
-            pDevice.lat = coordenadas.lat!!
-            pDevice.lon = coordenadas.lon!!
+
+        val towerinListSize = listTowersFound.size
+        towerinListInt = checkTowerinList(pDevice)
+        if (towerinListSize == towerinListInt) {
+            Log.d("cfauli", "fab clear " + pDevice.lat)
+            findTower(openCellIdInterface, pDevice)
+            { coordenadas ->
+                pDevice.lat = coordenadas.lat!!
+                pDevice.lon = coordenadas.lon!!
+                listTowersFound[towerinListInt].lat = coordenadas.lat!!
+                listTowersFound[towerinListInt].lon = coordenadas.lon!!
+                previousTower = pDevice
+                // fill the distance and tower textview, repeated since it is an async function
+                // print the tower markers (green the serving and red the others) and make appropriate zoom
+                locateTowerMap(listTowersFound[towerinListInt], locationOk!!)
+                updateTextViewDistanceTower(locationOk!!)
 
 
-            mMap.addMarker(
-                MarkerOptions()
-                    .position(LatLng(pDevice.lat, pDevice.lon))
-                    .title(pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-            )
-            updateTextViewDistanceTower(location)
-            val mZoom = mZoom(pDevice, location!!)
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), mZoom))
+            }
         }
+
     }
 
 
 fun updateTextViewDistanceTower(location:Location) {
 
 
-    distance = distance(location.latitude, location.longitude, listTowersFound[towerinListInt].lat, listTowersFound[towerinListInt].lon)
+    //distance = distance(location.latitude, location.longitude, listTowersFound[towerinListInt].lat, listTowersFound[towerinListInt].lon)
     Log.d("cfauli distance", distance.toString() + " " + location.latitude + " " +  location.longitude +" " + listTowersFound[towerinListInt].lat + " " +  listTowersFound[towerinListInt].lon)
     when {
         distance==0.0 -> {
@@ -896,6 +905,8 @@ fun updateTextViewDistanceTower(location:Location) {
             tv_fr3_distance.text = getString(R.string.towerNotFound)
 
         }
+
+        else -> tv_fr3_distance.text = getString(R.string.NotAvailable)
     }
     tv_fr3_tower.text = pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
 }

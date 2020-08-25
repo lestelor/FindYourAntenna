@@ -3,8 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,7 +15,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-<androidx.fragment.app.FragmentContainerView
+
+    <fragment
 
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -25,9 +25,7 @@
         android:layout_weight="1"
         android:keepScreenOn="true"
         >
-
-
-    </androidx.fragment.app.FragmentContainerView>
+    </fragment>
 
 
 
@@ -47,7 +45,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:translationY="-150sp">
+        android:translationY="80sp">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_tab3_save"
@@ -56,7 +54,7 @@
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_diskette"
 
-            app:layout_constraintBottom_toTopOf="@id/fab_tab3_open"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -66,8 +64,8 @@
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_layer_open"
 
-            app:layout_constraintBottom_toTopOf="@+id/fab_tab3_clear"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/fab_tab3_save" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_tab3_clear"
@@ -77,8 +75,8 @@
             android:layout_marginEnd="25dp"
             android:src="@drawable/ic_layer_clear"
 
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/fab_tab3_open" />
 
 
 
