@@ -12,7 +12,7 @@
 
 <androidx.appcompat.widget.AppCompatTextView
     android:id="@+id/tvTab1MobileNetworkType"
-    android:text="Click to start the test"
+    android:text="@string/click_to_start_the_test"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:textColor="@color/cpb_blue"

@@ -67,6 +67,7 @@
     <string name="distancetxt">"distance: "</string>
     <string name="towertxt">"tower: "</string>
     <string name="NotAvailable">Not Available</string>
+    <string name="click_to_start_the_test">Click to start the test</string>
 
 
 </resources>

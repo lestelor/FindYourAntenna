@@ -324,6 +324,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
         //Thread.sleep(1000)
         readInitialConfiguration()
         //MapsInitializer.initialize(context)
@@ -336,13 +337,41 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         startGPS()
         tv_fr3_distance.text = getString(R.string.waitingGPS)
 
+        // First try. Same that findPdeviceAddMarkerAnimateCameraUdateTextView but always printing the Green Marker and no other else (on the contrary of locatetowermap)
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location : Location? ->
                 if (location != null) {
                     // create pDevice and add green marker
                     locationOk = location
-                    findPdeviceAddMarkerAnimateCameraUdateTextView(location)
+                    pDevice = loadCellInfo(telephonyManager)
+
+                    val towerinListSize = listTowersFound.size
+                    towerinListInt = checkTowerinList(pDevice)
+                    Log.d("cfauli", "findPdeviceAddMarkerUpdate " + towerinListSize + " " + towerinListInt)
+                    if (towerinListSize == towerinListInt) {
+                        Log.d("cfauli", "fab clear " + pDevice.lat)
+                        findTower(openCellIdInterface, pDevice)
+                        { coordenadas ->
+                            pDevice.lat = coordenadas.lat!!
+                            pDevice.lon = coordenadas.lon!!
+                            listTowersFound[towerinListInt].lat = coordenadas.lat!!
+                            listTowersFound[towerinListInt].lon = coordenadas.lon!!
+                            previousTower = pDevice
+                            // fill the distance and tower textview, repeated since it is an async function
+                            // print the tower markers (green the serving and red the others) and make appropriate zoom
+                            mMap.addMarker(
+                                MarkerOptions()
+                                    .position(LatLng(pDevice.lat, pDevice.lon))
+                                    .title(pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            )
+                            updateTextViewDistanceTower(locationOk!!)
+
+
+                        }
+                    }
                 }
                 // check if tower exists and returns the index. If doesnt, add pDevice to towerinlist and returns the index = prev_index+1.
                 // In this case towerinlistInt should be 1, the first time it creates a green marker.
@@ -867,6 +896,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         val towerinListSize = listTowersFound.size
         towerinListInt = checkTowerinList(pDevice)
+        Log.d("cfauli", "findPdeviceAddMarkerUpdate " + towerinListSize + " " + towerinListInt)
         if (towerinListSize == towerinListInt) {
             Log.d("cfauli", "fab clear " + pDevice.lat)
             findTower(openCellIdInterface, pDevice)
