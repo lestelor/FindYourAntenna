@@ -921,7 +921,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 fun updateTextViewDistanceTower(location:Location) {
 
 
-    //distance = distance(location.latitude, location.longitude, listTowersFound[towerinListInt].lat, listTowersFound[towerinListInt].lon)
+    distance = distance(location.latitude, location.longitude, listTowersFound[towerinListInt].lat, listTowersFound[towerinListInt].lon)
     Log.d("cfauli distance", distance.toString() + " " + location.latitude + " " +  location.longitude +" " + listTowersFound[towerinListInt].lat + " " +  listTowersFound[towerinListInt].lon)
     when {
         distance==0.0 -> {

@@ -16,7 +16,27 @@ fun calculateFreq (type:String?, arfcn:Int?):Double {
             }
         }
 
-        "3G" -> return arfcn!! / 5.0
+        "3G" -> {
+            return when {
+                arfcn!! <=763 -> 735.0+arfcn/5 // band19
+                arfcn <=912 -> 1326.0+arfcn/5 // band21
+                arfcn <=1513 -> 1575.0+arfcn/5 // band3
+                arfcn <=1738 -> 1805.0+arfcn/5 // band4
+                arfcn <=2563 -> 2175.0+arfcn/5 // band7
+                arfcn <=3088 -> 340.0+arfcn/5 // band8
+                arfcn <=3388 -> 1490.0+arfcn/5 // band10
+                arfcn <=3787 -> 736.0+arfcn/5 // band11
+                arfcn <=3903 -> -37.0+arfcn/5 // band12
+                arfcn <=4043 -> -55.0+arfcn/5 // band13
+                arfcn <=4143 -> -63.0+arfcn/5 // band14
+                arfcn <=4638 -> -109.0+arfcn/5 // band20
+                arfcn <=5038 -> 2580.0+arfcn/5 // band22
+                arfcn <=5413 -> 910.0+arfcn/5 // band25
+                arfcn <=5913 -> -291.0+arfcn/5 // band26
+                arfcn <=6813 -> 131.0+arfcn/5 // band32
+                else -> 0.0
+            }
+        }
 
         "4G" -> {
             when {
