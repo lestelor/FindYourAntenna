@@ -36,7 +36,7 @@ fun calculateFreq (type:String?, arfcn:Int?):Double {
                 arfcn <=6813 -> 131.0+arfcn/5 // band32
                 else -> 0.0
             }
-        }
+        } // https://www.sqimway.com/umts_band.php
 
         "4G" -> {
             when {

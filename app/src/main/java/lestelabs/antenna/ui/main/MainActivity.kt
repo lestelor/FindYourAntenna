@@ -2,12 +2,18 @@ package lestelabs.antenna.ui.main
 
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
+import android.text.TextUtils
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -17,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.MobileAds
@@ -49,6 +56,9 @@ interface GetfileState {
      private var mChosenFile: String? = null
      private val FTYPE = ".txt"
      private val DIALOG_LOAD_FILE = 1000
+     var gps_enabled:Boolean = false
+     private lateinit var lm:LocationManager
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,13 +99,30 @@ interface GetfileState {
 
         if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
             (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
-            ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
             Thread.sleep(1000)
+        }
+
+        lm = this.getSystemService(LOCATION_SERVICE) as LocationManager
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        } catch (ex: Exception) {
         }
 
 
 
         checkAllPermission {
+            Log.d("cfauli", "GPS enabled" + gps_enabled.toString())
+            if (!gps_enabled) {
+                Log.d("cfauli", "GPS NOT enabled")
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivityForResult(intent, 0)
+            }
+
+            /*while (!gps_enabled) {
+                Log.d("cfauli", "GPS NOT enabled bucle")
+                Thread.sleep(1000)
+            }*/
 
             tabLayout.addTab(tabLayout.newTab())
             tabLayout.addTab(tabLayout.newTab())
@@ -205,7 +232,7 @@ interface GetfileState {
     }
 
     override fun getFileState():List<Int> {
-        val outputListener: MutableList<Int> = mutableListOf(0,0)
+        val outputListener: MutableList<Int> = mutableListOf(0, 0)
         outputListener[0] = getFileStateButtonPressed
         outputListener[1] = tabSelectedInt
         return outputListener
@@ -217,13 +244,20 @@ interface GetfileState {
     override fun onBackPressed() {
         val drawer = findViewById<View>(R.id.drawer_layout) as DrawerLayout
         if (drawer.isDrawerOpen(GravityCompat.START)) drawer.closeDrawer(GravityCompat.START)
-        else {
+        else if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)){
+
+
             //finishAffinity() // back
             // Implement back as home so as no to trigger oncreateview which would leak memory
+            Log.d("cfauli", "gps main finishactivity")
             val startMain = Intent(Intent.ACTION_MAIN)
             startMain.addCategory(Intent.CATEGORY_HOME)
             startMain.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(startMain)
+        } else {
+            val startGps = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            Log.d("cfauli", "gps finishactivity")
+            finishAffinity()
         }
     }
 
@@ -254,5 +288,29 @@ interface GetfileState {
         val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
         tabLayout.setupWithViewPager(view_pager)
     }*/
-}
+
+
+     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+         super.onActivityResult(requestCode, resultCode, resultData)
+
+         if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
+
+             Log.d("cfauli", "gps result" + resultData)
+
+             try {
+                 gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                 if (gps_enabled) {
+                     Log.d("cfauli", "gps enabled")
+                 } else Log.d("cfauli", "gps NOT enabled")
+
+             } catch (ex: Exception) {
+             }
+         }
+
+
+
+
+
+     }
+ }
 

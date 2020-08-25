@@ -18,6 +18,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -153,6 +154,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // prevent window from going to sleep
+        view?.keepScreenOn = true
         locationAnt = location
         // Inflate the layout for this fragment
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
@@ -324,7 +327,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-
+        pDevice = loadCellInfo(telephonyManager)
         //Thread.sleep(1000)
         readInitialConfiguration()
         //MapsInitializer.initialize(context)
@@ -367,6 +370,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                                     .title(pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid)
                                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                             )
+                            val mZoom = mZoom(pDevice, location)
+                            val myLocation = LatLng(location.latitude, location.longitude)
+
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
+                            //locateTowerMap(listTowersFound[towerinListInt], locationOk!!)
                             updateTextViewDistanceTower(locationOk!!)
 
 
