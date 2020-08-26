@@ -13,6 +13,7 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
@@ -123,11 +124,39 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
         Log.d("cfauli","OnCreate Tab3")
         readInitialConfiguration()
+
+
+
+
+
+            /*while (!gps_enabled) {
+                Log.d("cfauli", "GPS NOT enabled bucle")
+                Thread.sleep(1000)
+            }*/
     }
     override fun onStart() {
         // call the superclass method first
         super.onStart()
         Log.d("cfauli","OnStart Tab3")
+        var gps_enabled = false
+        var lm: LocationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+        gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        if (!gps_enabled) {
+            Log.d("cfauli", "GPS NOT enabled")
+            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            startActivity(intent)
+        }
+
+        Log.d("cfauli", "GPS enabled" + gps_enabled.toString())
+        while (!gps_enabled) {
+            lm = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+            try {
+                gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+            } catch (ex: Exception) {
+            }
+        }
+        startGPS()
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     }
     override fun onStop() {
         // call the superclass method first
@@ -186,6 +215,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon")
                 }
                 // Save tower
+
                 pDevice = loadCellInfo(telephonyManager)
                 findTower(openCellIdInterface, pDevice)
                 { coordenadas ->
@@ -233,22 +263,26 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // Floating button clear
         fab_clear.setOnClickListener { view ->
             mMap.clear()
-            pDevice = loadCellInfo(telephonyManager)
 
+            pDevice = loadCellInfo(telephonyManager)
+            Log.d("cfauli", "fab clear pDevice cid" + pDevice.cid)
             val towerinListSize = listTowersFound.size
             towerinListInt = checkTowerinList(pDevice)
             // Delete if since allways print all the markers
             //if (towerinListSize == towerinListInt) {
-                Log.d("cfauli", "fab clear " + pDevice.lat)
+                Log.d("cfauli", "fab clear pDevice cid 2 " + pDevice.cid)
                 findTower(openCellIdInterface, pDevice)
                 { coordenadas ->
                     pDevice.lat = coordenadas.lat!!
                     pDevice.lon = coordenadas.lon!!
+                    Log.d("cfauli", "fab clear pDevice lat " + pDevice.lat)
                     listTowersFound[towerinListInt].lat = coordenadas.lat!!
                     listTowersFound[towerinListInt].lon = coordenadas.lon!!
                     previousTower = pDevice
+                    Log.d("cfauli", "fab clear locationOk " + locationOk!!.latitude)
                     // fill the distance and tower textview, repeated since it is an async function
                     // print the tower markers (green the serving and red the others) and make appropriate zoom
+
                     locateTowerMap(listTowersFound[towerinListInt], locationOk!!)
                     updateTextViewDistanceTower(locationOk!!)
             }
@@ -326,6 +360,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
+
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
         //Thread.sleep(1000)
@@ -354,7 +389,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     towerinListInt = checkTowerinList(pDevice)
                     Log.d("cfauli", "findPdeviceAddMarkerUpdate " + towerinListSize + " " + towerinListInt)
                     if (towerinListSize == towerinListInt) {
-                        Log.d("cfauli", "fab clear " + pDevice.lat)
+                        Log.d("cfauli", "gps onstart pdevicelat " + pDevice.lat)
                         findTower(openCellIdInterface, pDevice)
                         { coordenadas ->
                             pDevice.lat = coordenadas.lat!!
@@ -572,16 +607,19 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             pDevice = loadCellInfo(telephonyManager)
 
 
+
             val towerinListSize = listTowersFound.size
             towerinListInt = checkTowerinList(pDevice)
 
+            Log.d("cfauli", "gps onlocationchange pdevicelat " + pDevice.lat + "towerinlistsize " + towerinListSize + "towerinlistint " + towerinListInt )
+
             Log.d("cfauli", "onlocationchanged towerinlist " + towerinListInt)
-            Log.d("cfauli", "onlocationchanged " + previousTower?.totalCellId + " " + pDevice.totalCellId + " " + towerinListInt + " " + towerinListSize)
+            Log.d("cfauli", "onlocationchanged previous tower " + previousTower?.totalCellId + " pdevice " + pDevice.totalCellId + " " + towerinListInt + " " + towerinListSize)
             //Toast.makeText(context, "onlocationchanged " + previousTower?.cid + " " + pDevice.cid + " " + towerinListInt + " " + towerinListSize, Toast.LENGTH_LONG).show()
             // First check, if tower is the same as previous do nothing except update the textview.
 
             // In case the tower is not found (index = size, since new pDevice is added to listtowerfound) , then complete PDevice with the lat, lon information of the tower
-            if (towerinListInt == towerinListSize) {
+            if (towerinListInt == towerinListSize || previousTower?.totalCellId == "") {
                 //Toast.makeText(context, "onlocationchanged newTower " + listTowersFound[towerinListInt].cid,Toast.LENGTH_LONG).show()
                 findTower(openCellIdInterface, pDevice)
                 { coordenadas ->

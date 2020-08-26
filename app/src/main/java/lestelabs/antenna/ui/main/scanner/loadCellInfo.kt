@@ -29,8 +29,10 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
     try {
 
         val cellInfoList = tm.allCellInfo
-        if (cellInfoList != null) {
-        val info = cellInfoList.first()
+        Log.d("cfauli", "gps cellinfolist" + cellInfoList )
+        if (cellInfoList != null && cellInfoList.size>0) {
+            Log.d("cfauli", "gps cellinfolist 2" + cellInfoList )
+            val info = cellInfoList.first()
 
             //Network Type
             pDevicePhone.networkType=tm.networkType
@@ -116,7 +118,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
             }
 
         } catch (npe: NullPointerException) {
-            Log.e("cfauli", "loadCellInfo: Unable to obtain cell signal information: ", npe)
+            Log.d("cfauli", "loadCellInfo: Unable to obtain cell signal information: ", npe)
         }
         return pDevicePhone
     }

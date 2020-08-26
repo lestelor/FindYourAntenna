@@ -26,6 +26,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
+import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.navigation.NavigationView
@@ -76,9 +77,11 @@ interface GetfileState {
 
 
         // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
-        RequestConfiguration.Builder().setTestDeviceIds(Arrays.asList("9E4FF26E78ADE9DFD73A3F51A0D208CA"))
-        MobileAds.initialize(this)
 
+        MobileAds.initialize(this)
+        RequestConfiguration.Builder().setTestDeviceIds(Arrays.asList("9E4FF26E78ADE9DFD73A3F51A0D208CA"))
+        val adRequest  =  AdRequest.Builder()
+        adRequest.addTestDevice("9E4FF26E78ADE9DFD73A3F51A0D208CA")
 
 
 
@@ -103,26 +106,8 @@ interface GetfileState {
             Thread.sleep(1000)
         }
 
-        lm = this.getSystemService(LOCATION_SERVICE) as LocationManager
-        try {
-            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-        } catch (ex: Exception) {
-        }
-
-
 
         checkAllPermission {
-            Log.d("cfauli", "GPS enabled" + gps_enabled.toString())
-            if (!gps_enabled) {
-                Log.d("cfauli", "GPS NOT enabled")
-                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                startActivityForResult(intent, 0)
-            }
-
-            /*while (!gps_enabled) {
-                Log.d("cfauli", "GPS NOT enabled bucle")
-                Thread.sleep(1000)
-            }*/
 
             tabLayout.addTab(tabLayout.newTab())
             tabLayout.addTab(tabLayout.newTab())
@@ -242,6 +227,8 @@ interface GetfileState {
         toggle.syncState();
     }
     override fun onBackPressed() {
+
+        Log.d("cfauli", "gps lifecycle " + lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).toString())
         val drawer = findViewById<View>(R.id.drawer_layout) as DrawerLayout
         if (drawer.isDrawerOpen(GravityCompat.START)) drawer.closeDrawer(GravityCompat.START)
         else if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)){
