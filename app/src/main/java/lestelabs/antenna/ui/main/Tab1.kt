@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
+import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,7 @@ import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
 import fr.bmartel.speedtest.utils.SpeedTestUtils
+import kotlinx.android.synthetic.main.activity_pop_up_settings.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.*
 import java.util.*
@@ -55,8 +57,10 @@ class Tab1 : Fragment() {
     private lateinit var fragmentView: View
     private var listener: GetfileState? = null
 
-    private val speedTestType = 0
+    private val speedTestType = 2
     private val speedTestFile = 1
+
+    private lateinit var telephonyManager: TelephonyManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +76,7 @@ class Tab1 : Fragment() {
     override fun onStart() {
         // call the superclass method first
         super.onStart()
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         Log.d("cfauli","OnStart Tab1")
     }
     override fun onStop() {
@@ -90,6 +95,7 @@ class Tab1 : Fragment() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -261,9 +267,9 @@ class Tab1 : Fragment() {
         StrictMode.setThreadPolicy(policy)
 
         speedometer.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                fillNetworkTextView(requireView())
-            }
+
+            fillNetworkTextView(requireView())
+
             if (speedTestRunningStep==0) {
                 tvDownload.text="-"
                 tvUpload.text="-"
@@ -454,15 +460,15 @@ class Tab1 : Fragment() {
 
 
         if (Connectivity.isConnectedMobile(requireContext())) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val pDevice = Connectivity.getpDevice(requireContext())
-                listNetwork = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type, pDevice.band)) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
-                tvNetwork.text = listNetwork
-            } else {
-                TODO("VERSION.SDK_INT < P")
-            }
+            val pDevice = loadCellInfo(telephonyManager)
+            Log.d("cfauli pDevice ", pDevice.toString())
+            //val pDevice = Connectivity.getpDevice(requireContext())
+            listNetwork = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type, pDevice.band)) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
+            tvNetwork.text = listNetwork
+
         } else if (Connectivity.isConnectedWifi(requireContext()))  {
             val deviceWifi = Connectivity.getWifiParam(requireContext())
+            Log.d("cfauli deviceWifi ", deviceWifi.toString())
             val freq = deviceWifi.centerFreq2
             val channel: Int
             channel = if (freq!! > 5000) {
@@ -470,7 +476,8 @@ class Tab1 : Fragment() {
             } else {
                 (freq - 2412) / 5 + 1
             }
-            tvNetwork.text = "WIFI " + deviceWifi.ssid + " ch: " + channel + " " + deviceWifi.centerFreq2 + "MHz " + deviceWifi.level + "dBm"
+            listNetwork = deviceWifi.ssid + " ch: " + channel + " " + deviceWifi.centerFreq2 + "MHz " + deviceWifi.level + "dBm"
+            tvNetwork.text = "WIFI " + listNetwork
 
 
         }
@@ -489,8 +496,11 @@ class Tab1 : Fragment() {
 
         if (new) {
             val calendar = Calendar.getInstance()
+            var minutes: String
+            if (calendar[Calendar.MINUTE] < 10) minutes = ("0" + calendar[Calendar.MINUTE])
+            else minutes = calendar[Calendar.MINUTE].toString()
             val day =
-                calendar[Calendar.DAY_OF_MONTH].toString() + "/" + calendar[Calendar.MONTH] + "/" + calendar[Calendar.YEAR] + " " + calendar[Calendar.HOUR_OF_DAY] + ":" + calendar[Calendar.MINUTE]
+                calendar[Calendar.DAY_OF_MONTH].toString() + "/" + calendar[Calendar.MONTH] + "/" + calendar[Calendar.YEAR] + " " + calendar[Calendar.HOUR_OF_DAY] + ":" + minutes
 
             Log.d("cfauli", "numspeedtest " + numSpeedTest)
             numSpeedTest += 1

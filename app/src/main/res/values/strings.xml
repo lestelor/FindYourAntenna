@@ -27,7 +27,7 @@
     <string name="checkbox_samples">Save mobile signal strength samples</string>
     <string name="pop_up_window_tv_folder">Samples file folder</string>
     <string name="minTimeSample">10</string>
-    <string name="pop_up_checkbox_towers">Save towers file</string>
+    <string name="pop_up_checkbox_towers">Save site file</string>
     <string name="pop_up_checkbox_samples">Save samples signal strength file</string>
     <string name="oksavetowers">1</string>
     <string name="oksavesamples">1</string>
@@ -45,29 +45,30 @@
     <string name="navExit">Exit</string>
     <string name="menu_tab1">Network Speed</string>
     <string name="menu_tab2">Network Signal Scanner</string>
-    <string name="menu_tab3">Cell Tower Location</string>
+    <string name="menu_tab3">Cell Site Location</string>
     <string name="channel">channel: </string>
     <string name="Network">Network: </string>
     <string name="Operator">Operator (mcc-mnc): </string>
     <string name="MobileTxt">Mobile Network</string>
-    <string name="Tower">Tower </string>
+    <string name="Tower">Site </string>
     <string name="Frequency"> frequency: </string>
     <string name="MobileDetected">No mobile network detected</string>
     <string name="towerFileNotFound">The tower.csv file was not found</string>
     <string name="NotAValidFile">Not a valid file</string>
     <string name="waitingGPS">waiting GPS &#8230;</string>
-    <string name="towerNotFound">tower not found</string>
+    <string name="towerNotFound">site not found</string>
     <string name="FileSavedIn">File saved in </string>
-    <string name="TowerCoordinatesNotFound">Tower coordinates not found</string>
+    <string name="TowerCoordinatesNotFound">Site coordinates not found</string>
     <string name="TestDeviceID" translatable="false">9E4FF26E78ADE9DFD73A3F51A0D208CA</string>
     <string name="Download">Download: </string>
     <string name="Upload">Upload: </string>
     <string name="distanceSamples">Sample Distance</string>
     <string name="close_app">Close App</string>
     <string name="distancetxt">"distance: "</string>
-    <string name="towertxt">"tower: "</string>
+    <string name="towertxt">"site: "</string>
     <string name="NotAvailable">Not Available</string>
     <string name="click_to_start_the_test">Click to start the test</string>
+    <string name="results">Results</string>
 
 
 </resources>

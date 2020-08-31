@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:textColor="@color/colorPrimary"
-                android:textSize="30sp"
+                android:textSize="26sp"
                 android:text="-"/>
 
             <TextView
@@ -90,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:textColor="@color/colorPrimary"
-                android:textSize="30sp"
+                android:textSize="26sp"
                 android:text="-"/>
 
             <TextView
@@ -120,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:textColor="@color/colorPrimary"
-                android:textSize="30sp"
+                android:textSize="26sp"
                 android:text="-"/>
 
             <TextView
@@ -143,9 +143,8 @@
         android:id="@+id/tvResultsFixed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
         android:layout_gravity="center_horizontal"
-        android:text="Results" />
+        android:text="@string/results" />
 
     <ListView
         android:id="@+id/speedList"

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Network Test</string>
+
+    <string name="distance">dist:</string>
+
+    <string name="navigation_drawer_open">Obrir menú</string>
+    <string name="navigation_drawer_close">Tancar menu</string>
+    <string name="nav_header_subtitle">shinnystar.labs@gmail.com</string>
+    <string name="nav_header_desc">Capçalera menu</string>
+    <string name="action_settings">Opcions</string>
+
+    <string name="menu_gallery">Galeria</string>
+    <string name="menu_slideshow">Diapositives</string>
+    <string name="hola">hola</string>
+    <string name="timeSamples">Temps entre mostres</string>
+    <string name="distanceSamples">Distància entre mostres</string>
+    <string name="titlepopup">Opcions</string>
+    <string name="ok">OK</string>
+    <string name="textSampleTime">Temps entre mostres</string>
+    <string name="textSampleDistance">Distància entre mostres</string>
+    <string name="navSettings">Opcions</string>
+    <string name="otherSettings">Sobre:</string>
+    <string name="minDistSample">10</string>
+    <string name="textDirectory">Carpeta mostres</string>
+    <string name="checkbox_Towers">Guarda arxiu emplaçaments mòbils</string>
+    <string name="checkbox_samples">Guarda arxiu mostres de senyal</string>
+    <string name="pop_up_window_tv_folder">Samples file folder</string>
+    <string name="minTimeSample">10</string>
+    <string name="pop_up_checkbox_towers">Guarda arxiu emplaçaments mòbils</string>
+    <string name="pop_up_checkbox_samples">Guarda arxiu mostres de senyal</string>
+    <string name="oksavetowers">1</string>
+    <string name="oksavesamples">1</string>
+    <string name="speed_test_button">Comença Speed ​​Test</string>
+    <string name="upload">Pujada</string>
+    <string name="download">Baixada</string>
+    <string name="latency">Ping</string>
+    <string name="navExit">Sortir</string>
+    <string name="menu_tab1">Speed ​​Test</string>
+    <string name="menu_tab2">Escàner de xarxa</string>
+    <string name="menu_tab3">Mapa de emplaçaments mòbils</string>
+    <string name="channel">canal:</string>
+    <string name="Network">Xarxa:</string>
+    <string name="Operator">Operador (mcc-mnc):</string>
+    <string name="MobileTxt">Xarxa Mòbil</string>
+    <string name="Tower">Emplaçament</string>
+    <string name="Frequency"> freqüència:</string>
+    <string name="MobileDetected">Xarxa mòbil no detectada</string>
+    <string name="towerFileNotFound">Arxiu towers.csv no trobat</string>
+    <string name="NotAValidFile">Arxiu no vàlid</string>
+    <string name="waitingGPS">esperant GPS &#8230;</string>
+    <string name="towerNotFound">emplaçament no trobat</string>
+    <string name="FileSavedIn">Guardant en &#8230;</string>
+    <string name="TowerCoordinatesNotFound">coordenades no trobades</string>
+    <string name="Download">Baixada:</string>
+    <string name="Upload">Pujada:</string>
+    <string name="nav_header_title">Network Test</string>
+    <string name="menu_home">Enrere</string>
+    <string name="close_app">Tancar App</string>
+    <string name="distancetxt">distància:</string>
+    <string name="towertxt">emplaçament:</string>
+    <string name="NotAvailable">No disponible</string>
+    <string name="click_to_start_the_test">Fes click per començar el test</string>
+    <string name="results">Resultats</string>
+
+
+</resources>

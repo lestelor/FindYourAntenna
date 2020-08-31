@@ -7,6 +7,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -56,6 +58,8 @@ class Tab2 : Fragment() {
     private lateinit var fragmentView: View
     private lateinit var wifiManager: WifiManager
 
+    private lateinit var telephonyManager:TelephonyManager
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -73,6 +77,7 @@ class Tab2 : Fragment() {
     override fun onStart() {
         // call the superclass method first
         super.onStart()
+
         Log.d("cfauli","OnStart Tab2")
     }
     override fun onStop() {
@@ -88,6 +93,7 @@ class Tab2 : Fragment() {
         val size = 0
         var results: List<ScanResult?>
         val arrayList: ArrayList<String> = ArrayList()
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         //val listView: ListView = view.findViewById<View>((R.id.wifiList)) as ListView
         wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -241,6 +247,7 @@ class Tab2 : Fragment() {
         clockTimerHanlerActive = true
     }
 
+
     fun fillMobileTextView(view: View){
         /// fill the mobile layout --------------------------------------------
         // Lookup view for data population
@@ -260,12 +267,7 @@ class Tab2 : Fragment() {
         var pDevice: DevicePhone = DevicePhone()
 
         if (Connectivity.isConnectedMobile(requireContext())) {
-            pDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                Connectivity.getpDevice(requireContext())
-
-            } else {
-                TODO("VERSION.SDK_INT < P")
-            }
+                pDevice = loadCellInfo(telephonyManager)
         }
 
         tvMobile.text = getString(R.string.MobileTxt)
