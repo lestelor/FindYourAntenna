@@ -46,11 +46,17 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.dbm=gsm.dbm // [dBm]
                 // Cell Identity
                 pDevicePhone.cid=identityGsm.cid
-                pDevicePhone.mcc= identityGsm.mccString.toInt()
-                pDevicePhone.mnc = identityGsm.mncString.toInt()
+                if (lCurrentApiVersion >= Build.VERSION_CODES.P) {
+                    pDevicePhone.mcc = identityGsm.mccString.toInt()
+                    pDevicePhone.mnc = identityGsm.mncString.toInt()
+                } else {
+                    pDevicePhone.mcc = identityGsm.mcc.toInt()
+                    pDevicePhone.mnc = identityGsm.mnc.toInt()
+                }
+                
                 pDevicePhone.lac=identityGsm.lac
                 pDevicePhone.band=identityGsm.arfcn
-                pDevicePhone.operator = identityGsm.mobileNetworkOperator
+                //pDevicePhone.operator = identityGsm.mobileNetworkOperator
 
             } else if (info is CellInfoCdma) {
                 pDevicePhone.type = "3G"
@@ -73,12 +79,18 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 val identityLte = info.cellIdentity
                 pDevicePhone.dbm = lte.dbm
                 // Cell Identity
-                pDevicePhone.mcc = identityLte.mccString.toInt()
-                pDevicePhone.mnc = identityLte.mncString.toInt()
+                if (lCurrentApiVersion >= Build.VERSION_CODES.P) {
+                    pDevicePhone.mcc = identityLte.mccString.toInt()
+                    pDevicePhone.mnc = identityLte.mncString.toInt()
+                } else {
+                    pDevicePhone.mcc = identityLte.mcc.toInt()
+                    pDevicePhone.mnc = identityLte.mnc.toInt()
+                }
+
                 pDevicePhone.lac = identityLte.tac
                 pDevicePhone.cid = identityLte.ci
                 pDevicePhone.band = identityLte.earfcn
-                pDevicePhone.operator = identityLte.mobileNetworkOperator
+                //pDevicePhone.operator = identityLte.mobileNetworkOperator
 
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && info is CellInfoNr) {
                 pDevicePhone.type = "5G"
@@ -105,12 +117,18 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.dbm = wcdma.dbm
                 // Cell Identity
                 pDevicePhone.lac = identityWcdma.lac
-                pDevicePhone.mcc = identityWcdma.mccString.toInt()
-                pDevicePhone.mnc = identityWcdma.mncString.toInt()
+                if (lCurrentApiVersion >= Build.VERSION_CODES.P) {
+                    pDevicePhone.mcc = identityWcdma.mccString.toInt()
+                    pDevicePhone.mnc = identityWcdma.mncString.toInt()
+                } else {
+                    pDevicePhone.mcc = identityWcdma.mcc.toInt()
+                    pDevicePhone.mnc = identityWcdma.mnc.toInt()
+                }
+
                 pDevicePhone.cid = identityWcdma.cid
                 pDevicePhone.psc = identityWcdma.psc
                 pDevicePhone.band  = identityWcdma.uarfcn
-                pDevicePhone.operator = identityWcdma.mobileNetworkOperator
+                //pDevicePhone.operator = identityWcdma.mobileNetworkOperator
             } else {
                 Log.d("cfauli", "loadCellInfo Unknown Cell")
                 }
