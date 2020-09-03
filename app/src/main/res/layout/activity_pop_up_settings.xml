@@ -153,13 +153,14 @@
                 android:textStyle="bold"
                 android:layout_gravity="center"
                 android:text="" />
+
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#000"
-                android:textStyle="bold"
                 android:layout_gravity="center"
-                android:src="@drawable/circle_dot_green_icon" />
+                android:src="@drawable/circle_dot_green_icon"
+                android:textColor="#000"
+                android:textStyle="bold" />
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -173,16 +174,14 @@
                 android:textColor="#000"
                 android:textStyle="bold"
                 android:layout_gravity="center"
-                android:src="@drawable/circle_dot_red_icon"
-                android:layout_weight="0.33"/>
+                android:src="@drawable/circle_dot_red_icon" />
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#000"
                 android:textStyle="bold"
                 android:layout_gravity="center"
-                android:src="@drawable/circle_dot_black_icon"
-                android:layout_weight="0.33"/>
+                android:src="@drawable/circle_dot_black_icon" />
         </LinearLayout>
 
     <LinearLayout
@@ -337,15 +336,16 @@
             android:layout_marginTop="14dp"
             android:textSize="12dp"
             android:text="(-) dBm"/>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#000"
-            android:textStyle="bold"
             android:layout_gravity="center"
             android:layout_marginTop="28dp"
+            android:text="(-) dBm"
+            android:textColor="#000"
             android:textSize="12dp"
-            android:text="(-) dBm"/>
+            android:textStyle="bold" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

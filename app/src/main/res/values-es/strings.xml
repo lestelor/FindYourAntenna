@@ -61,6 +61,7 @@
     <string name="NotAvailable">No disponible</string>
     <string name="click_to_start_the_test">Haz click para empezar el test</string>
     <string name="results">Resultados</string>
+    <string name="tvWIFIwithoutSSID">WIFI     No se detecta ninguna red WIFI</string>
 
 
 </resources>

@@ -43,6 +43,7 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_wifi, parent, false);
         }
         // Lookup view for data population
+
         TextView tvSsid = (TextView) convertView.findViewById(R.id.tv_wifi_ssid);
         TextView tvLevel = (TextView) convertView.findViewById(R.id.tv_wifi_level);
         TextView tvMac = (TextView) convertView.findViewById(R.id.tv_wifi_mac);

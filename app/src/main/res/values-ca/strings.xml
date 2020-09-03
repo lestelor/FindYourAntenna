@@ -43,7 +43,7 @@
     <string name="Network">Xarxa:</string>
     <string name="Operator">Operador (mcc-mnc):</string>
     <string name="MobileTxt">Xarxa Mòbil</string>
-    <string name="Tower">Emplaçament</string>
+    <string name="Tower">Emplaçament </string>
     <string name="Frequency"> freqüència:</string>
     <string name="MobileDetected">Xarxa mòbil no detectada</string>
     <string name="towerFileNotFound">Arxiu towers.csv no trobat</string>
@@ -58,10 +58,11 @@
     <string name="menu_home">Enrere</string>
     <string name="close_app">Tancar App</string>
     <string name="distancetxt">distància:</string>
-    <string name="towertxt">emplaçament:</string>
+    <string name="towertxt">emplaçament: </string>
     <string name="NotAvailable">No disponible</string>
     <string name="click_to_start_the_test">Fes click per començar el test</string>
     <string name="results">Resultats</string>
+    <string name="tvWIFIwithoutSSID">WIFI     No es detecta cap xarxa WIFI</string>
 
 
 </resources>

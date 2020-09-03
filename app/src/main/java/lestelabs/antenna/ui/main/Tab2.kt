@@ -147,7 +147,11 @@ class Tab2 : Fragment() {
         val listView = fragmentView.findViewById(R.id.wifiList) as ListView
         listView.adapter = adapter
 
+
+        val tvWifi = fragmentView.findViewById<View>(R.id.tv_wifi) as TextView
+        tvWifi.text = getString(R.string.tvWIFIwithoutSSID)
         scanWifi.scanwifi(requireActivity(), wifiManager) {
+            tvWifi.text = "WIFI"
             adapter.clear()
 
             val showedWiFiList = scanWifi.devices.sortedByDescending { it.level }
@@ -285,8 +289,8 @@ class Tab2 : Fragment() {
             findTower(openCellIdInterface, pDevice)
             { coordenadas ->
                 if (coordenadas.lat!! >0.0) {
-                    tvLat.text = getString(R.string.Tower) + "lat: " + "%.4f".format(coordenadas.lat)
-                    tvLon.text = "lon: " + "%.4f".format(coordenadas.lon)
+                    tvLat.text = getString(R.string.Tower) + " lat: " + "%.5f".format(coordenadas.lat)
+                    tvLon.text = "lon: " + "%.5f".format(coordenadas.lon)
                 } else {
                     tvLat.text = getString(R.string.TowerCoordinatesNotFound)
                     tvLon.text = ""

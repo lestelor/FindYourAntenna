@@ -8,8 +8,11 @@ import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.util.Log
+import android.view.View
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.FragmentActivity
+import lestelabs.antenna.R
 import java.util.*
 
 
@@ -32,20 +35,24 @@ public object scanWifi {
         wifiScanReceiver = object : BroadcastReceiver() {
             @RequiresApi(Build.VERSION_CODES.M)
             override fun onReceive(c: Context, intent: Intent) {
-                i=1
+                i = 1
                 results = wifiManager.scanResults
                 Log.d("cfauli wifi results", (results as MutableList<ScanResult>?)?.size.toString())
                 //unregisterReceiver(this)
                 for (scanResult in (results as MutableList<ScanResult>?)!!) {
-                    if (i==1) {
+                    if (i == 1) {
                         devices = mutableListOf(DeviceWiFi())
                         devices[0] = DeviceWiFi(
                             scanResult.SSID, scanResult.BSSID, scanResult.capabilities, scanResult.centerFreq0, scanResult.centerFreq1,
-                            scanResult.frequency, scanResult.channelWidth, scanResult.level, scanResult.operatorFriendlyName.toString())
+                            scanResult.frequency, scanResult.channelWidth, scanResult.level, scanResult.operatorFriendlyName.toString()
+                        )
                     } else {
-                        devices.add(DeviceWiFi(
-                            scanResult.SSID, scanResult.BSSID, scanResult.capabilities, scanResult.centerFreq0, scanResult.centerFreq1,
-                            scanResult.frequency, scanResult.channelWidth, scanResult.level, scanResult.operatorFriendlyName.toString()))
+                        devices.add(
+                            DeviceWiFi(
+                                scanResult.SSID, scanResult.BSSID, scanResult.capabilities, scanResult.centerFreq0, scanResult.centerFreq1,
+                                scanResult.frequency, scanResult.channelWidth, scanResult.level, scanResult.operatorFriendlyName.toString()
+                            )
+                        )
                     }
                     if (i >= (results as MutableList<ScanResult>?)?.size!!) {
                         callback(true)
@@ -60,6 +67,7 @@ public object scanWifi {
         intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
         context.registerReceiver(wifiScanReceiver, intentFilter)
         wifiManager.startScan()
+
 
     }
 
