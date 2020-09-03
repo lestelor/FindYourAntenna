@@ -29,7 +29,7 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
 
 
     @SuppressLint("ApplySharedPref")
-    @RequiresApi(Build.VERSION_CODES.O)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pop_up_settings)
@@ -43,13 +43,13 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
 
 
         readInitialConfiguration()
-        this.seekBarTime.min= 1
+        //this.seekBarTime.min= 1
         this.seekBarTime.max = 60
 
         var textSeek = getString(R.string.textSampleTime) + ": " + this.seekBarTime.progress + "s"
         this.popup_window_text_time.text = textSeek
 
-        this.seekBarDistance.min= 5
+        //this.seekBarDistance.min= 5
         this.seekBarDistance.max = 50
 
         textSeek = getString(R.string.textSampleDistance) + ": " + this.seekBarDistance.progress + "m"
@@ -189,11 +189,7 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
 
     }
 
-    fun performFileSearch() {
-        // The PopFolder textview is not clickable since this reports an writing error in folders which are different to /storage/emulated/0/Android...
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        startActivityForResult(intent, 0)
-    }
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)

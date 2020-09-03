@@ -463,32 +463,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     private fun locateTowerMap(pDevice: DevicePhone, location: Location) {
 
-        /*val boundsMapTowerGpsMin:Coordenadas = Coordenadas()
-        val boundsMapTowerGpsMax:Coordenadas = Coordenadas()*/
-
-        /*if ((locationTower.lat!! < 999) || (locationTower.lat!! == 0.0) || (locationTower.lat == null)) {
-            locationTower.lat = location.latitude
-            locationTower.lon = location.longitude
-        }*/
-
-
-
-        /*boundsMapTowerGpsMin.lat =
-            minOf(location.latitude, locationTower.lat!!) - 0.001 * distance/11119
-        boundsMapTowerGpsMin.lon =
-            minOf(location.longitude, locationTower.lon!!) - 0.001 * distance/839
-        boundsMapTowerGpsMax.lat =
-            maxOf(location.latitude, locationTower.lat!!) - 0.001 * distance/11119
-        boundsMapTowerGpsMax.lon =
-            maxOf(location.longitude, locationTower.lon!!) + 0.001 * distance/839*/
-
-        //mMap.clear()
-        /*mMap.addMarker(
-            MarkerOptions()
-                .position(LatLng(locationTower.lat!!, locationTower.lon!!))
-                .title("%.5f".format(locationTower.lat) + "; " + "%.5f".format(locationTower.lon))
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-        )*/
         Log.d("cfauli","listTowersize " + listTowersFound.size)
         if (listTowersFound.size > 1) {
             Log.d("cfauli", "listTowertotalcid " + listTowersFound[1].totalCellId)
@@ -522,10 +496,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
         Log.d("cfauli","locateTowerMap markerok distance" + distance)
-        /*val mapBounds = LatLngBounds(
-            LatLng(boundsMapTowerGpsMin.lat!!, boundsMapTowerGpsMin.lon!!),
-            LatLng(boundsMapTowerGpsMax.lat!!, boundsMapTowerGpsMax.lon!!)
-        )*/
+
 
         val mZoom = mZoom(pDevice, location)
         val myLocation = LatLng(location.latitude, location.longitude)
@@ -933,34 +904,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             distance < 500  -> mZoom = 19f
         }
         return mZoom
-    }
-
-    @RequiresApi(Build.VERSION_CODES.P)
-    fun findPdeviceAddMarkerAnimateCameraUdateTextView(locationOk:Location) {
-
-        pDevice = loadCellInfo(telephonyManager)
-
-        val towerinListSize = listTowersFound.size
-        towerinListInt = checkTowerinList(pDevice)
-        Log.d("cfauli", "findPdeviceAddMarkerUpdate " + towerinListSize + " " + towerinListInt)
-        if (towerinListSize == towerinListInt) {
-            Log.d("cfauli", "fab clear " + pDevice.lat)
-            findTower(openCellIdInterface, pDevice)
-            { coordenadas ->
-                pDevice.lat = coordenadas.lat!!
-                pDevice.lon = coordenadas.lon!!
-                listTowersFound[towerinListInt].lat = coordenadas.lat!!
-                listTowersFound[towerinListInt].lon = coordenadas.lon!!
-                previousTower = pDevice
-                // fill the distance and tower textview, repeated since it is an async function
-                // print the tower markers (green the serving and red the others) and make appropriate zoom
-                locateTowerMap(listTowersFound[towerinListInt], locationOk!!)
-                updateTextViewDistanceTower(locationOk!!)
-
-
-            }
-        }
-
     }
 
 
