@@ -126,7 +126,10 @@ class Tab1 : Fragment() {
         adapter.notifyDataSetChanged()
 
 
-        var downLoadFile = Constants.SPEEDTESTDOWNLOAD[3 * (speedTestType) + speedTestFile]
+
+
+
+        val downLoadFile = Constants.SPEEDTESTDOWNLOAD[3 * (speedTestType) + speedTestFile]
         var upLoadFile: String =""
         when(speedTestType) {
             0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
@@ -202,6 +205,8 @@ class Tab1 : Fragment() {
         StrictMode.setThreadPolicy(policy)
 
         speedometer.setOnClickListener {
+            // Force a crash
+            throw RuntimeException("Test Crash") // Force a crash
 
             fillNetworkTextView(requireView())
 
@@ -336,6 +341,7 @@ class Tab1 : Fragment() {
 
         }
         //fillNetworkTextView(view)
+
         return fragmentView
     }
 
@@ -529,12 +535,13 @@ class Tab1 : Fragment() {
                 textDate = "speed_test_date" + i
 
                 Log.d("cfauli", "textNetwork " + textNetwork)
-                listOfSpeedTest.add(SpeedTest(sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeed, "")))
+                listOfSpeedTest.add(0,SpeedTest(sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeed, "")))
             }
         }
 
 
-        return listOfSpeedTest.sortedByDescending { it.date }
+        //return listOfSpeedTest.sortedByDescending { it.date }
+        return listOfSpeedTest
 
     }
 
