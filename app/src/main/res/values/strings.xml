@@ -70,6 +70,8 @@
     <string name="click_to_start_the_test">Click to start the test</string>
     <string name="results">Results</string>
     <string name="tvWIFIwithoutSSID">WIFI     No WIFI network detected</string>
+    <string name="BannerID" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="AddsId" translatable="false">ca-app-pub-8346072505648333~1860761525</string>
 
 
 </resources>

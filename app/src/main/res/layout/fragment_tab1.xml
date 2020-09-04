@@ -170,7 +170,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        ads:adUnitId="ca-app-pub-8346072505648333/4204789619">
+        ads:adUnitId="@string/BannerID">
     </com.google.android.gms.ads.AdView>
 
 </LinearLayout>

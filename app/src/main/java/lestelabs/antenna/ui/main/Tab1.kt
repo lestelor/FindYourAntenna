@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.telephony.TelephonyManager
+import android.text.format.DateFormat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -215,107 +216,107 @@ class Tab1 : Fragment() {
                             speedTestRunningStep = 1
 
                             // Here we choose the file to dowload fron Object Constants
-                            speedTestSocket . startDownloadRepeat (downLoadFile,
-                    10000, 1000, object : IRepeatListener {
-                        override fun onCompletion(report: SpeedTestReport) {
-                            speedTestRunningStep = 2
-                            internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
-                            listDownload = "%.1f".format(internetSpeedDownload)
-                            requireActivity().runOnUiThread(Runnable {
-                                speedometer.speedTo(0.0f, 1000)
+                            speedTestSocket . startDownloadRepeat(downLoadFile,
+                                10000, 1000, object : IRepeatListener {
+                                    override fun onCompletion(report: SpeedTestReport) {
+                                        speedTestRunningStep = 2
+                                        internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
+                                        listDownload = "%.1f".format(internetSpeedDownload)
+                                        requireActivity().runOnUiThread(Runnable {
+                                            speedometer.speedTo(0.0f, 1000)
 
-                                Log.d("cfauli", "[COMPLETED] step" + speedTestRunningStep)
-                                tvDownload.text = listDownload
+                                            Log.d("cfauli", "[COMPLETED] step" + speedTestRunningStep)
+                                            tvDownload.text = listDownload
 
-                                //    Thread.sleep(2000)
-                                //Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
-                                // Start upload test (once the download test finishes)---------------------------------------------------------
-
-                                speedTestSocket.clearListeners()
-                                speedTestSocket.startUploadRepeat(upLoadFile,
-                                    10000, 1000, (10.0.pow(speedTestFile).toInt()) * 1000000, object : IRepeatListener {
-
-                                        override fun onCompletion(report: SpeedTestReport) {
-                                            ivButton.setBackgroundResource(R.drawable.ic_switch_on_off)
-
-                                            Log.d("cfauli up file size", (((10.0.pow(speedTestFile).toInt())) * 1000000).toString())
-                                            internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
+                                            //    Thread.sleep(2000)
+                                            //Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
+                                            // Start upload test (once the download test finishes)---------------------------------------------------------
 
                                             speedTestSocket.clearListeners()
-                                            speedTestSocket.closeSocket()
+                                            speedTestSocket.startUploadRepeat(upLoadFile,
+                                                10000, 1000, (10.0.pow(speedTestFile).toInt()) * 1000000, object : IRepeatListener {
 
-                                            if (internetSpeedUpload > internetSpeedDownload) internetSpeedUpload = lastUpload
-                                            listUpload = "%.1f".format(internetSpeedUpload)
-                                            requireActivity().runOnUiThread(Runnable {
-                                                speedometer.speedTo(0.0f, 1000)
-                                                speedTestRunningStep = 3
-                                                tvUpload.text = listUpload
+                                                    override fun onCompletion(report: SpeedTestReport) {
+                                                        ivButton.setBackgroundResource(R.drawable.ic_switch_on_off)
 
+                                                        Log.d("cfauli up file size", (((10.0.pow(speedTestFile).toInt())) * 1000000).toString())
+                                                        internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
 
-                                                // Test latency (once the upload test finishes)-----------------
-                                                pingg("http://www.google.com") { it ->
-                                                    listLatency = it.toString()
-                                                    tvLatency.text = listLatency
-                                                    // Fill the Speed List fragment view
-                                                    // Create the adapter to convert the array to views
+                                                        speedTestSocket.clearListeners()
+                                                        speedTestSocket.closeSocket()
 
-                                                    adapter.clear()
-
-                                                    listOfSpeedTest = fillSpeedList(true, listNetwork, listDownload, listUpload, listLatency)
-                                                    adapter.addAll(listOfSpeedTest)
-                                                    adapter.notifyDataSetChanged()
-
-                                                }
-
-                                                Log.d("cfauli speedtest", "end...................")
-                                                speedTestRunningStep = 0
-                                                lastUpload = 0.0f
-
-                                                ivButton.setImageResource(R.drawable.ic_switch_on_off)
-                                                speedTestSocket.clearListeners()
-                                                speedTestSocket.closeSocket()
-                                                speedTestSocket.forceStopTask()
+                                                        if (internetSpeedUpload > internetSpeedDownload) internetSpeedUpload = lastUpload
+                                                        listUpload = "%.1f".format(internetSpeedUpload)
+                                                        requireActivity().runOnUiThread(Runnable {
+                                                            speedometer.speedTo(0.0f, 1000)
+                                                            speedTestRunningStep = 3
+                                                            tvUpload.text = listUpload
 
 
-                                                // End test latency  --------------------------------------------
-                                            })
-                                        }
+                                                            // Test latency (once the upload test finishes)-----------------
+                                                            pingg("http://www.google.com") { it ->
+                                                                listLatency = it.toString()
+                                                                tvLatency.text = listLatency
+                                                                // Fill the Speed List fragment view
+                                                                // Create the adapter to convert the array to views
 
-                                        override fun onReport(report: SpeedTestReport) {
+                                                                adapter.clear()
 
-                                            // called when a upload report is dispatched
-                                            buttonColor = !buttonColor
-                                            if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
-                                            else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                                                                listOfSpeedTest = fillSpeedList(true, listNetwork, listDownload, listUpload, listLatency)
+                                                                adapter.addAll(listOfSpeedTest)
+                                                                adapter.notifyDataSetChanged()
 
-                                            internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
-                                            Log.d("cfauli speedtest upload", internetSpeedUpload.toString() + " " + internetSpeedDownload.toString())
-                                            if (internetSpeedUpload < internetSpeedDownload + 5.0f) requireActivity().runOnUiThread(Runnable {
-                                                speedometer.speedTo(internetSpeedUpload, 1000)
-                                                lastUpload = internetSpeedUpload
-                                            })
-                                        }
+                                                            }
 
-                                    })
-                                // End upload test---------------------------------------------------------------------------------------------
-                            })
-                            //
-                        }
+                                                            Log.d("cfauli speedtest", "end...................")
+                                                            speedTestRunningStep = 0
+                                                            lastUpload = 0.0f
 
-                        override fun onReport(report: SpeedTestReport) {
-                            buttonColor = !buttonColor
-                            if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
-                            else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
-                            // called when a download report is dispatched
-                            internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
-                            if (internetSpeedDownload == 0.0f) internetSpeedDownload = lastDownload
-                            else lastDownload = internetSpeedDownload
-                            Log.d("cfauli speedtest downlo", internetSpeedDownload.toString())
-                            requireActivity().runOnUiThread(Runnable {
-                                speedometer.speedTo(internetSpeedDownload, 1000)
-                            })
-                        }
-                    })
+                                                            ivButton.setImageResource(R.drawable.ic_switch_on_off)
+                                                            speedTestSocket.clearListeners()
+                                                            speedTestSocket.closeSocket()
+                                                            speedTestSocket.forceStopTask()
+
+
+                                                            // End test latency  --------------------------------------------
+                                                        })
+                                                    }
+
+                                                    override fun onReport(report: SpeedTestReport) {
+
+                                                        // called when a upload report is dispatched
+                                                        buttonColor = !buttonColor
+                                                        if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
+                                                        else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+
+                                                        internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
+                                                        Log.d("cfauli speedtest upload", internetSpeedUpload.toString() + " " + internetSpeedDownload.toString())
+                                                        if (internetSpeedUpload < internetSpeedDownload + 5.0f) requireActivity().runOnUiThread(Runnable {
+                                                            speedometer.speedTo(internetSpeedUpload, 1000)
+                                                            lastUpload = internetSpeedUpload
+                                                        })
+                                                    }
+
+                                                })
+                                            // End upload test---------------------------------------------------------------------------------------------
+                                        })
+                                        //
+                                    }
+
+                                    override fun onReport(report: SpeedTestReport) {
+                                        buttonColor = !buttonColor
+                                        if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
+                                        else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                                        // called when a download report is dispatched
+                                        internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
+                                        if (internetSpeedDownload == 0.0f) internetSpeedDownload = lastDownload
+                                        else lastDownload = internetSpeedDownload
+                                        Log.d("cfauli speedtest downlo", internetSpeedDownload.toString())
+                                        requireActivity().runOnUiThread(Runnable {
+                                            speedometer.speedTo(internetSpeedDownload, 1000)
+                                        })
+                                    }
+                                })
                 ivButton.setBackgroundResource(R.drawable.ic_switch_on_off)
 
             } else {
@@ -486,12 +487,17 @@ class Tab1 : Fragment() {
 
 
         if (new) {
-            val calendar = Calendar.getInstance()
-            var minutes: String
-            if (calendar[Calendar.MINUTE] < 10) minutes = ("0" + calendar[Calendar.MINUTE])
-            else minutes = calendar[Calendar.MINUTE].toString()
+            val date = Calendar.getInstance()
+            //val dayOfTheWeek = DateFormat.format("EEEE", date) as String // Thursday
+            val dayStr = DateFormat.format("dd", date) as String // 20
+            //val monthString = DateFormat.format("MMM", date) as String // Jun
+            val monthNumber = DateFormat.format("MM", date) as String // 06
+            val year = DateFormat.format("yyyy", date) as String // 2013
+            val hour = DateFormat.format("hh", date) as String // 2013
+            val minute = DateFormat.format("mm", date) as String // 2013
+
             val day =
-                calendar[Calendar.DAY_OF_MONTH].toString() + "/" + calendar[Calendar.MONTH] + "/" + calendar[Calendar.YEAR] + " " + calendar[Calendar.HOUR_OF_DAY] + ":" + minutes
+                dayStr + "/" + monthNumber + "/" + year + " " + hour + ":" + minute
 
             Log.d("cfauli", "numspeedtest " + numSpeedTest)
             numSpeedTest += 1

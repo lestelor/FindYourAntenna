@@ -282,7 +282,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     Log.d("cfauli", "fab clear locationOk " + locationOk!!.latitude)
                     // fill the distance and tower textview, repeated since it is an async function
                     // print the tower markers (green the serving and red the others) and make appropriate zoom
-
+                    Log.d("cfauli", "LocateTowerMap 3")
                     locateTowerMap(listTowersFound[towerinListInt], locationOk!!)
                     updateTextViewDistanceTower(locationOk!!)
             }
@@ -501,7 +501,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         val mZoom = mZoom(pDevice, location)
         val myLocation = LatLng(location.latitude, location.longitude)
 
-
+        Log.d("cfauli", "LocateTowerMap function " + location.latitude + " " + location.longitude + " " + mZoom)
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
         //mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
 
@@ -601,6 +601,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     previousTower = pDevice
                     // fill the distance and tower textview, repeated since it is an async function
                     // print the tower markers (green the serving and red the others) and make appropriate zoom
+                    Log.d("cfauli", "LocateTowerMap 1")
                     locateTowerMap(listTowersFound[towerinListInt], location)
                     updateTextViewDistanceTower(location)
 
@@ -624,6 +625,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
                 //Toast.makeText(context, "onlocationchanged previousTower " + listTowersFound[towerinListInt].cid + " " + location.latitude,Toast.LENGTH_LONG).show()
                 // if tower exists in list, only update the colors of the markers and the textview
+                Log.d("cfauli", "LocateTowerMap 2")
                 locateTowerMap(listTowersFound[towerinListInt], location)
                 updateTextViewDistanceTower(location)
                 previousTower = listTowersFound[towerinListInt]

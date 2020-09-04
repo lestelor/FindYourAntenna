@@ -34,9 +34,9 @@
         xmlns:ads="http://schemas.android.com/apk/res-auto"
         android:id="@+id/adViewFragment3"
         ads:adSize="BANNER"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        ads:adUnitId="ca-app-pub-8346072505648333/4204789619">
+        ads:adUnitId="@string/BannerID">
 
     </com.google.android.gms.ads.AdView>
 
