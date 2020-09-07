@@ -47,8 +47,8 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 // Cell Identity
                 pDevicePhone.cid=identityGsm.cid
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    pDevicePhone.mcc = identityGsm.mccString.toInt()
-                    pDevicePhone.mnc = identityGsm.mncString.toInt()
+                    pDevicePhone.mcc = identityGsm.mccString?.toInt()
+                    pDevicePhone.mnc = identityGsm.mncString?.toInt()
                 } else {
                     pDevicePhone.mcc = identityGsm.mcc.toInt()
                     pDevicePhone.mnc = identityGsm.mnc.toInt()
@@ -80,8 +80,8 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 pDevicePhone.dbm = lte.dbm
                 // Cell Identity
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    pDevicePhone.mcc = identityLte.mccString.toInt()
-                    pDevicePhone.mnc = identityLte.mncString.toInt()
+                    pDevicePhone.mcc = identityLte.mccString?.toInt()
+                    pDevicePhone.mnc = identityLte.mncString?.toInt()
                 } else {
                     pDevicePhone.mcc = identityLte.mcc.toInt()
                     pDevicePhone.mnc = identityLte.mnc.toInt()
@@ -118,8 +118,8 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                 // Cell Identity
                 pDevicePhone.lac = identityWcdma.lac
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    pDevicePhone.mcc = identityWcdma.mccString.toInt()
-                    pDevicePhone.mnc = identityWcdma.mncString.toInt()
+                    pDevicePhone.mcc = identityWcdma.mccString?.toInt()
+                    pDevicePhone.mnc = identityWcdma.mncString?.toInt()
                 } else {
                     pDevicePhone.mcc = identityWcdma.mcc.toInt()
                     pDevicePhone.mnc = identityWcdma.mnc.toInt()

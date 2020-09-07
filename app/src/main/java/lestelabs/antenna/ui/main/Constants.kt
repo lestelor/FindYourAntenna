@@ -4,9 +4,9 @@ package lestelabs.antenna.ui.main
 object Constants {
 
     val SPEEDTESTDOWNLOAD: Array<String> = arrayOf(
-        "https://ipv4.scaleway.testdebit.info:8080/1M.iso",
-        "https://ipv4.scaleway.testdebit.info:8080/10M.iso",
-        "https://ipv4.scaleway.testdebit.info:8080/100M.iso",
+        "http://ipv4.ikoula.testdebit.info/1M.iso",
+        "http://ipv4.ikoula.testdebit.info/10M.iso",
+        "http://ipv4.ikoula.testdebit.info/100M.iso",
         "https://ipv4.scaleway.testdebit.info:6881/1M.iso",
         "https://ipv4.scaleway.testdebit.info:6881/10M.iso",
         "https://ipv4.scaleway.testdebit.info:6881/100M.iso",

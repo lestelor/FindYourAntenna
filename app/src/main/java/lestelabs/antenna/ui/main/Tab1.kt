@@ -25,6 +25,7 @@ import com.google.android.gms.ads.MobileAds
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
+import fr.bmartel.speedtest.model.SpeedTestError
 import fr.bmartel.speedtest.utils.SpeedTestUtils
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.*
@@ -58,8 +59,8 @@ class Tab1 : Fragment() {
     private lateinit var fragmentView: View
     private var listener: GetfileState? = null
 
-    private val speedTestType = 2 //FTP
-    private val speedTestFile = 1 //10MB
+    private val speedTestType = 0 // ikoula/scaleway/tele2
+    private val speedTestFile = 2 // 1/10/1000MB
     private var lastUpload = 0.0f
     private var lastDownload = 0.0f
 
@@ -206,7 +207,7 @@ class Tab1 : Fragment() {
 
         speedometer.setOnClickListener {
             // Force a crash
-            throw RuntimeException("Test Crash") // Force a crash
+            //throw RuntimeException("Test Crash") // Force a crash
 
             fillNetworkTextView(requireView())
 
@@ -302,6 +303,7 @@ class Tab1 : Fragment() {
                                                         })
                                                     }
 
+
                                                 })
                                             // End upload test---------------------------------------------------------------------------------------------
                                         })
@@ -321,6 +323,8 @@ class Tab1 : Fragment() {
                                             speedometer.speedTo(internetSpeedDownload, 1000)
                                         })
                                     }
+
+
                                 })
                 ivButton.setBackgroundResource(R.drawable.ic_switch_on_off)
 
@@ -535,7 +539,7 @@ class Tab1 : Fragment() {
                 textDate = "speed_test_date" + i
 
                 Log.d("cfauli", "textNetwork " + textNetwork)
-                listOfSpeedTest.add(0,SpeedTest(sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeed, "")))
+                listOfSpeedTest.add(0, SpeedTest(sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeed, "")))
             }
         }
 

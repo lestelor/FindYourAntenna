@@ -283,7 +283,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     // fill the distance and tower textview, repeated since it is an async function
                     // print the tower markers (green the serving and red the others) and make appropriate zoom
                     Log.d("cfauli", "LocateTowerMap 3")
-                    locateTowerMap(listTowersFound[towerinListInt], locationOk!!)
+                    locateTowerMap(listTowersFound)
+                    cameraAnimate(listTowersFound[towerinListInt], locationOk!!)
                     updateTextViewDistanceTower(locationOk!!)
             }
         }
@@ -360,14 +361,16 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
-
+        mMap = googleMap
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
         //Thread.sleep(1000)
         readInitialConfiguration()
         //MapsInitializer.initialize(context)
         Log.d("cfauli", "OnmapReady")
+        Log.d("cfauli", "mMap 1 " + mMap)
         mMap = googleMap
+        Log.d("cfauli", "mMap 2 " + mMap)
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         mMap.isMyLocationEnabled = true
 
@@ -461,7 +464,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
 
-    private fun locateTowerMap(pDevice: DevicePhone, location: Location) {
+    private fun locateTowerMap(listTowersFound: List<DevicePhone>) {
 
         Log.d("cfauli","listTowersize " + listTowersFound.size)
         if (listTowersFound.size > 1) {
@@ -495,7 +498,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
 
-        Log.d("cfauli","locateTowerMap markerok distance" + distance)
+
+
+    }
+
+    private fun cameraAnimate(pDevice: DevicePhone, location: Location) {
+        Log.d("cfauli","locateTowerMap markerok distance " + distance)
 
 
         val mZoom = mZoom(pDevice, location)
@@ -504,7 +512,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         Log.d("cfauli", "LocateTowerMap function " + location.latitude + " " + location.longitude + " " + mZoom)
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
         //mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
-
     }
 
     private fun checkTowerinList(devicePhone: DevicePhone):Int {
@@ -602,8 +609,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     // fill the distance and tower textview, repeated since it is an async function
                     // print the tower markers (green the serving and red the others) and make appropriate zoom
                     Log.d("cfauli", "LocateTowerMap 1")
-                    locateTowerMap(listTowersFound[towerinListInt], location)
-                    updateTextViewDistanceTower(location)
+                    locateTowerMap(listTowersFound)
+                    if (mMap != null) cameraAnimate(listTowersFound[towerinListInt], location)
+                    updateTextViewDistanceTower(locationOk!!)
 
 
                     // Save towers in file
@@ -626,17 +634,13 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 //Toast.makeText(context, "onlocationchanged previousTower " + listTowersFound[towerinListInt].cid + " " + location.latitude,Toast.LENGTH_LONG).show()
                 // if tower exists in list, only update the colors of the markers and the textview
                 Log.d("cfauli", "LocateTowerMap 2")
-                locateTowerMap(listTowersFound[towerinListInt], location)
+                locateTowerMap(listTowersFound)
+                //cameraAnimate(listTowersFound[towerinListInt], location)
                 updateTextViewDistanceTower(location)
                 previousTower = listTowersFound[towerinListInt]
                 //val mZoom = mZoom(pDevice, location!!)
                 //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pDevice.lat, pDevice.lon), mZoom))
             }
-
-
-
-
-
 
 
             // Save samples in file and draw colored dot
@@ -896,15 +900,18 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     fun mZoom(pDevice:DevicePhone, location: Location): Float {
         distance = distance(pDevice.lat,pDevice.lon,location.latitude,location.longitude)
+        Log.d("cfauli", "Zoom zoom " + distance)
         var mZoom = 13f
         when {
-            distance < 20000  -> mZoom = 11f
-            distance < 10000  -> mZoom = 12f
-            distance < 5000  -> mZoom = 13f
-            distance < 2000  -> mZoom = 13f
-            //distance < 1000  -> mZoom = 14f
-            distance < 500  -> mZoom = 19f
+            distance < 500  -> mZoom = 16f
+            distance < 2000  -> mZoom = 11f
+            distance < 5000  -> mZoom = 11f
+            distance < 10000  -> mZoom = 10f
+            distance < 20000  -> mZoom = 9f
+
+
         }
+        Log.d("cfauli", "Zoom distance " + mZoom)
         return mZoom
     }
 
