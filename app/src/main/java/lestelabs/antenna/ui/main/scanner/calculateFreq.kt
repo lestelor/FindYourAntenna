@@ -1,6 +1,6 @@
 package lestelabs.antenna.ui.main.scanner
 
-fun calculateFreq (type:String?, arfcn:Int?):Double {
+fun calculateFreq (type: String?, arfcn:Int?):Double {
     var offsetDL = 0
     var initialDL: Int = 0
     var FREFOffs: Double = 0.0

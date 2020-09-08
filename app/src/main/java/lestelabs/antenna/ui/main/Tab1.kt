@@ -1,8 +1,11 @@
 package lestelabs.antenna.ui.main
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -18,20 +21,26 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.anastr.speedviewlib.SpeedView
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
-import fr.bmartel.speedtest.model.SpeedTestError
 import fr.bmartel.speedtest.utils.SpeedTestUtils
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.*
-import okhttp3.internal.checkDuration
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.pow
@@ -81,8 +90,14 @@ class Tab1 : Fragment() {
     private lateinit var ivButton:ImageView
 
     private var testTimeStart: Long = 0
+    private var timeAnt: Long = 0
 
     private lateinit var telephonyManager: TelephonyManager
+    private var pDevice:DevicePhone = DevicePhone()
+    private var networkType: String = ""
+    private var deviceWifi:DeviceWiFi = DeviceWiFi()
+    private lateinit var db:FirebaseFirestore
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,7 +113,6 @@ class Tab1 : Fragment() {
     override fun onStart() {
         // call the superclass method first
         super.onStart()
-        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         Log.d("cfauli", "OnStart Tab1")
     }
     override fun onStop() {
@@ -134,8 +148,8 @@ class Tab1 : Fragment() {
         ivButton = fragmentView.findViewById<View>(R.id.fab_tab1_onoff) as ImageView
        speedometer = fragmentView.findViewById<SpeedView>(R.id.speedView)
         //val fab: ImageView = fragmentView.findViewById(R.id.btSpeedTest)
-
-
+        db = FirebaseFirestore.getInstance()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         val arrayOfSpeed: ArrayList<SpeedTest> = ArrayList<SpeedTest>()
         val adapter = SpeedAdapter(activity, arrayOfSpeed)
@@ -204,7 +218,7 @@ class Tab1 : Fragment() {
             }
         }
         val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        minTime  = sharedPreferences.getInt("num_time_samples", getString(R.string.minTimeSample).toInt()).toLong() * 1000
         startMobileScannerTab1(fragmentView)
 
         // speedometer parametters
@@ -280,8 +294,8 @@ class Tab1 : Fragment() {
                                                         speedTestSocket.clearListeners()
                                                         speedTestSocket.closeSocket()
 
-                                                        if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload=internetSpeedDownload + 5.0f
-                                                        if (internetSpeedUpload ==0.0f) internetSpeedUpload = internetSpeedUploadAnt
+                                                        if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
+                                                        if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
 
                                                         listUpload = "%.1f".format(internetSpeedUpload)
                                                         requireActivity().runOnUiThread(Runnable {
@@ -299,7 +313,7 @@ class Tab1 : Fragment() {
                                                                 // Create the adapter to convert the array to views
 
                                                                 adapter.clear()
-
+                                                                writeCloudFirestoreDB(listDownload,listUpload,listLatency)
                                                                 listOfSpeedTest = fillSpeedList(true, listNetwork, listDownload, listUpload, listLatency)
                                                                 adapter.addAll(listOfSpeedTest)
                                                                 adapter.notifyDataSetChanged()
@@ -323,18 +337,22 @@ class Tab1 : Fragment() {
                                                     override fun onReport(report: SpeedTestReport) {
                                                         // called when a upload report is dispatched
                                                         buttonColor = !buttonColor
-                                                        if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
-                                                        else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                                                        // Only the original thread that created a view hierarchy can touch its views. en Android
+                                                        activity!!.runOnUiThread {
+                                                            if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
+                                                            else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                                                        }
 
                                                         internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
 
-                                                        if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload=internetSpeedDownload + 5.0f
-                                                        if (internetSpeedUpload ==0.0f) internetSpeedUpload = internetSpeedUploadAnt
+                                                        if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
+                                                        if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
                                                         internetSpeedUploadAnt = internetSpeedUpload
                                                         Log.d("cfauli speedtest upload", internetSpeedUpload.toString() + " " + internetSpeedDownload.toString())
                                                         requireActivity().runOnUiThread(Runnable {
-                                                        speedometer.speedTo(internetSpeedUpload, 1000)
-                                                        lastUpload = internetSpeedUpload})
+                                                            speedometer.speedTo(internetSpeedUpload, 1000)
+                                                            lastUpload = internetSpeedUpload
+                                                        })
                                                     }
 
 
@@ -346,8 +364,11 @@ class Tab1 : Fragment() {
 
                                     override fun onReport(report: SpeedTestReport) {
                                         buttonColor = !buttonColor
-                                        if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
-                                        else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                                        activity!!.runOnUiThread {
+                                            if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
+                                            else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                                        }
+
                                         // called when a download report is dispatched
                                         internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
                                         if (internetSpeedDownload == 0.0f) internetSpeedDownload = lastDownload
@@ -403,8 +424,10 @@ class Tab1 : Fragment() {
 
     override fun onResume() {
         super.onResume()
+
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minTime  = sharedPreferences.getInt("num_time_samples",10).toLong() * 1000
+        minTime  = sharedPreferences.getInt("num_time_samples", 10).toLong() * 1000
 
         // firstOnResume = true if activity is destroyed (back) and goes trough a oncreateview, in order not to repeat the scanners
         if (!firstOnResume) startMobileScannerTab1(requireView())
@@ -482,37 +505,146 @@ class Tab1 : Fragment() {
         return listOf(type)
     }*/
 
+
+
     //@RequiresApi(Build.VERSION_CODES.M)
     fun fillNetworkTextView(view: View) {
         /// fill the mobile layout --------------------------------------------
         // Lookup view for data population
         Log.d("cfauli", "fillMobileTextView")
         val tvNetwork = view.findViewById<View>(R.id.tvTab1MobileNetworkType) as TextView
-
+        if (Connectivity.isConnectedMobile(requireContext())) networkType = "MOBILE"
+        else if (Connectivity.isConnectedWifi(requireContext())) networkType = "WIFI"
 
         if (Connectivity.isConnectedMobile(requireContext())) {
-            val pDevice = loadCellInfo(telephonyManager)
+            if (firstOnResume)   telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+            pDevice = loadCellInfo(telephonyManager)
             Log.d("cfauli pDevice ", pDevice.toString())
-            //val pDevice = Connectivity.getpDevice(requireContext())
+
             listNetwork = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type, pDevice.band)) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
             tvNetwork.text = listNetwork
 
         } else if (Connectivity.isConnectedWifi(requireContext()))  {
-            val deviceWifi = Connectivity.getWifiParam(requireContext())
+            deviceWifi = Connectivity.getWifiParam(requireContext())
             Log.d("cfauli deviceWifi ", deviceWifi.toString())
             val freq = deviceWifi.centerFreq2
-            val channel: Int
-            channel = if (freq!! > 5000) {
-                (freq - 5180) / 5 + 36
-            } else {
-                (freq - 2412) / 5 + 1
-            }
+            val channel: Int = getChannel(freq)
+
             listNetwork = deviceWifi.ssid + " ch: " + channel + " " + deviceWifi.centerFreq2 + "MHz " + deviceWifi.level + "dBm"
             tvNetwork.text = "WIFI " + listNetwork
 
-
         }
+
+        saveSamplesFirebase()
     }
+
+    fun saveSamplesFirebase() {
+
+
+        // if duration > x seg then
+        val a = timeAnt
+        val b = System.currentTimeMillis() % 1000000
+
+        var duration:Long
+        if (b <= a) {
+            duration = 1000000 - a + b
+        } else {
+            duration = b - a
+        }
+
+        var minDuration:Long  = 0
+        db.collection("SampleDuration").document("kEMpdsQpBLnFf0wKJ951")
+            .get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+
+                    minDuration = task.result!!.data!!["time"].toString().toLong()
+                    Log.d("cfauli document", "minDuration " + duration + " " + minDuration)
+                    if (duration > minDuration) {
+                        timeAnt = b
+                        saveDocument()
+                    }
+                } else {
+                    saveDocument()
+                    Log.w("Error", "Error getting Firebase minDuration", task.exception)
+                }
+            }
+
+
+    }
+
+fun saveDocument() {
+
+
+
+        if ((ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
+            (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        ) {
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
+            Thread.sleep(1000)
+        }
+        var lat = 0.0
+        var lon = 0.0
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                lat = location!!.latitude
+                lon = location!!.longitude
+                val date = Calendar.getInstance()
+                val day = setDay(date)
+                val monthNumber = DateFormat.format("MM", date) as String // 06
+                val year = DateFormat.format("yyyy", date) as String // 2013
+
+                // Create a new user with a first and last name
+                val speedTestSample: MutableMap<String, Any?> = HashMap()
+
+                speedTestSample["year"] = year
+                speedTestSample["month"] = monthNumber
+
+
+                speedTestSample["lat"] = lat
+                speedTestSample["lon"] = lon
+
+                if (networkType == "MOBILE") {
+                    speedTestSample["type"] = "MOBILE"
+                    speedTestSample["network"] = pDevice.type
+                    speedTestSample["mcc"] = pDevice.mcc
+                    speedTestSample["mnc"] = pDevice.mnc
+                    speedTestSample["lac"] = pDevice.lac
+                    speedTestSample["cid"] = pDevice.cid
+                    speedTestSample["dBm"] = pDevice.dbm
+
+                } else if (networkType == "WIFI") {
+                    speedTestSample["type"] = "WIFI"
+                    speedTestSample["network"] = deviceWifi.ssid
+                    speedTestSample["dBm"] = deviceWifi.level
+
+                }
+
+
+
+
+
+
+
+                if (networkType != "") {
+                    // Add a new document with a generated ID
+                    db.collection("Samples").document(day)
+                        .set(speedTestSample)
+                        .addOnSuccessListener {
+                            Log.d("cfauli", "DocumentSnapshot added with ID: " + day)
+                        }
+
+                        .addOnFailureListener {
+
+                            Log.d("cfauli", "Error adding document: " + it)
+                        }
+                }
+
+            }
+
+
+}
 
     fun fillSpeedList(new: Boolean, network: String, download: String, upload: String, ping: String): List<SpeedTest> {
 
@@ -578,7 +710,7 @@ class Tab1 : Fragment() {
 
     }
 
-    fun startMobileScannerTab1(view:View) {
+    fun startMobileScannerTab1(view: View) {
         if (!clockTimerHanlerActive) {
             mHandlerTask = object : Runnable {
                 override fun run() {
@@ -618,6 +750,109 @@ class Tab1 : Fragment() {
         tvLatency.text = "-"
         speedTestSocket.forceStopTask()
         Toast.makeText(context, getString(R.string.SpeedTestStoped), Toast.LENGTH_LONG).show()
+
+
+    }
+    fun getChannel(freq:Int?):Int {
+        val channel = if (freq!! > 5000) {
+            (freq - 5180) / 5 + 36
+        } else {
+            (freq - 2412) / 5 + 1
+        }
+        return channel
+    }
+    fun writeCloudFirestoreDB(downlink:String,uplink:String,latency:String) {
+
+        var lat = 0.0
+        var lon = 0.0
+        if ((ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
+            (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
+            Thread.sleep(1000)
+        }
+
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                lat = location!!.latitude
+                lon = location!!.longitude
+                val date = Calendar.getInstance()
+                //val dayOfTheWeek = DateFormat.format("EEEE", date) as String // Thursday
+                val dayStr = DateFormat.format("dd", date) as String // 20
+                //val monthString = DateFormat.format("MMM", date) as String // Jun
+                val monthNumber = DateFormat.format("MM", date) as String // 06
+                val year = DateFormat.format("yyyy", date) as String // 2013
+                /*val hour = DateFormat.format("hh", date) as String // 2013
+                val minute = DateFormat.format("mm", date) as String // 2013*/
+
+                val day = setDay(date) // year;month;day;hour;min;sec
+                // Create a new user with a first and last name
+                val speedTestSample: MutableMap<String, Any?> = HashMap()
+
+                speedTestSample["year"] = year
+                speedTestSample["month"] = monthNumber
+                speedTestSample["day"] = dayStr
+
+                speedTestSample["lat"] = lat
+                speedTestSample["lon"] = lon
+
+                if (networkType=="MOBILE") {
+                    speedTestSample["type"] = "MOBILE"
+                    speedTestSample["network"] = pDevice.type
+                    speedTestSample["mcc"] = pDevice.mcc
+                    speedTestSample["mnc"] = pDevice.mnc
+                    speedTestSample["lac"] = pDevice.lac
+                    speedTestSample["cid"] = pDevice.cid
+                    speedTestSample["ch"] = pDevice.band
+                    speedTestSample["freq"] = calculateFreq(pDevice.type, pDevice.band)
+                    speedTestSample["dBm"] = pDevice.dbm
+                    speedTestSample["downlink"] = downlink
+                    speedTestSample["uplink"] = uplink
+                    speedTestSample["latency"] = latency
+
+                } else if(networkType=="WIFI") {
+                    speedTestSample["type"] = "WIFI"
+                    speedTestSample["network"] = deviceWifi.ssid
+                    //speedTestSample["mcc"] = pDevice.mcc
+                    //speedTestSample["mnc"] = pDevice.mnc
+                    //speedTestSample["lac"] = pDevice.lac
+                    //speedTestSample["cid"] = pDevice.cid
+                    speedTestSample["ch"] = deviceWifi.centerFreq2
+                    speedTestSample["freq"] = getChannel(deviceWifi.centerFreq2)
+                    speedTestSample["dBm"] = deviceWifi.level
+                    speedTestSample["downlink"] = downlink
+                    speedTestSample["uplink"] = uplink
+                    speedTestSample["latency"] = latency
+
+                }
+
+
+                if (networkType!="") {
+                    // Add a new document with a generated ID
+                    db.collection("SpeedTest").document(day)
+                        .set(speedTestSample)
+                        .addOnSuccessListener {
+                                Log.d("cfauli", "DocumentSnapshot SpeedTest added with ID: " + day)
+                        }
+                        .addOnFailureListener {
+                            Log.d("cfauli", "Error adding SpeedTest document ", it)
+                        }
+                }
+
+            }
+
+
+    }
+
+    fun setDay(date: Calendar): String {
+        val dayStr = DateFormat.format("dd", date) as String // 20
+        //val monthString = DateFormat.format("MMM", date) as String // Jun
+        val monthNumber = DateFormat.format("MM", date) as String // 06
+        val year = DateFormat.format("yyyy", date) as String // 2013
+        val hour = DateFormat.format("hh", date) as String // 2013
+        val minute = DateFormat.format("mm", date) as String // 2013
+        val seconds = DateFormat.format("ss", date) as String // 2013
+
+        return year + ";" + monthNumber + ";" + dayStr + ";" + hour + ";" + minute + ";" + seconds
     }
 }
 

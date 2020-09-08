@@ -64,7 +64,7 @@
     <string name="results">Resultats</string>
     <string name="tvWIFIwithoutSSID">WIFI     No es detecta cap xarxa WIFI</string>
     <string name="SpeedTestStoped">Test avortat!</string>
-    <string name="SpeedTestStarted">El test ha començat ...</string>
+    <string name="SpeedTestStarted">Si us plau espera. El test ha començat …</string>
 
 
 </resources>
