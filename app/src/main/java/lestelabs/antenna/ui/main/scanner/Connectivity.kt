@@ -14,7 +14,7 @@ object Connectivity {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    //@RequiresApi(Build.VERSION_CODES.M)
     fun getWifiParam(context: Context): DeviceWiFi {
         val deviceWiFi: DeviceWiFi = DeviceWiFi()
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -35,14 +35,14 @@ object Connectivity {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    //@RequiresApi(Build.VERSION_CODES.M)
     fun isConnected(context: Context): Boolean {
         val info = getNetworkInfo(context)
         return info != null && info.isConnected
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    //@RequiresApi(Build.VERSION_CODES.M)
     fun isConnectedWifi(context: Context): Boolean {
         val info = getNetworkInfo(context)
         return info != null && info.isConnected && info.type == ConnectivityManager.TYPE_WIFI
@@ -53,7 +53,7 @@ object Connectivity {
         return info != null && info.isConnected && info.type == ConnectivityManager.TYPE_MOBILE
     }
 
-
+/*
     fun networkType(context: Context): Int? {
         val info = getNetworkInfo(context)
         if (info != null && info.isConnected) return info.type else return null
@@ -65,13 +65,9 @@ object Connectivity {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.P)
-    fun getpDevice(context: Context):DevicePhone {
-        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        return loadCellInfo(telephonyManager)
-    }
 
-    /*fun connectionType(type: Int?, subType: Int?): String? {
+
+    fun connectionType(type: Int?, subType: Int?): String? {
         if (type == ConnectivityManager.TYPE_WIFI) {
             return "WIFI"
         } else if (type == ConnectivityManager.TYPE_MOBILE) {

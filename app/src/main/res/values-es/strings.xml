@@ -62,6 +62,8 @@
     <string name="click_to_start_the_test">Haz click para empezar el test</string>
     <string name="results">Resultados</string>
     <string name="tvWIFIwithoutSSID">WIFI     No se detecta ninguna red WIFI</string>
+    <string name="SpeedTestStoped">Test abortado!</string>
+    <string name="SpeedTestStarted">El test ha empezado ...</string>
 
 
 </resources>

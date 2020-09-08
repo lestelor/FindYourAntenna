@@ -904,8 +904,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         var mZoom = 13f
         when {
             distance < 500  -> mZoom = 16f
-            distance < 2000  -> mZoom = 11f
-            distance < 5000  -> mZoom = 11f
+            distance < 2000  -> mZoom = 14f
+            distance < 5000  -> mZoom = 12f
             distance < 10000  -> mZoom = 10f
             distance < 20000  -> mZoom = 9f
 

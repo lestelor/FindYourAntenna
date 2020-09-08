@@ -136,7 +136,7 @@ class Tab2 : Fragment() {
         // fill the mobile list every mintime secs
 
         minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
-        startMobileScanner(fragmentView)
+        startMobileScannerTab2(fragmentView)
 
         /// fill the wifi list --------------------------------------------
         // Construct the data source
@@ -220,7 +220,7 @@ class Tab2 : Fragment() {
         minTime  = sharedPreferences.getInt("num_time_samples",10).toLong() * 1000
 
         // firstOnResume = true if activity is destroyed (back) and goes trough a oncreateview, in order not to repeat the scanners
-        if (!firstOnResume) startMobileScanner(requireView())
+        if (!firstOnResume) startMobileScannerTab2(requireView())
         firstOnResume = false
     }
 
@@ -237,7 +237,7 @@ class Tab2 : Fragment() {
         return listOf(type)
     }*/
 
-    fun startMobileScanner(view:View) {
+    fun startMobileScannerTab2(view:View) {
         if (!clockTimerHanlerActive) {
             mHandlerTask = object : Runnable {
                 override fun run() {

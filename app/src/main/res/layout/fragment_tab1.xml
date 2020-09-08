@@ -184,7 +184,7 @@
             android:id="@+id/fab_tab1_onoff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="25dp"
 
             android:backgroundTint="@color/cpb_white"
 
