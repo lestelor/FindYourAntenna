@@ -7,16 +7,17 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
-import android.text.TextUtils
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.widget.CheckBox
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -60,6 +61,8 @@ interface GetfileState {
      var gps_enabled:Boolean = false
      private lateinit var lm:LocationManager
 
+     private lateinit var checkBox: CheckBox
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,8 +100,28 @@ interface GetfileState {
         toggle.syncState()
 
         navigationView.setNavigationItemSelectedListener(this)
+        /*Cast MenuItem to CheckBox
+          CheckBox checkBox= (CheckBox) menuItem.getActionView();
+          */
+        checkBox = navigationView.menu.getItem(2).subMenu.getItem(0).actionView as CheckBox
+
+        val sharedPreferences = baseContext.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
+        checkBox.isChecked = pleaseContribute
+
+        checkBox.setOnClickListener(View.OnClickListener {
+            val isSelected = checkBox.isChecked
+            Log.d("cfauli", "submenu pleaseContribute " + isSelected)
+            val editor: SharedPreferences.Editor = sharedPreferences.edit()
+            editor.putBoolean("please_contribute", isSelected)
+            editor.apply()
+            editor.commit()
+            if (isSelected) Toast.makeText(baseContext, getString(R.string.ThanksForChecking), Toast.LENGTH_LONG).show()
+            else Toast.makeText(baseContext, getString(R.string.ThankForNotChecking), Toast.LENGTH_LONG).show()
+        })
 
 
+        Log.d("cfauli", "submenu " + navigationView.menu.getItem(2).subMenu.getItem(0).toString())
 
         if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
             (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
@@ -181,12 +204,15 @@ interface GetfileState {
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
 
-        when (p0.getItemId()) {
+        when (p0.itemId) {
             R.id.nav_settings -> {
-                val intent = Intent(this, PopUpSettings::class.java)
-                //intent.putExtra("popuptitle", "Error")
-                startActivity(intent)
-                //(drawerLayout as DrawerLayout).closeDrawer(GravityCompat.START)
+                if (checkBox.isChecked) {
+                    val intent = Intent(this, PopUpSettings::class.java)
+                    //intent.putExtra("popuptitle", "Error")
+                    startActivity(intent)
+                    //(drawerLayout as DrawerLayout).closeDrawer(GravityCompat.START)
+                } else Toast.makeText(baseContext, getString(R.string.CheckTheBoxBelow), Toast.LENGTH_LONG).show()
+
             }
             R.id.nav_tab1 -> {
                 val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
@@ -203,13 +229,27 @@ interface GetfileState {
                 val tab = tabLayout.getTabAt(2)
                 tab!!.select()
             }
+            R.id.nav_contribute -> {
+                val sharedPreferences = baseContext.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+                val editor: SharedPreferences.Editor = sharedPreferences.edit()
+                val isSelected = !checkBox.isChecked
+                checkBox.isChecked = isSelected
+                Log.d("cfauli", "submenu pleaseContribute " + isSelected)
+                editor.putBoolean("please_contribute", isSelected)
+                editor.apply()
+                editor.commit()
+                if (isSelected) Toast.makeText(baseContext, getString(R.string.ThanksForChecking), Toast.LENGTH_LONG).show()
+                else Toast.makeText(baseContext, getString(R.string.ThankForNotChecking), Toast.LENGTH_LONG).show()
+            }
             R.id.nav_exit -> {
                 finish();
                 System.exit(0);
             }
+
             else -> throw IllegalArgumentException("menu option not implemented!!")
         }
-        p0.isChecked = false
+
+
         val drawer = findViewById<View>(R.id.drawer_layout) as DrawerLayout;
         if (drawer.isDrawerOpen(GravityCompat.START))
             drawer.closeDrawer(GravityCompat.START);

@@ -795,6 +795,10 @@ fun saveDocument() {
                 speedTestSample["lat"] = lat
                 speedTestSample["lon"] = lon
 
+                speedTestSample["downlink"] = downlink
+                speedTestSample["uplink"] = uplink
+                speedTestSample["latency"] = latency
+
                 if (networkType=="MOBILE") {
                     speedTestSample["type"] = "MOBILE"
                     speedTestSample["network"] = pDevice.type
@@ -805,9 +809,7 @@ fun saveDocument() {
                     speedTestSample["ch"] = pDevice.band
                     speedTestSample["freq"] = calculateFreq(pDevice.type, pDevice.band)
                     speedTestSample["dBm"] = pDevice.dbm
-                    speedTestSample["downlink"] = downlink
-                    speedTestSample["uplink"] = uplink
-                    speedTestSample["latency"] = latency
+
 
                 } else if(networkType=="WIFI") {
                     speedTestSample["type"] = "WIFI"
@@ -819,10 +821,6 @@ fun saveDocument() {
                     speedTestSample["ch"] = deviceWifi.centerFreq2
                     speedTestSample["freq"] = getChannel(deviceWifi.centerFreq2)
                     speedTestSample["dBm"] = deviceWifi.level
-                    speedTestSample["downlink"] = downlink
-                    speedTestSample["uplink"] = uplink
-                    speedTestSample["latency"] = latency
-
                 }
 
 

@@ -101,6 +101,12 @@
                 android:layout_marginTop="10dp"
                 android:textAlignment="viewEnd"
                 android:textStyle="bold"
+                android:text="@string/level"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAlignment="viewEnd"
+                android:textStyle="bold"
                 android:text="@string/distancetxt"/>
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
@@ -117,10 +123,18 @@
 
             android:gravity="center">
             <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/tv_fr3_distance"
+                android:id="@+id/tv_fr3_coverage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:textAlignment="viewStart"
+                android:textColor="@color/cpb_blue"
+                android:textStyle="bold"
+                android:text=""/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_fr3_distance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:textAlignment="viewStart"
                 android:textColor="@color/cpb_blue"
                 android:textStyle="bold"

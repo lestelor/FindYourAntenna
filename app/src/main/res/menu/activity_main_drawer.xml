@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:showIn="@android:layout/test_list_item">
 
 
@@ -16,14 +17,17 @@
         <group android:checkableBehavior="single">
 
             <item
+                android:checkable="false"
                 android:id="@+id/nav_tab1"
                 android:icon="@drawable/ic_speed_dark"
                 android:title="@string/menu_tab1" />
             <item
+                android:checkable="false"
                 android:id="@+id/nav_tab2"
                 android:icon="@drawable/ic_network_dark"
                 android:title="@string/menu_tab2" />
             <item
+                android:checkable="false"
                 android:id="@+id/nav_tab3"
                 android:icon="@drawable/ic_map_dark"
                 android:title="@string/menu_tab3" />
@@ -31,14 +35,26 @@
         </menu>
     </item>
 
+    <item android:title="@string/contribute">
+        <menu>
+              <item
+                android:checkable="false"
+                app:actionViewClass="android.widget.CheckBox"
+                android:id="@+id/nav_contribute"
+                android:icon="@drawable/ic_contribute"
+                android:title="@string/Contribute" />
+        </menu>
+    </item>
+
     <item android:title="@string/close_app">
         <menu>
             <item
-                android:checkable="true"
+                android:checkable="false"
                 android:id="@+id/nav_exit"
                 android:icon="@drawable/ic_exit"
                 android:title="@string/navExit" />
         </menu>
     </item>
+
 
 </menu>

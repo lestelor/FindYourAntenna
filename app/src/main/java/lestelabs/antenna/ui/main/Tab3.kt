@@ -936,6 +936,7 @@ fun updateTextViewDistanceTower(location:Location) {
         else -> tv_fr3_distance.text = getString(R.string.NotAvailable)
     }
     tv_fr3_tower.text = pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
+    tv_fr3_coverage.text = pDevice.dbm.toString() + "dBm"
 }
 
 
