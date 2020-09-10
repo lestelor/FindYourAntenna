@@ -21,6 +21,7 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
@@ -34,6 +35,7 @@ import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
+import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
@@ -63,7 +65,7 @@ interface GetfileState {
 
      private lateinit var checkBox: CheckBox
 
-
+     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -159,6 +161,14 @@ interface GetfileState {
 
             tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
+                    // [START shared_app_measurement]
+                    // Obtain the FirebaseAnalytics instance.
+                    firebaseAnalytics = FirebaseAnalytics.getInstance(this@MainActivity)
+                    // [END shared_app_measurement]
+                    val params = Bundle()
+                    params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
+                    params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab" + tab.position)
+                    firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
 
                     tabSelectedInt = tab.position
                     viewPager.currentItem = tab.position

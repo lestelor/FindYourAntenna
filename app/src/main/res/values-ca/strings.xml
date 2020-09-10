@@ -66,8 +66,8 @@
     <string name="SpeedTestStoped">Test avortat!</string>
     <string name="SpeedTestStarted">Si us plau espera. El test ha començat …</string>
     <string name="level">senyal: </string>
-    <string name="Contribute">Send strictly anonymous information</string>
-    <string name="contribute">Contribute:</string>
+    <string name="Contribute">Compartir mostres</string>
+    <string name="contribute">Contribuïr:</string>
     <string name="CheckTheBoxBelow">Marqueu la casella següent per contribuir i compartir informació anònima. Gràcies!</string>
     <string name="ThanksForChecking">Gràcies per compartir dades anònimes. Ara podeu utilitzar el menú d’opcions</string>
     <string name="ThankForNotChecking">Les dades ja no es comparteixen. Activeu-lo per utilitzar el menú d’opcions</string>

@@ -65,8 +65,8 @@
     <string name="SpeedTestStoped">Test abortado!</string>
     <string name="SpeedTestStarted">Por favor espera. El test ha empezado …</string>
     <string name="level">cobertura: </string>
-    <string name="Contribute">Send strictly anonymous information</string>
-    <string name="contribute">Contribute:</string>
+    <string name="Contribute">Compartir muestras</string>
+    <string name="contribute">Contribuir:</string>
     <string name="CheckTheBoxBelow">Marque la casilla a continuación para contribuir y compartir información anónima. ¡Gracias!</string>
     <string name="ThanksForChecking">Gracias por compartir datos anónimos. Ahora puede usar el menú de opciones</string>
     <string name="ThankForNotChecking"> Los datos ya no se comparten. Habilítelo para usar el menú de opciones </string>

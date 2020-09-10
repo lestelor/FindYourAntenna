@@ -23,7 +23,6 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.anastr.speedviewlib.SpeedView
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -31,9 +30,7 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.firestore.FirebaseFirestore
 import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
@@ -98,6 +95,8 @@ class Tab1 : Fragment() {
     private var deviceWifi:DeviceWiFi = DeviceWiFi()
     private lateinit var db:FirebaseFirestore
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -313,7 +312,7 @@ class Tab1 : Fragment() {
                                                                 // Create the adapter to convert the array to views
 
                                                                 adapter.clear()
-                                                                writeCloudFirestoreDB(listDownload,listUpload,listLatency)
+                                                                writeCloudFirestoreDB(listDownload, listUpload, listLatency)
                                                                 listOfSpeedTest = fillSpeedList(true, listNetwork, listDownload, listUpload, listLatency)
                                                                 adapter.addAll(listOfSpeedTest)
                                                                 adapter.notifyDataSetChanged()
@@ -390,6 +389,14 @@ class Tab1 : Fragment() {
 
         }
         //fillNetworkTextView(view)
+        // [START shared_app_measurement]
+        // Obtain the FirebaseAnalytics instance.
+        firebaseAnalytics = FirebaseAnalytics.getInstance(requireContext())
+        // [END shared_app_measurement]
+        val params = Bundle()
+        params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
+        params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab1")
+        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
 
         return fragmentView
     }
@@ -622,12 +629,13 @@ fun saveDocument() {
                 }
 
 
+                val sharedPreferences = requireContext().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+                val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
 
 
 
 
-
-                if (networkType != "") {
+                if (networkType != "" && pleaseContribute) {
                     // Add a new document with a generated ID
                     db.collection("Samples").document(day)
                         .set(speedTestSample)
@@ -753,7 +761,7 @@ fun saveDocument() {
 
 
     }
-    fun getChannel(freq:Int?):Int {
+    fun getChannel(freq: Int?):Int {
         val channel = if (freq!! > 5000) {
             (freq - 5180) / 5 + 36
         } else {
@@ -761,7 +769,7 @@ fun saveDocument() {
         }
         return channel
     }
-    fun writeCloudFirestoreDB(downlink:String,uplink:String,latency:String) {
+    fun writeCloudFirestoreDB(downlink: String, uplink: String, latency: String) {
 
         var lat = 0.0
         var lon = 0.0
@@ -818,8 +826,8 @@ fun saveDocument() {
                     //speedTestSample["mnc"] = pDevice.mnc
                     //speedTestSample["lac"] = pDevice.lac
                     //speedTestSample["cid"] = pDevice.cid
-                    speedTestSample["ch"] = deviceWifi.centerFreq2
-                    speedTestSample["freq"] = getChannel(deviceWifi.centerFreq2)
+                    speedTestSample["freq"] = deviceWifi.centerFreq2
+                    speedTestSample["ch"] = getChannel(deviceWifi.centerFreq2)
                     speedTestSample["dBm"] = deviceWifi.level
                 }
 
