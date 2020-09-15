@@ -902,7 +902,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         Log.d("cfauli", "Zoom zoom " + distance)
         var mZoom = 13f
         when {
-            distance < 500  -> mZoom = 16f
+            distance < 500  -> mZoom = 15f
             distance < 2000  -> mZoom = 14f
             distance < 5000  -> mZoom = 12f
             distance < 10000  -> mZoom = 10f

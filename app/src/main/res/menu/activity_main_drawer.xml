@@ -5,7 +5,9 @@
     tools:showIn="@android:layout/test_list_item">
 
 
+
     <item
+
         android:checkable="false"
         android:id="@+id/nav_settings"
         android:icon="@drawable/ic_settings"
@@ -35,19 +37,18 @@
         </menu>
     </item>
 
-    <item android:title="@string/contribute">
-        <menu>
-              <item
-                android:checkable="false"
-                app:actionViewClass="android.widget.CheckBox"
-                android:id="@+id/nav_contribute"
-                android:icon="@drawable/ic_contribute"
-                android:title="@string/Contribute" />
-        </menu>
-    </item>
+
+    <item
+    android:checkable="false"
+    app:actionViewClass="android.widget.CheckBox"
+    android:id="@+id/nav_contribute"
+    android:icon="@drawable/ic_contribute"
+    android:title="@string/Contribute" />
+
 
     <item android:title="@string/close_app">
         <menu>
+
             <item
                 android:checkable="false"
                 android:id="@+id/nav_exit"
@@ -55,6 +56,5 @@
                 android:title="@string/navExit" />
         </menu>
     </item>
-
 
 </menu>

@@ -29,9 +29,9 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
     try {
 
         val cellInfoList = tm.allCellInfo
-        Log.d("cfauli", "gps cellinfolist" + cellInfoList )
+        //Log.d("cfauli", "gps cellinfolist" + cellInfoList )
         if (cellInfoList != null && cellInfoList.size>0) {
-            Log.d("cfauli", "gps cellinfolist 2" + cellInfoList )
+            //Log.d("cfauli", "gps cellinfolist 2" + cellInfoList )
             val info = cellInfoList.first()
 
             //Network Type

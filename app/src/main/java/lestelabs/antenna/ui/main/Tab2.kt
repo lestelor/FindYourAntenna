@@ -40,7 +40,7 @@ class Tab2 : Fragment() {
     //private var mListener: Tab2.OnFragmentInteractionListener? = null
     lateinit var mAdView : AdView
     private var firstOnResume = true
-    private var minTime:Long = 1000
+    private var minTime:Long = 10000
 
     private var thresMobBlack: Int = Constants.MINMOBILESIGNALBLACK.toInt()
     private var thresMobRed: Int = Constants.MINMOBILESIGNALRED.toInt()
@@ -67,8 +67,9 @@ class Tab2 : Fragment() {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        //set a fixed mintime in order no refresh the mobile ifo every xx sec - set in the constant section
+        //val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        //minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
 
     }
 
@@ -131,9 +132,9 @@ class Tab2 : Fragment() {
                 // to the app after tapping on an ad.
             }
         }
-        // fill the mobile list every mintime secs
 
-        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        // fill the mobile list every mintime secs
+        //minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
         startMobileScannerTab2(fragmentView)
 
         /// fill the wifi list --------------------------------------------
@@ -214,8 +215,8 @@ class Tab2 : Fragment() {
     override fun onResume() {
         super.onResume()
         Log.d("cfauli","OnResume Tab2 " + firstOnResume)
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minTime  = sharedPreferences.getInt("num_time_samples",10).toLong() * 1000
+        //val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        //minTime  = sharedPreferences.getInt("num_time_samples",10).toLong() * 1000
 
         // firstOnResume = true if activity is destroyed (back) and goes trough a oncreateview, in order not to repeat the scanners
         if (!firstOnResume) startMobileScannerTab2(requireView())
@@ -268,9 +269,11 @@ class Tab2 : Fragment() {
 
         var pDevice: DevicePhone = DevicePhone()
 
-        if (Connectivity.isConnectedMobile(requireContext())) {
+
+        // Remove the condition since we also want the info when is wifi connected
+        //if (Connectivity.isConnectedMobile(requireContext())) {
                 pDevice = loadCellInfo(telephonyManager)
-        }
+        //}
 
         tvMobile.text = getString(R.string.MobileTxt)
         tvLevel.text = pDevice.dbm.toString() + "dBm"

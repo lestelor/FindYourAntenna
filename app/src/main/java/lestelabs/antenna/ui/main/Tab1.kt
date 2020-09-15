@@ -79,7 +79,7 @@ class Tab1 : Fragment() {
     var clockTimerHanlerActive = false
     private lateinit var mHandlerTask: Runnable
     private var firstOnResume = true
-    private var minTime:Long = 1000
+    private var minTime:Long = 10000
 
     private lateinit var tvDownload:TextView
     private lateinit var tvUpload:TextView
@@ -112,6 +112,7 @@ class Tab1 : Fragment() {
     override fun onStart() {
         // call the superclass method first
         super.onStart()
+
         Log.d("cfauli", "OnStart Tab1")
     }
     override fun onStop() {
@@ -140,265 +141,269 @@ class Tab1 : Fragment() {
         Log.d("cfauli", "OnCreateView TAB1")
         // Inflate view
         fragmentView = inflater.inflate(R.layout.fragment_tab1, container, false)
-        // layout widgets
-        tvDownload = fragmentView.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
-        tvUpload = fragmentView.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
-        tvLatency = fragmentView.findViewById<View>(R.id.tvLatency) as TextView
-        ivButton = fragmentView.findViewById<View>(R.id.fab_tab1_onoff) as ImageView
-       speedometer = fragmentView.findViewById<SpeedView>(R.id.speedView)
-        //val fab: ImageView = fragmentView.findViewById(R.id.btSpeedTest)
-        db = FirebaseFirestore.getInstance()
+
+
+            // layout widgets
+            tvDownload = fragmentView.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
+            tvUpload = fragmentView.findViewById<View>(R.id.tvSpeedtestUpload) as TextView
+            tvLatency = fragmentView.findViewById<View>(R.id.tvLatency) as TextView
+            ivButton = fragmentView.findViewById<View>(R.id.fab_tab1_onoff) as ImageView
+            speedometer = fragmentView.findViewById<SpeedView>(R.id.speedView)
+            //val fab: ImageView = fragmentView.findViewById(R.id.btSpeedTest)
+            db = FirebaseFirestore.getInstance()
+
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
-        val arrayOfSpeed: ArrayList<SpeedTest> = ArrayList<SpeedTest>()
-        val adapter = SpeedAdapter(activity, arrayOfSpeed)
-        // Attach the adapter to a ListView
-        val listView = fragmentView.findViewById(R.id.speedList) as ListView
-        listView.adapter = adapter
-        adapter.clear()
-        var listOfSpeedTest =fillSpeedList(false, "", "", "", "")
-        adapter.addAll(listOfSpeedTest)
-        adapter.notifyDataSetChanged()
+
+            val arrayOfSpeed: ArrayList<SpeedTest> = ArrayList<SpeedTest>()
+            val adapter = SpeedAdapter(activity, arrayOfSpeed)
+            // Attach the adapter to a ListView
+            val listView = fragmentView.findViewById(R.id.speedList) as ListView
+            listView.adapter = adapter
+            adapter.clear()
+            var listOfSpeedTest = fillSpeedList(false, "", "", "", "")
+            adapter.addAll(listOfSpeedTest)
+            adapter.notifyDataSetChanged()
 
 
-
-
-
-        val downLoadFile = Constants.SPEEDTESTDOWNLOAD[3 * (speedTestType) + speedTestFile]
-        var upLoadFile: String =""
-        when(speedTestType) {
-            0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
-            2 -> {
-                var fileName = SpeedTestUtils.generateFileName() + ".txt"
-                upLoadFile = Constants.SPEEDTESTUPLOAD[1].toString() + fileName.toString()
-            }
-        }
-
-        Log.d("cfauli", "down file " + downLoadFile)
-        Log.d("cfauli", "up file " + upLoadFile)
-
-
-
-        // Admod
-        mAdView = fragmentView.findViewById(R.id.adViewFragment1)
-        MobileAds.initialize(requireActivity())
-
-        val adRequest = AdRequest.Builder()
-            //.addTestDevice(getString(R.string.TestDeviceID))
-            .build()
-
-        mAdView.loadAd(adRequest)
-        mAdView.adListener = object: AdListener() {
-            override fun onAdLoaded() {
-                // Code to be executed when an ad finishes loading.
+            val downLoadFile = Constants.SPEEDTESTDOWNLOAD[3 * (speedTestType) + speedTestFile]
+            var upLoadFile: String = ""
+            when (speedTestType) {
+                0, 1 -> upLoadFile = Constants.SPEEDTESTUPLOAD[0]
+                2 -> {
+                    var fileName = SpeedTestUtils.generateFileName() + ".txt"
+                    upLoadFile = Constants.SPEEDTESTUPLOAD[1].toString() + fileName.toString()
+                }
             }
 
-            override fun onAdFailedToLoad(errorCode: Int) {
-                // Code to be executed when an ad request fails.
-                Log.d("cfauli", " ad TAB1 failed")
+            Log.d("cfauli", "down file " + downLoadFile)
+            Log.d("cfauli", "up file " + upLoadFile)
+
+
+            // Admod
+            mAdView = fragmentView.findViewById(R.id.adViewFragment1)
+            MobileAds.initialize(requireActivity())
+
+            val adRequest = AdRequest.Builder()
+                //.addTestDevice(getString(R.string.TestDeviceID))
+                .build()
+
+            mAdView.loadAd(adRequest)
+            mAdView.adListener = object : AdListener() {
+                override fun onAdLoaded() {
+                    // Code to be executed when an ad finishes loading.
+                }
+
+                override fun onAdFailedToLoad(errorCode: Int) {
+                    // Code to be executed when an ad request fails.
+                    Log.d("cfauli", " ad TAB1 failed")
+                }
+
+                override fun onAdOpened() {
+                    // Code to be executed when an ad opens an overlay that
+                    // covers the screen.
+                }
+
+                override fun onAdClicked() {
+                    // Code to be executed when the user clicks on an ad.
+                }
+
+                override fun onAdLeftApplication() {
+                    // Code to be executed when the user has left the app.
+                }
+
+                override fun onAdClosed() {
+                    // Code to be executed when the user is about to return
+                    // to the app after tapping on an ad.
+                }
             }
+            // Set a fixed minTime in order to control whether the speedtesttimer is exceeded
+            //val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+            //minTime  = sharedPreferences.getInt("num_time_samples", getString(R.string.minTimeSample).toInt()).toLong() * 1000
+            startMobileScannerTab1(fragmentView)
 
-            override fun onAdOpened() {
-                // Code to be executed when an ad opens an overlay that
-                // covers the screen.
-            }
 
-            override fun onAdClicked() {
-                // Code to be executed when the user clicks on an ad.
-            }
+            // speedometer parametters
+            speedometer.unit = "Mbps"
+            speedometer.minSpeed = 0.0f
+            speedometer.maxSpeed = 120.0f
+            speedometer.withTremble = false
+            speedometer.sections[0].color = Color.RED
+            speedometer.sections[0].endOffset = (1f / 1.2f) * 0.1f
+            speedometer.sections[1].color = Color.YELLOW
+            speedometer.sections[1].startOffset = (1f / 1.2f) * 0.1f
+            speedometer.sections[1].endOffset = (1f / 1.2f) * 0.2f
+            speedometer.sections[2].color = Color.GREEN
+            speedometer.sections[2].startOffset = (1f / 1.2f) * 0.2f
 
-            override fun onAdLeftApplication() {
-                // Code to be executed when the user has left the app.
-            }
-
-            override fun onAdClosed() {
-                // Code to be executed when the user is about to return
-                // to the app after tapping on an ad.
-            }
-        }
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minTime  = sharedPreferences.getInt("num_time_samples", getString(R.string.minTimeSample).toInt()).toLong() * 1000
-        startMobileScannerTab1(fragmentView)
-
-        // speedometer parametters
-        speedometer.unit = "Mbps"
-        speedometer.minSpeed = 0.0f
-        speedometer.maxSpeed = 120.0f
-        speedometer.withTremble = false
-        speedometer.sections[0].color = Color.RED
-        speedometer.sections[0].endOffset = (1f/1.2f) * 0.1f
-        speedometer.sections[1].color = Color.YELLOW
-        speedometer.sections[1].startOffset = (1f/1.2f) * 0.1f
-        speedometer.sections[1].endOffset = (1f/1.2f) * 0.2f
-        speedometer.sections[2].color = Color.GREEN
-        speedometer.sections[2].startOffset = (1f/1.2f) * 0.2f
-
-        /*speedTestSocket.downloadSetupTime = 1000
+            /*speedTestSocket.downloadSetupTime = 1000
         speedTestSocket.uploadSetupTime = 1000
         speedTestSocket.socketTimeout = 1000*/
 
-        var buttonColor:Boolean
+            var buttonColor: Boolean
 
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+            StrictMode.setThreadPolicy(policy)
 
-        speedometer.setOnClickListener {
-            // Force a crash
-            //throw RuntimeException("Test Crash") // Force a crash
+            speedometer.setOnClickListener {
+                // Force a crash
+                //throw RuntimeException("Test Crash") // Force a crash
 
-            testTimeStart = System.currentTimeMillis() % 1000000
-            fillNetworkTextView(requireView())
+                testTimeStart = System.currentTimeMillis() % 1000000
+                fillNetworkTextView(requireView())
 
 
-            if (speedTestRunningStep==0) {
-                Toast.makeText(context, getString(R.string.SpeedTestStarted), Toast.LENGTH_SHORT).show()
-                Log.d("cfauli speedtest step0", speedTestRunningStep.toString())
-                buttonColor = false
-                ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                if (speedTestRunningStep == 0) {
+                    Toast.makeText(context, getString(R.string.SpeedTestStarted), Toast.LENGTH_SHORT).show()
+                    Log.d("cfauli speedtest step0", speedTestRunningStep.toString())
+                    buttonColor = false
+                    ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
 
                     tvDownload.text = "-"
-                            tvUpload . text ="-"
-                            tvLatency . text ="-"
-                            testTimeStart = System.currentTimeMillis() % 1000000
-                            speedTestRunningStep = 1
+                    tvUpload.text = "-"
+                    tvLatency.text = "-"
+                    testTimeStart = System.currentTimeMillis() % 1000000
+                    speedTestRunningStep = 1
 
-                            // Here we choose the file to dowload fron Object Constants
-                            speedTestSocket . startDownloadRepeat(downLoadFile,
-                                10000, 1000, object : IRepeatListener {
-                                    override fun onCompletion(report: SpeedTestReport) {
-                                        testTimeStart = System.currentTimeMillis() % 1000000
-                                        speedTestRunningStep = 2
-                                        internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
-                                        listDownload = "%.1f".format(internetSpeedDownload)
-                                        requireActivity().runOnUiThread(Runnable {
-                                            speedometer.speedTo(0.0f, 1000)
+                    // Here we choose the file to dowload fron Object Constants
+                    speedTestSocket.startDownloadRepeat(downLoadFile,
+                        10000, 1000, object : IRepeatListener {
+                            override fun onCompletion(report: SpeedTestReport) {
+                                testTimeStart = System.currentTimeMillis() % 1000000
+                                speedTestRunningStep = 2
+                                internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
+                                listDownload = "%.1f".format(internetSpeedDownload)
+                                requireActivity().runOnUiThread(Runnable {
+                                    speedometer.speedTo(0.0f, 1000)
 
-                                            Log.d("cfauli", "[COMPLETED] step" + speedTestRunningStep)
-                                            tvDownload.text = listDownload
+                                    Log.d("cfauli", "[COMPLETED] step" + speedTestRunningStep)
+                                    tvDownload.text = listDownload
 
-                                            //    Thread.sleep(2000)
-                                            //Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
-                                            // Start upload test (once the download test finishes)---------------------------------------------------------
+                                    //    Thread.sleep(2000)
+                                    //Log.d("cfauli up file size", ((((10).toDouble().pow(speedTestFile).toInt()))*1000000).toString())
+                                    // Start upload test (once the download test finishes)---------------------------------------------------------
 
-                                            speedTestSocket.clearListeners()
-                                            speedTestSocket.startUploadRepeat(upLoadFile,
-                                                10000, 1000, (10.0.pow(speedTestFile).toInt()) * 1000000, object : IRepeatListener {
+                                    speedTestSocket.clearListeners()
+                                    speedTestSocket.startUploadRepeat(upLoadFile,
+                                        10000, 1000, (10.0.pow(speedTestFile).toInt()) * 1000000, object : IRepeatListener {
 
-                                                    override fun onCompletion(report: SpeedTestReport) {
-                                                        ivButton.setBackgroundResource(R.drawable.ic_switch_on_off)
+                                            override fun onCompletion(report: SpeedTestReport) {
+                                                ivButton.setBackgroundResource(R.drawable.ic_switch_on_off)
 
-                                                        Log.d("cfauli up file size", (((10.0.pow(speedTestFile).toInt())) * 1000000).toString())
-                                                        internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
+                                                Log.d("cfauli up file size", (((10.0.pow(speedTestFile).toInt())) * 1000000).toString())
+                                                internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
 
-                                                        speedTestSocket.clearListeners()
-                                                        speedTestSocket.closeSocket()
+                                                speedTestSocket.clearListeners()
+                                                speedTestSocket.closeSocket()
 
-                                                        if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
-                                                        if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
+                                                if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
+                                                if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
 
-                                                        listUpload = "%.1f".format(internetSpeedUpload)
-                                                        requireActivity().runOnUiThread(Runnable {
-                                                            speedometer.speedTo(0.0f, 1000)
-                                                            testTimeStart = System.currentTimeMillis() % 1000000
-                                                            speedTestRunningStep = 3
-                                                            tvUpload.text = listUpload
-
-
-                                                            // Test latency (once the upload test finishes)-----------------
-                                                            pingg("http://www.google.com") { it ->
-                                                                listLatency = it.toString()
-                                                                tvLatency.text = listLatency
-                                                                // Fill the Speed List fragment view
-                                                                // Create the adapter to convert the array to views
-
-                                                                adapter.clear()
-                                                                writeCloudFirestoreDB(listDownload, listUpload, listLatency)
-                                                                listOfSpeedTest = fillSpeedList(true, listNetwork, listDownload, listUpload, listLatency)
-                                                                adapter.addAll(listOfSpeedTest)
-                                                                adapter.notifyDataSetChanged()
-
-                                                            }
-
-                                                            Log.d("cfauli speedtest", "end...................")
-                                                            speedTestRunningStep = 0
-                                                            lastUpload = 0.0f
-
-                                                            ivButton.setImageResource(R.drawable.ic_switch_on_off)
-                                                            speedTestSocket.clearListeners()
-                                                            speedTestSocket.closeSocket()
-                                                            speedTestSocket.forceStopTask()
+                                                listUpload = "%.1f".format(internetSpeedUpload)
+                                                requireActivity().runOnUiThread(Runnable {
+                                                    speedometer.speedTo(0.0f, 1000)
+                                                    testTimeStart = System.currentTimeMillis() % 1000000
+                                                    speedTestRunningStep = 3
+                                                    tvUpload.text = listUpload
 
 
-                                                            // End test latency  --------------------------------------------
-                                                        })
+                                                    // Test latency (once the upload test finishes)-----------------
+                                                    pingg("http://www.google.com") { it ->
+                                                        listLatency = it.toString()
+                                                        tvLatency.text = listLatency
+                                                        // Fill the Speed List fragment view
+                                                        // Create the adapter to convert the array to views
+
+                                                        adapter.clear()
+                                                        writeCloudFirestoreDB(listDownload, listUpload, listLatency)
+                                                        listOfSpeedTest = fillSpeedList(true, listNetwork, listDownload, listUpload, listLatency)
+                                                        adapter.addAll(listOfSpeedTest)
+                                                        adapter.notifyDataSetChanged()
+
                                                     }
 
-                                                    override fun onReport(report: SpeedTestReport) {
-                                                        // called when a upload report is dispatched
-                                                        buttonColor = !buttonColor
-                                                        // Only the original thread that created a view hierarchy can touch its views. en Android
-                                                        activity!!.runOnUiThread {
-                                                            if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
-                                                            else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
-                                                        }
+                                                    Log.d("cfauli speedtest", "end...................")
+                                                    speedTestRunningStep = 0
+                                                    lastUpload = 0.0f
 
-                                                        internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
-
-                                                        if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
-                                                        if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
-                                                        internetSpeedUploadAnt = internetSpeedUpload
-                                                        Log.d("cfauli speedtest upload", internetSpeedUpload.toString() + " " + internetSpeedDownload.toString())
-                                                        requireActivity().runOnUiThread(Runnable {
-                                                            speedometer.speedTo(internetSpeedUpload, 1000)
-                                                            lastUpload = internetSpeedUpload
-                                                        })
-                                                    }
+                                                    ivButton.setImageResource(R.drawable.ic_switch_on_off)
+                                                    speedTestSocket.clearListeners()
+                                                    speedTestSocket.closeSocket()
+                                                    speedTestSocket.forceStopTask()
 
 
+                                                    // End test latency  --------------------------------------------
                                                 })
-                                            // End upload test---------------------------------------------------------------------------------------------
+                                            }
+
+                                            override fun onReport(report: SpeedTestReport) {
+                                                // called when a upload report is dispatched
+                                                buttonColor = !buttonColor
+                                                // Only the original thread that created a view hierarchy can touch its views. en Android
+                                                activity!!.runOnUiThread {
+                                                    if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
+                                                    else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                                                }
+
+                                                internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
+
+                                                if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
+                                                if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
+                                                internetSpeedUploadAnt = internetSpeedUpload
+                                                Log.d("cfauli speedtest upload", internetSpeedUpload.toString() + " " + internetSpeedDownload.toString())
+                                                requireActivity().runOnUiThread(Runnable {
+                                                    speedometer.speedTo(internetSpeedUpload, 1000)
+                                                    lastUpload = internetSpeedUpload
+                                                })
+                                            }
+
+
                                         })
-                                        //
-                                    }
-
-                                    override fun onReport(report: SpeedTestReport) {
-                                        buttonColor = !buttonColor
-                                        activity!!.runOnUiThread {
-                                            if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
-                                            else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
-                                        }
-
-                                        // called when a download report is dispatched
-                                        internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
-                                        if (internetSpeedDownload == 0.0f) internetSpeedDownload = lastDownload
-                                        else lastDownload = internetSpeedDownload
-                                        Log.d("cfauli speedtest downlo", internetSpeedDownload.toString())
-                                        requireActivity().runOnUiThread(Runnable {
-                                            speedometer.speedTo(internetSpeedDownload, 1000)
-                                        })
-                                    }
-
-
+                                    // End upload test---------------------------------------------------------------------------------------------
                                 })
-                ivButton.setBackgroundResource(R.drawable.ic_switch_on_off)
+                                //
+                            }
 
-            } else {
-                stopSpeedTest()
+                            override fun onReport(report: SpeedTestReport) {
+                                buttonColor = !buttonColor
+                                activity!!.runOnUiThread {
+                                    if (buttonColor) ivButton.setImageResource(R.drawable.ic_switch_on_off)
+                                    else ivButton.setImageResource(R.drawable.ic_switch_on_off_grey)
+                                }
+
+                                // called when a download report is dispatched
+                                internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
+                                if (internetSpeedDownload == 0.0f) internetSpeedDownload = lastDownload
+                                else lastDownload = internetSpeedDownload
+                                Log.d("cfauli speedtest downlo", internetSpeedDownload.toString())
+                                requireActivity().runOnUiThread(Runnable {
+                                    speedometer.speedTo(internetSpeedDownload, 1000)
+                                })
+                            }
+
+
+                        })
+                    ivButton.setBackgroundResource(R.drawable.ic_switch_on_off)
+
+                } else {
+                    stopSpeedTest()
+
+                }
 
             }
+            //fillNetworkTextView(view)
+            // [START shared_app_measurement]
+            // Obtain the FirebaseAnalytics instance.
+            firebaseAnalytics = FirebaseAnalytics.getInstance(requireContext())
+            // [END shared_app_measurement]
+            val params = Bundle()
+            params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
+            params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab1")
+            firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
+Log.d ("cfauli", "Oncreateview tab1 final")
+            return fragmentView
 
-        }
-        //fillNetworkTextView(view)
-        // [START shared_app_measurement]
-        // Obtain the FirebaseAnalytics instance.
-        firebaseAnalytics = FirebaseAnalytics.getInstance(requireContext())
-        // [END shared_app_measurement]
-        val params = Bundle()
-        params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
-        params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab1")
-        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
-
-        return fragmentView
     }
 
 
@@ -433,13 +438,14 @@ class Tab1 : Fragment() {
         super.onResume()
 
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minTime  = sharedPreferences.getInt("num_time_samples", 10).toLong() * 1000
+        //val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        //minTime  = sharedPreferences.getInt("num_time_samples", 10).toLong() * 1000
 
         // firstOnResume = true if activity is destroyed (back) and goes trough a oncreateview, in order not to repeat the scanners
         if (!firstOnResume) startMobileScannerTab1(requireView())
         firstOnResume = false
         Log.d("cfauli", "OnResume tab1")
+
     }
 
     /**
@@ -518,7 +524,7 @@ class Tab1 : Fragment() {
     fun fillNetworkTextView(view: View) {
         /// fill the mobile layout --------------------------------------------
         // Lookup view for data population
-        Log.d("cfauli", "fillMobileTextView")
+        //Log.d("cfauli", "fillMobileTextView")
         val tvNetwork = view.findViewById<View>(R.id.tvTab1MobileNetworkType) as TextView
         if (Connectivity.isConnectedMobile(requireContext())) networkType = "MOBILE"
         else if (Connectivity.isConnectedWifi(requireContext())) networkType = "WIFI"
@@ -527,7 +533,7 @@ class Tab1 : Fragment() {
             if (firstOnResume)   telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
             pDevice = loadCellInfo(telephonyManager)
-            Log.d("cfauli pDevice ", pDevice.toString())
+            //Log.d("cfauli pDevice ", pDevice.toString())
 
             listNetwork = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type, pDevice.band)) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
             tvNetwork.text = listNetwork

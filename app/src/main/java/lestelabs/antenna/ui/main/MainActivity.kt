@@ -105,7 +105,7 @@ interface GetfileState {
         /*Cast MenuItem to CheckBox
           CheckBox checkBox= (CheckBox) menuItem.getActionView();
           */
-        checkBox = navigationView.menu.getItem(2).subMenu.getItem(0).actionView as CheckBox
+        checkBox = navigationView.menu.getItem(2).actionView as CheckBox
 
         val sharedPreferences = baseContext.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
@@ -123,7 +123,7 @@ interface GetfileState {
         })
 
 
-        Log.d("cfauli", "submenu " + navigationView.menu.getItem(2).subMenu.getItem(0).toString())
+        Log.d("cfauli", "submenu " + navigationView.menu.getItem(2).toString())
 
         if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
             (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
@@ -131,56 +131,56 @@ interface GetfileState {
             Thread.sleep(1000)
         }
 
+        // wait until all permissions cleared
+        checkAllPermission(this) {}
 
-        checkAllPermission {
+        tabLayout.addTab(tabLayout.newTab())
+        tabLayout.addTab(tabLayout.newTab())
+        tabLayout.addTab(tabLayout.newTab())
 
-            tabLayout.addTab(tabLayout.newTab())
-            tabLayout.addTab(tabLayout.newTab())
-            tabLayout.addTab(tabLayout.newTab())
+        tabLayout.tabGravity = TabLayout.GRAVITY_FILL
+        val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
+        tabLayout.setupWithViewPager(viewPager)
+        val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
+        viewPager.adapter = adapter
+        viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
+        // Define the number of adjacent TABs that are preloaded. Cannot be set to 0.
+        // Lifecycle:
+        // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
+        // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
+        // Home -> OnPause/OnStop -> OnStart/OnResume
+        // Since Back is implementd as home button, the oncreateview is only trigered once.
+        // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
+        // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
 
-            tabLayout.tabGravity = TabLayout.GRAVITY_FILL
-            val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
-            tabLayout.setupWithViewPager(viewPager)
-            val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
-            viewPager.adapter = adapter
-            viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
-            // Define the number of adjacent TABs that are preloaded. Cannot be set to 0.
-            // Lifecycle:
-            // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
-            // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
-            // Home -> OnPause/OnStop -> OnStart/OnResume
-            // Since Back is implementd as home button, the oncreateview is only trigered once.
-            // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
-            // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
+        viewPager.offscreenPageLimit = 2
 
-            viewPager.offscreenPageLimit = 2
+        tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
+        tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
+        tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
 
-            tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
-            tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
-            tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
+        tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                // [START shared_app_measurement]
+                // Obtain the FirebaseAnalytics instance.
+                firebaseAnalytics = FirebaseAnalytics.getInstance(this@MainActivity)
+                // [END shared_app_measurement]
+                val params = Bundle()
+                params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
+                params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab" + tab.position)
+                firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
 
-            tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
-                override fun onTabSelected(tab: TabLayout.Tab) {
-                    // [START shared_app_measurement]
-                    // Obtain the FirebaseAnalytics instance.
-                    firebaseAnalytics = FirebaseAnalytics.getInstance(this@MainActivity)
-                    // [END shared_app_measurement]
-                    val params = Bundle()
-                    params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
-                    params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab" + tab.position)
-                    firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
+                tabSelectedInt = tab.position
+                viewPager.currentItem = tab.position
+                tab.select()
 
-                    tabSelectedInt = tab.position
-                    viewPager.currentItem = tab.position
-                    tab.select()
+                Log.d("cfauli", "TAB" + tab.position)
+            }
 
-                    Log.d("cfauli", "TAB" + tab.position)
-                }
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
 
-                override fun onTabUnselected(tab: TabLayout.Tab) {}
-                override fun onTabReselected(tab: TabLayout.Tab) {}
-            })
-        }
     }
 
 
@@ -193,20 +193,6 @@ interface GetfileState {
 
         return true
     }*/
-
-
-
-    fun checkAllPermission(callback: (Boolean) -> Unit) {
-        while ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
-            (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
-            Thread.sleep(1000)
-        }
-        callback(true)
-    }
-
-
-
-
 
     companion object {
         const val PERMISSION_REQUEST_CODE = 1
