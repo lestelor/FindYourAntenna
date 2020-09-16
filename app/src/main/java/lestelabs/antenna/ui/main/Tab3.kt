@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -22,7 +23,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -37,6 +40,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.rest.findTower
@@ -121,7 +125,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             mParam1 = requireArguments().getString(ARG_PARAM1)
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
-        Log.d("cfauli","OnCreate Tab3")
+        Log.d("cfauli", "OnCreate Tab3")
         readInitialConfiguration()
 
 
@@ -136,7 +140,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     override fun onStart() {
         // call the superclass method first
         super.onStart()
-        Log.d("cfauli","OnStart Tab3")
+        Log.d("cfauli", "OnStart Tab3")
         var gps_enabled = false
         var lm: LocationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
         gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
@@ -160,7 +164,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     override fun onStop() {
         // call the superclass method first
         super.onStop()
-        Log.d("cfauli","OnStop Tab3")
+        Log.d("cfauli", "OnStop Tab3")
     }
 
 
@@ -172,7 +176,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // Persist all edits or state changes
         // as after this call the process is likely to be killed.
         super.onPause()
-        Log.d("cfauli","OnPause Tab3")
+        Log.d("cfauli", "OnPause Tab3")
         endGPS()
     }
 
@@ -190,15 +194,27 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         val fab_save = fragmentView.findViewById(R.id.fab_tab3_save) as ImageView
         val fab_clear = fragmentView.findViewById(R.id.fab_tab3_clear) as ImageView
         val fab_load = fragmentView.findViewById(R.id.fab_tab3_open) as ImageView
+        val fab_world = fragmentView.findViewById(R.id.fab_tab3_world) as ImageView
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
         mapFragment.getMapAsync(this)
-        Log.d("cfauli","OnCreateView Tab3")
+        Log.d("cfauli", "OnCreateView Tab3")
+
+        // if not Firestore uploaded, then hide button
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        pDevice = loadCellInfo(telephonyManager)
+        if (pDevice.mcc != 214) fab_world.isVisible = false
+
+
+
+
+
+
 
         // Floating button save
         fab_save.setBackgroundResource(R.drawable.ic_diskette)
         fab_save.setOnClickListener { view ->
             changebutton(fragmentView)
-            Log.d("cfauli","onclick buttom")
+            Log.d("cfauli", "onclick buttom")
             if (fabSaveClicked) {
                 // Create towers file
                 storageDir = getStorageDir()
@@ -210,7 +226,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 towersFilePath = File(storageDirTowers, fileTowers)
 
                 if (!towersFilePath!!.exists()) {
-                    Log.d("cfauli towersfilepath " , towersFilePath.toString())
+                    Log.d("cfauli towersfilepath ", towersFilePath.toString())
                     File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon")
                 }
                 // Save tower
@@ -290,15 +306,37 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // Floating button load
 
         fab_load.setOnClickListener { view ->
-            Log.d("cfauli","onclick buttom")
+            Log.d("cfauli", "onclick buttom")
             storageDir = getStorageDir()
             storageDirTowers = File(storageDir!!)
 
             towersFilePath = File(storageDirTowers, fileTowers)
             performTowerSearch()
             performFileSearch()
-            Log.d("cfauli","performfilesearch")
+            Log.d("cfauli", "performfilesearch")
         }
+
+
+        fab_world.setOnClickListener { view ->
+            Log.d("cfauli", "onclick buttom fab_world")
+            // To be defined according to the mcc. This is for 214
+            val networkList = arrayOf("Telefónica", "Orange", "Vodafone", "Yoigo", "GSM", "UMTS", "LTE")
+            val checkedItems = booleanArrayOf(false, false, false, false, false, false, false)
+
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle(getString(R.string.DownloadOpenCell))
+            builder.setMultiChoiceItems(networkList, checkedItems) { dialog, which, isChecked ->
+                checkedItems[which] = isChecked
+            }
+            builder.setPositiveButton("OK") { dialog, which ->
+                plotTowers()
+            }
+            builder.setNegativeButton("Cancel", null)
+
+            val dialog = builder.create()
+            dialog.show()
+        }
+
 
         return fragmentView
 
@@ -307,7 +345,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        Log.d("cfauli","OnAtach Tab3")
+        Log.d("cfauli", "OnAtach Tab3")
         /*mListener = if (context is Tab3.OnFragmentInteractionListener) {
             context
         } else {
@@ -328,7 +366,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     override fun onDetach() {
         super.onDetach()
         listener = null
-        Log.d("cfauli","OnDetach Tab3")
+        Log.d("cfauli", "OnDetach Tab3")
     }
 
 
@@ -336,9 +374,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
-        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
-        Log.d("cfauli","OnResume tab3")
+        minDist = sharedPreferences.getInt("num_dist_samples", getString(R.string.minDistSample).toInt()).toFloat()
+        minTime  = sharedPreferences.getInt("num_time_samples", getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        Log.d("cfauli", "OnResume tab3")
         if (!firstOnResume) startGPS()
         firstOnResume = false
     }
@@ -381,7 +419,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         fusedLocationClient.lastLocation
-            .addOnSuccessListener { location : Location? ->
+            .addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     // create pDevice and add green marker
                     locationOk = location
@@ -435,7 +473,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 // Code to be executed when an ad finishes loading.
             }
 
-            override fun onAdFailedToLoad(errorCode : Int) {
+            override fun onAdFailedToLoad(errorCode: Int) {
                 // Code to be executed when an ad request fails.
             }
 
@@ -465,7 +503,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     private fun locateTowerMap(listTowersFound: List<DevicePhone>) {
 
-        Log.d("cfauli","listTowersize " + listTowersFound.size)
+        Log.d("cfauli", "listTowersize " + listTowersFound.size)
         if (listTowersFound.size > 1) {
             Log.d("cfauli", "listTowertotalcid " + listTowersFound[1].totalCellId)
             Log.d("cfauli", "listTowerlat " + listTowersFound[1].lat)
@@ -502,7 +540,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     private fun cameraAnimate(pDevice: DevicePhone, location: Location) {
-        Log.d("cfauli","locateTowerMap markerok distance " + distance)
+        Log.d("cfauli", "locateTowerMap markerok distance " + distance)
 
 
         val mZoom = mZoom(pDevice, location)
@@ -588,7 +626,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             val towerinListSize = listTowersFound.size
             towerinListInt = checkTowerinList(pDevice)
 
-            Log.d("cfauli", "gps onlocationchange pdevicelat " + pDevice.lat + "towerinlistsize " + towerinListSize + "towerinlistint " + towerinListInt )
+            Log.d("cfauli", "gps onlocationchange pdevicelat " + pDevice.lat + "towerinlistsize " + towerinListSize + "towerinlistint " + towerinListInt)
 
             Log.d("cfauli", "onlocationchanged towerinlist " + towerinListInt)
             Log.d("cfauli", "onlocationchanged previous tower " + previousTower?.totalCellId + " pdevice " + pDevice.totalCellId + " " + towerinListInt + " " + towerinListSize)
@@ -643,12 +681,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
             // Save samples in file and draw colored dot
-            Log.d ("cfauli", "Save file filestate " + fabSaveClicked + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
+            Log.d("cfauli", "Save file filestate " + fabSaveClicked + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
             if (fabSaveClicked && okSaveSamples == true && isFileSamplesOpened)  {
 
 
 
-                Log.d ("cfauli", "Save file opened: " + isFileSamplesOpened)
+                Log.d("cfauli", "Save file opened: " + isFileSamplesOpened)
                 Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
                 File(sampleFilePath.toString()).appendText(
                     "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
@@ -657,7 +695,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                             + "%.5f".format(location.latitude) + ";" + "%.5f".format(location.longitude)
                 )
 
-                plotColoredDot(LatLng(location.latitude,location.longitude),pDevice.dbm!!)
+                plotColoredDot(LatLng(location.latitude, location.longitude), pDevice.dbm!!)
 
 
 
@@ -687,10 +725,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     private fun readInitialConfiguration() {
         val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minDist = sharedPreferences.getInt("num_dist_samples",getString(R.string.minDistSample).toInt()).toFloat()
-        minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong()* 1000
-        okSaveSamples = sharedPreferences.getBoolean("chkBoxSamples",true)
-        okSaveTowers = sharedPreferences.getBoolean("chkBoxTowers",true)
+        minDist = sharedPreferences.getInt("num_dist_samples", getString(R.string.minDistSample).toInt()).toFloat()
+        minTime  = sharedPreferences.getInt("num_time_samples", getString(R.string.minTimeSample).toInt()).toLong()* 1000
+        okSaveSamples = sharedPreferences.getBoolean("chkBoxSamples", true)
+        okSaveTowers = sharedPreferences.getBoolean("chkBoxTowers", true)
 
     }
     // The sdcard directory is equal to the partition storage/emulated/0 which corresponds to the public external storage
@@ -719,10 +757,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             }*/
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 if (ActivityCompat.checkSelfPermission(requireActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(requireActivity(),arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
+                    ActivityCompat.requestPermissions(requireActivity(), arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
                     return
                 }
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime!!,minDist!!,myLocListener)
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTime!!, minDist!!, myLocListener)
             }
         }
         gpsActive = true
@@ -741,13 +779,13 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
 
-    fun plotColoredDot(location: LatLng, pDevicedbm:Int) {
+    fun plotColoredDot(location: LatLng, pDevicedbm: Int) {
         // Plot colored dots
         val markerDot:Int
         val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        val thresMobBlack = sharedPreferences.getString("thres_mob_black",Constants.MINMOBILESIGNALBLACK)!!.toInt()
-        val thresMobRed = sharedPreferences.getString("thres_mob_red",Constants.MINMOBILESIGNALRED)!!.toInt()
-        val thresMobYellow = sharedPreferences.getString("thres_mob_yellow",Constants.MINMOBILESIGNALYELLOW)!!.toInt()
+        val thresMobBlack = sharedPreferences.getString("thres_mob_black", Constants.MINMOBILESIGNALBLACK)!!.toInt()
+        val thresMobRed = sharedPreferences.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)!!.toInt()
+        val thresMobYellow = sharedPreferences.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)!!.toInt()
         val thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
 
         if (pDevicedbm >= -1*thresMobYellow) {
@@ -767,7 +805,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         )
     }
 
-    fun changebutton(view:View) {
+    fun changebutton(view: View) {
         fab_tab3_save.setBackgroundColor(resources.getColor(R.color.black));
         if (fabSaveClicked) {
             fab_tab3_save.setImageResource(R.drawable.ic_diskette)
@@ -801,23 +839,23 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         var nextLine: String? = null
         try {
             val csvfile = File(towersFilePath.toString())
-            Log.d ("cfauli","csvfile" + csvfile.absolutePath)
+            Log.d("cfauli", "csvfile" + csvfile.absolutePath)
 
             val reader = BufferedReader(FileReader(csvfile))
-            Log.d ("cfauli","csvfile" + reader)
+            Log.d("cfauli", "csvfile" + reader)
             nextLine = reader.readLine()
             var i =0
             while (nextLine != null) {
 
                 val tokens: List<String> = nextLine.split(";")
                 if (i>0) {
-                    val latFileDouble = tokens[5].replace(",",".").toDouble()
-                    val lonFileDouble = tokens[6].replace(",",".").toDouble()
+                    val latFileDouble = tokens[5].replace(",", ".").toDouble()
+                    val lonFileDouble = tokens[6].replace(",", ".").toDouble()
                     val cid = tokens[1] + "-" + tokens[2] + "-" + tokens[3] + "-" + tokens[4]
 
                     mMap.addMarker(
                         MarkerOptions()
-                            .position(LatLng(latFileDouble,lonFileDouble))
+                            .position(LatLng(latFileDouble, lonFileDouble))
                             .title(cid)
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                     )
@@ -862,25 +900,25 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     //val filePath = File(getStorageDir())
                     //val csvfile = File(filePath, "samples.csv")
                     val csvfile = File(dotsFilePath)
-                    Log.d ("cfauli","csvfile" + csvfile.absolutePath)
+                    Log.d("cfauli", "csvfile" + csvfile.absolutePath)
 
 
 
                     //val reader = CSVReader(FileReader(csvfile))
                     //val reader = FileReader(csvfile)
                     val reader = BufferedReader(FileReader(csvfile))
-                    Log.d ("cfauli","csvfile" + reader)
+                    Log.d("cfauli", "csvfile" + reader)
                     nextLine = reader.readLine()
                     var i =0
                     while (nextLine != null) {
 
                         val tokens: List<String> = nextLine.split(";")
                         if (i>0) {
-                            val latFileDouble = tokens[8].replace(",",".").toDouble()
-                            val lonFileDouble = tokens[9].replace(",",".").toDouble()
+                            val latFileDouble = tokens[8].replace(",", ".").toDouble()
+                            val lonFileDouble = tokens[9].replace(",", ".").toDouble()
                             val dBm = tokens[7].toInt()
-                            Log.d ("cfauli", " nextLine: " + tokens[8] + " " + tokens[9])
-                            plotColoredDot(LatLng(latFileDouble,lonFileDouble),dBm)
+                            Log.d("cfauli", " nextLine: " + tokens[8] + " " + tokens[9])
+                            plotColoredDot(LatLng(latFileDouble, lonFileDouble), dBm)
                         }
 
 
@@ -897,8 +935,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
     }
 
-    fun mZoom(pDevice:DevicePhone, location: Location): Float {
-        distance = distance(pDevice.lat,pDevice.lon,location.latitude,location.longitude)
+    fun mZoom(pDevice: DevicePhone, location: Location): Float {
+        distance = distance(pDevice.lat, pDevice.lon, location.latitude, location.longitude)
         Log.d("cfauli", "Zoom zoom " + distance)
         var mZoom = 13f
         when {
@@ -915,11 +953,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
 
-fun updateTextViewDistanceTower(location:Location) {
+fun updateTextViewDistanceTower(location: Location) {
 
 
     distance = distance(location.latitude, location.longitude, listTowersFound[towerinListInt].lat, listTowersFound[towerinListInt].lon)
-    Log.d("cfauli distance", distance.toString() + " " + location.latitude + " " +  location.longitude +" " + listTowersFound[towerinListInt].lat + " " +  listTowersFound[towerinListInt].lon)
+    Log.d("cfauli distance", distance.toString() + " " + location.latitude + " " + location.longitude + " " + listTowersFound[towerinListInt].lat + " " + listTowersFound[towerinListInt].lon)
     when {
         distance==0.0 -> {
             tv_fr3_distance.text = getString(R.string.waitingGPS)
@@ -939,6 +977,30 @@ fun updateTextViewDistanceTower(location:Location) {
     tv_fr3_coverage.text = pDevice.dbm.toString() + "dBm"
 }
 
+    private fun plotTowers() {
+        val db = FirebaseFirestore.getInstance()
+        val celltower = db.collection("celltower")
+        // Create a query against the collection.
+        celltower.whereEqualTo("radio", "LTE").whereEqualTo("net","3")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val latDocument: Double = document.data["lat"].toString().toDouble()
+                    val lonDocument: Double = document.data["lon"].toString().toDouble()
 
+                    //Log.d("cfauli", "document firestore" + document.data["lat"].toString() + " " + document.data["lon"].toString().toDouble())
+                    mMap.addMarker(
+                        MarkerOptions()
+                            .position(LatLng(latDocument, lonDocument))
+                            .title(document.data["mcc"].toString() + "-" + document.data["net"].toString()+ "-" + document.data["area"].toString() + "-" + document.data["cell"].toString())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                    )
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.w("cfauli", "Error getting documents: ", exception)
+            }
+
+    }
 }
 

@@ -590,12 +590,11 @@ Log.d ("cfauli", "Oncreateview tab1 final")
 fun saveDocument() {
 
 
-
+Thread.sleep(1000)
         if ((ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
             (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         ) {
             ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
-            Thread.sleep(1000)
         }
         var lat = 0.0
         var lon = 0.0

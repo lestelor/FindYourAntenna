@@ -71,5 +71,6 @@
     <string name="CheckTheBoxBelow">請選中下面的框以提供和共享匿名信息。謝謝</string>
     <string name="ThanksForChecking">感謝您共享匿名數據。現在，您可以使用選項菜單</string>
     <string name="ThankForNotChecking">數據不再共享。啟用它以使用選項菜單</string>
+    <string name="DownloadOpenCell">Download sites from Opencell.org</string>
 
 </resources>

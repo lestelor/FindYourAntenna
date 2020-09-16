@@ -79,6 +79,15 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/fab_tab3_open" />
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_tab3_world"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/fab_margin"
+        android:layout_marginEnd="25dp"
+        android:src="@drawable/ic_world_white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fab_tab3_clear" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

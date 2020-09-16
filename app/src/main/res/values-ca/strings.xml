@@ -71,6 +71,7 @@
     <string name="CheckTheBoxBelow">Marqueu la casella següent per contribuir i compartir informació anònima. Gràcies!</string>
     <string name="ThanksForChecking">Gràcies per compartir dades anònimes. Ara podeu utilitzar el menú d’opcions</string>
     <string name="ThankForNotChecking">Les dades ja no es comparteixen. Activeu-lo per utilitzar el menú d’opcions</string>
+    <string name="DownloadOpenCell">Download sites from Opencell.org</string>
 
 
 </resources>

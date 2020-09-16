@@ -15,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "247776579597-tiq749ch95ttg86ojh9hijmhd276nrqn.apps.googleusercontent.com",
+          "client_id": "247776579597-9fm144dufpemqvgh1rcaa44gk28b14d4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "lestelabs.antenna",
-            "certificate_hash": "b705fb8640c99121139eed7740db26a95e4fa15e"
+            "certificate_hash": "cb8dbb832a503443ab35e1eaf2c2b8846c8605e2"
           }
         },
         {
@@ -41,7 +41,8 @@
             }
           ]
         }
-      }
+      },
+      "admob_app_id": "ca-app-pub-8346072505648333~1653829654"
     }
   ],
   "configuration_version": "1"

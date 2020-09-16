@@ -81,6 +81,7 @@
     <string name="CheckTheBoxBelow">Please check the box below to contribute and share anonymous information. Thanks!</string>
     <string name="ThanksForChecking">Thanks for sharing anonymous data. Now you can use the options menu</string>
     <string name="ThankForNotChecking">Data is no longer shared. Enable it to use the options menu</string>
+    <string name="DownloadOpenCell">Download sites from Opencell.org</string>
 
 
 </resources>
