@@ -1,11 +1,11 @@
 package lestelabs.antenna.ui.main
 
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -43,6 +43,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.algorithms.UTM
+import lestelabs.antenna.ui.main.algorithms.WGS84
 import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
@@ -52,6 +54,9 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.time.LocalDateTime
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 
 /*
@@ -571,15 +576,15 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         lng2: Double
     ): Double {
         val earthRadius = 6371000.0 //meters
-        val dLat = Math.toRadians(lat2 - lat1.toDouble())
-        val dLng = Math.toRadians(lng2 - lng1.toDouble())
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
         val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1.toDouble())) * Math.cos(
-            Math.toRadians(lat2.toDouble())
+                cos(Math.toRadians(lat1)) * Math.cos(
+            Math.toRadians(lat2)
         ) *
-                Math.sin(dLng / 2) * Math.sin(dLng / 2)
+                sin(dLng / 2) * Math.sin(dLng / 2)
         val c =
-            2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+            2 * atan2(Math.sqrt(a), Math.sqrt(1 - a))
         return (earthRadius * c)
     }
 
@@ -978,28 +983,65 @@ fun updateTextViewDistanceTower(location: Location) {
 }
 
     private fun plotTowers() {
-        val db = FirebaseFirestore.getInstance()
-        val celltower = db.collection("celltower")
-        // Create a query against the collection.
-        celltower.whereEqualTo("radio", "LTE").whereEqualTo("net","3")
-            .get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    val latDocument: Double = document.data["lat"].toString().toDouble()
-                    val lonDocument: Double = document.data["lon"].toString().toDouble()
 
-                    //Log.d("cfauli", "document firestore" + document.data["lat"].toString() + " " + document.data["lon"].toString().toDouble())
-                    mMap.addMarker(
-                        MarkerOptions()
-                            .position(LatLng(latDocument, lonDocument))
-                            .title(document.data["mcc"].toString() + "-" + document.data["net"].toString()+ "-" + document.data["area"].toString() + "-" + document.data["cell"].toString())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                    )
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    val wgsLocation = WGS84(location.latitude, location.longitude)
+                    //val utmLocation = UTM(31, 'V', 375273.85, 6207884.59)
+
+                    val utmMin = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting - 50000, UTM(wgsLocation).northing - 50000)
+                    val utmMax = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting + 50000, UTM(wgsLocation).northing + 50000)
+
+                    val wgsMin = WGS84(utmMin)
+                    val wgsMax = WGS84(utmMax)
+
+                    Log.d("cfauli", "wgs84 " + wgsMin.latitude.toString() + " " + wgsMax.latitude.toString())
+
+                    val db = FirebaseFirestore.getInstance()
+                    val celltower = db.collection("celltower")
+                    // Create a query against the collection. All where filters other than whereEqualTo() must be on the same field.
+                    celltower.whereEqualTo("radio", "LTE").whereEqualTo("net", "3")
+                        .whereGreaterThan("lat",wgsMin.latitude.toString())
+                        //.whereGreaterThan("lon",wgsMin.longitude.toString())
+                        .whereLessThan("lat",wgsMax.latitude.toString())
+                        //.whereLessThan("lon",wgsMax.longitude.toString())
+                        .get()
+                        .addOnSuccessListener { documents ->
+                            for (document in documents) {
+                                val latDocument: Double = document.data["lat"].toString().toDouble()
+                                val lonDocument: Double = document.data["lon"].toString().toDouble()
+
+                                //Log.d("cfauli", "document firestore" + document.data["lat"].toString() + " " + document.data["lon"].toString().toDouble())
+                                mMap.addMarker(
+                                    MarkerOptions()
+                                        .position(LatLng(latDocument, lonDocument))
+                                        .title(document.data["mcc"].toString() + "-" + document.data["net"].toString() + "-" + document.data["area"].toString() + "-" + document.data["cell"].toString())
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                                )
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.w("cfauli", "Error getting documents: ", exception)
+                        }
                 }
             }
-            .addOnFailureListener { exception ->
-                Log.w("cfauli", "Error getting documents: ", exception)
-            }
+
 
     }
 }
