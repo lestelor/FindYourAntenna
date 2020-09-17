@@ -1017,8 +1017,10 @@ fun updateTextViewDistanceTower(location: Location) {
                     val wgsLocation = WGS84(location.latitude, location.longitude)
                     //val utmLocation = UTM(31, 'V', 375273.85, 6207884.59)
 
-                    val utmMin = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting - 1000000, UTM(wgsLocation).northing - 1000000)
-                    val utmMax = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting + 1000000, UTM(wgsLocation).northing + 1000000)
+                    val utmMin = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting - 5000,
+                        UTM(wgsLocation).northing - 5000)
+                    val utmMax = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting + 5000,
+                        UTM(wgsLocation).northing + 5000)
 
                     val wgsMin = WGS84(utmMin)
                     val wgsMax = WGS84(utmMax)
@@ -1027,7 +1029,7 @@ fun updateTextViewDistanceTower(location: Location) {
 
                     val db = FirebaseFirestore.getInstance()
                     val celltower = db.collection("celltower")
-                    indeterminateBar.visibility = View.VISIBLE
+
 
                     // obtain radios and networks
                     val radios = getRadios()
@@ -1035,21 +1037,23 @@ fun updateTextViewDistanceTower(location: Location) {
                     Log.d("cfauli", "networks " + radios + " " + nets )
                     for (i in 1..radios.size-1) {
                         for (j in 1..nets.size-1) {
+                            indeterminateBar.visibility = View.VISIBLE
                             val radio = radios[i]
                             val net = nets[j]
                             // Create a query against the collection. All where filters other than whereEqualTo() must be on the same field.
                             celltower.whereEqualTo("radio", radio).whereEqualTo("net", net)
-                                //.whereGreaterThan("lat",wgsMin.latitude.toString())
-                                .whereGreaterThan("lon",wgsMin.longitude.toString())
-                                //.whereLessThan("lat",wgsMax.latitude.toString())
-                                .whereLessThan("lon",wgsMax.longitude.toString())
+                                .whereGreaterThan("lat",wgsMin.latitude.toString())
+                                .whereLessThan("lat",wgsMax.latitude.toString())
+
+                                //.whereGreaterThan("lon",wgsMin.longitude.toString())
+                                //.whereLessThan("lon",wgsMax.longitude.toString())
                                 .get()
                                 .addOnSuccessListener { documents ->
                                     indeterminateBar.visibility = View.GONE
                                     for (document in documents) {
                                         val latDocument: Double = document.data["lat"].toString().toDouble()
                                         val lonDocument: Double = document.data["lon"].toString().toDouble()
-                                        if (latDocument < wgsMax.latitude && latDocument > wgsMin.latitude ) {
+                                        if (lonDocument < wgsMax.longitude && lonDocument > wgsMin.longitude) {
                                             val iconOperatorSelected = selectOperatorIcon(document.data["mcc"].toString().toInt(), document.data["net"].toString().toInt())
                                             //Log.d("cfauli", "document firestore" + document.data["lat"].toString() + " " + document.data["lon"].toString().toDouble())
                                             if (iconOperatorSelected[1] !== null) {
