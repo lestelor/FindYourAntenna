@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">नेटवर्क परीक्षण</string>
+    <string name="distance">जिला:</string>
+    <string name="navigation_drawer_open">नेविगेशन दराज खोलें</string>
+    <string name="navigation_drawer_close">नेविगेशन ड्रॉअर बंद करें</string>
+    <string name="nav_header_title">नेटवर्क परीक्षण</string>
+    <string name="nav_header_subtitle">shinnystar.labs@gmail.com</string>
+    <string name="nav_header_desc">नेविगेशन हेडर</string>
+    <string name="action_settings">समायोजन</string>
+    <string name="menu_gallery">गेलरी</string>
+    <string name="menu_slideshow">स्लाइड शो</string>
+    <string name="hola">hola</string>
+    <string name="timeSamples">नमूने की अवधि</string>
+    <string name="titlepopup">स्थानीय ड्राइव सेटिंग्स सहेजें</string>
+    <string name="ok">ठीक है</string>
+    <string name="textSampleTime">नमूने की अवधि</string>
+    <string name="textSampleDistance">नमूना दूरी</string>
+    <string name="menu_home">घर</string>
+    <string name="navSettings">समायोजन</string>
+    <string name="otherSettings">के बारे में:</string>
+    <string name="minDistSample">10</string>
+    <string name="textDirectory">नमूना स्रोत</string>
+    <string name="checkbox_Towers">मोबाइल साइटों के निर्देशांक सहेजें</string>
+    <string name="checkbox_samples">मोबाइल सिग्नल स्ट्रेंथ सैंपल सेव करें</string>
+    <string name="pop_up_window_tv_folder">नमूने फ़ाइल फ़ोल्डर</string>
+    <string name="minTimeSample">10</string>
+    <string name="pop_up_checkbox_towers">साइट फ़ाइल सहेजें</string>
+    <string name="pop_up_checkbox_samples">नमूने संकेत शक्ति फ़ाइल सहेजें</string>
+    <string name="oksavetowers">1</string>
+    <string name="oksavesamples">1</string>
+    <string name="speed_test_button">स्पीड टेस्ट शुरू करें</string>
+    <string name="upload">डालना</string>
+    <string name="download">डाउनलोड</string>
+    <string name="latency">पिंग</string>
+    <string name="banner_id" translatable="false">सीए, एप्लिकेशन के पब-8346072505648333/9907948565</string>
+    <string name="rbHTTP" translatable="false">http: 8080 वेब</string>
+    <string name="rbFTP" translatable="false">ftp कनेक्शन</string>
+    <string name="rb10MB" translatable="false">10 एमबी फ़ाइल</string>
+    <string name="rb1MB" translatable="false">1MB फ़ाइल</string>
+    <string name="rb100MB" translatable="false">100 एमबी की फाइल</string>
+    <string name="rbBitTorrent" translatable="false">http: 6881 बिटटोरेंट</string>
+    <string name="navExit">बाहर जाएं</string>
+    <string name="menu_tab1">नेटवर्क स्पीड</string>
+    <string name="menu_tab2">नेटवर्क सिग्नल स्कैनर</string>
+    <string name="menu_tab3">सेल साइट स्थान</string>
+    <string name="channel">चैनल:</string>
+    <string name="Network">नेटवर्क:</string>
+    <string name="Operator">ऑपरेटर (mcc-mnc):</string>
+    <string name="MobileTxt">मोबाइल नेटवर्क</string>
+    <string name="Tower">साइट</string>
+    <string name="Frequency"> आवृत्ति:</string>
+    <string name="MobileDetected">कोई मोबाइल नेटवर्क नहीं मिला</string>
+    <string name="towerFileNotFound">Tower.csv फ़ाइल नहीं मिली</string>
+    <string name="NotAValidFile">मान्य फ़ाइल नहीं</string>
+    <string name="waitingGPS">प्रतीक्षारत जीपीएस</string>
+    <string name="towerNotFound">साइट नहीं मिली</string>
+    <string name="FileSavedIn">फ़ाइल सहेजी गई</string>
+    <string name="TowerCoordinatesNotFound">साइट निर्देशांक नहीं मिले</string>
+    <string name="TestDeviceID" translatable="false">9E4FF26E78ADE9DFD73A3F51A0D208CA</string>
+    <string name="Download">डाउनलोड:</string>
+    <string name="Upload">डालना:</string>
+    <string name="distanceSamples">नमूना दूरी</string>
+    <string name="close_app">ऐप बंद करें</string>
+    <string name="distancetxt">दूरी:</string>
+    <string name="towertxt">साइट:</string>
+    <string name="NotAvailable">उपलब्ध नहीं है</string>
+    <string name="click_to_start_the_test">परीक्षण शुरू करने के लिए क्लिक करें</string>
+    <string name="results">परिणाम</string>
+    <string name="tvWIFIwithoutSSID">वाईफ़ाई नहीं वाईफ़ाई नेटवर्क का पता चला</string>
+    <string name="BannerTest" translatable="false">सीए, एप्लिकेशन के पब-8346072505648333/4204789619</string>
+    <string name="BannerID" translatable="false">सीए, एप्लिकेशन के पब-3940256099942544/6300978111</string>
+    <string name="AddsId" translatable="false">सीए, एप्लिकेशन के पब-8346072505648333 ~ 1653829654</string>
+    <string name="SpeedTestStarted">कृपया प्रतीक्षा करें। परीक्षण शुरू हुआ …</string>
+    <string name="SpeedTestStoped">टेस्ट निरस्त हुआ!</string>
+    <string name="level">कवरेज स्तर:</string>
+    <string name="Contribute">अनाम जानकारी साझा करें।</string>
+    <string name="contribute">सहयोग:</string>
+    <string name="CheckTheBoxBelow">कृपया अनाम जानकारी देने और साझा करने के लिए नीचे दिए गए बॉक्स को देखें। धन्यवाद!</string>
+    <string name="ThanksForChecking">अनाम डेटा साझा करने के लिए धन्यवाद। अब आप विकल्प मेनू का उपयोग कर सकते हैं</string>
+    <string name="ThankForNotChecking">डेटा अब साझा नहीं किया गया है। विकल्प मेनू का उपयोग करने के लिए इसे सक्षम करें</string>
+    <string name="DownloadOpenCell">Opencell.org से साइट्स डाउनलोड करें</string>
+    <string name="DialogSamplesTitle">नमूने और टावरों को बचाएं?</string>
+    <string name="DialogSamplesMessage">नमूने स्थानीय बाहरी ड्राइव में मिलेंगे:</string>
+
+</resources>

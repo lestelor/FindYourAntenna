@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -38,6 +39,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory.fromResource
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
@@ -121,6 +123,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     private var distance:Double=0.0
     private var distanceAnt:Double = 100000.0
+
+    private var networkList: Array<String>? = arrayOf("")
+    private var checkedItems = booleanArrayOf(false)
+
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -221,45 +227,50 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             changebutton(fragmentView)
             Log.d("cfauli", "onclick buttom")
             if (fabSaveClicked) {
-                // Create towers file
                 storageDir = getStorageDir()
                 Toast.makeText(context, getString(R.string.FileSavedIn) + storageDir, Toast.LENGTH_LONG).show()
-                storageDirTowers = File(storageDir!!)
-                if (!storageDirTowers!!.exists()) {
-                    storageDirTowers!!.mkdirs()
-                }
-                towersFilePath = File(storageDirTowers, fileTowers)
+                val builder = AlertDialog.Builder(requireContext())
+                builder.setTitle(getString(R.string.DialogSamplesTitle))
+                builder.setMessage(getString(R.string.DialogSamplesMessage) + storageDir)
+                builder.setPositiveButton("OK") { dialog, which ->
+                    // Create towers file
 
-                if (!towersFilePath!!.exists()) {
-                    Log.d("cfauli towersfilepath ", towersFilePath.toString())
-                    File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon")
-                }
-                // Save tower
+                    storageDirTowers = File(storageDir!!)
+                    if (!storageDirTowers!!.exists()) {
+                        storageDirTowers!!.mkdirs()
+                    }
+                    towersFilePath = File(storageDirTowers, fileTowers)
 
-                pDevice = loadCellInfo(telephonyManager)
-                findTower(openCellIdInterface, pDevice)
-                { coordenadas ->
-                    pDevice.lat = coordenadas.lat!!
-                    pDevice.lon = coordenadas.lon!!
-                    previousTower = pDevice
+                    if (!towersFilePath!!.exists()) {
+                        Log.d("cfauli towersfilepath ", towersFilePath.toString())
+                        File(towersFilePath.toString()).writeText("time;mcc;mnc;lac;id;lat;lon")
+                    }
+                    // Save tower
 
-                    File(towersFilePath.toString()).appendText(
-                        "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
-                                ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
-                                ";" + "%.5f".format(pDevice.lat) + ";" + "%.5f".format(pDevice.lon)
-                    )
-                    isFileTowersCreated = true
-                }
-                //create samples file
-                sampleFile = "samples_" + LocalDateTime.now() + ".csv"
-                Log.d("cfauli", "File first created" + LocalDateTime.now())
-                storageDirFile = File(storageDir!!)
+                    pDevice = loadCellInfo(telephonyManager)
+                    findTower(openCellIdInterface, pDevice)
+                    { coordenadas ->
+                        pDevice.lat = coordenadas.lat!!
+                        pDevice.lon = coordenadas.lon!!
+                        previousTower = pDevice
 
-                if (!storageDirFile!!.exists()) {
-                    storageDirFile!!.mkdirs()
-                }
-                sampleFilePath = File(storageDirFile, sampleFile!!)
-                File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;ferquency;dBm;lat;lon;arfcn")
+                        File(towersFilePath.toString()).appendText(
+                            "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
+                                    ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
+                                    ";" + "%.5f".format(pDevice.lat) + ";" + "%.5f".format(pDevice.lon)
+                        )
+                        isFileTowersCreated = true
+                    }
+                    //create samples file
+                    sampleFile = "samples_" + LocalDateTime.now() + ".csv"
+                    Log.d("cfauli", "File first created" + LocalDateTime.now())
+                    storageDirFile = File(storageDir!!)
+
+                    if (!storageDirFile!!.exists()) {
+                        storageDirFile!!.mkdirs()
+                    }
+                    sampleFilePath = File(storageDirFile, sampleFile!!)
+                    File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;ferquency;dBm;lat;lon;arfcn")
 
                     File(sampleFilePath.toString()).appendText(
                         "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
@@ -272,7 +283,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     Log.d("cfauli", sampleFilePath.toString())
                     plotColoredDot(LatLng(locationOk!!.latitude, locationOk!!.longitude), pDevice.dbm!!)
 
-                isFileSamplesOpened = true
+                    isFileSamplesOpened = true
+                }
+                builder.setNegativeButton("Cancel", null)
+
+                val dialog = builder.create()
+                dialog.show()
 
             }
 
@@ -325,8 +341,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         fab_world.setOnClickListener { view ->
             Log.d("cfauli", "onclick buttom fab_world")
             // To be defined according to the mcc. This is for 214
-            val networkList = arrayOf("Telefónica", "Orange", "Vodafone", "Yoigo", "GSM", "UMTS", "LTE")
-            val checkedItems = booleanArrayOf(false, false, false, false, false, false, false)
+
+            networkList = pDevice.mcc?.let { arrayNetworks(it) }
+            checkedItems = booleanArrayOf(true, false, false, false, false, false, true)
 
             val builder = AlertDialog.Builder(requireContext())
             builder.setTitle(getString(R.string.DownloadOpenCell))
@@ -992,11 +1009,6 @@ fun updateTextViewDistanceTower(location: Location) {
         ) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return
         }
         fusedLocationClient.lastLocation
@@ -1005,8 +1017,8 @@ fun updateTextViewDistanceTower(location: Location) {
                     val wgsLocation = WGS84(location.latitude, location.longitude)
                     //val utmLocation = UTM(31, 'V', 375273.85, 6207884.59)
 
-                    val utmMin = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting - 50000, UTM(wgsLocation).northing - 50000)
-                    val utmMax = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting + 50000, UTM(wgsLocation).northing + 50000)
+                    val utmMin = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting - 1000000, UTM(wgsLocation).northing - 1000000)
+                    val utmMax = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting + 1000000, UTM(wgsLocation).northing + 1000000)
 
                     val wgsMin = WGS84(utmMin)
                     val wgsMax = WGS84(utmMax)
@@ -1015,34 +1027,126 @@ fun updateTextViewDistanceTower(location: Location) {
 
                     val db = FirebaseFirestore.getInstance()
                     val celltower = db.collection("celltower")
-                    // Create a query against the collection. All where filters other than whereEqualTo() must be on the same field.
-                    celltower.whereEqualTo("radio", "LTE").whereEqualTo("net", "3")
-                        .whereGreaterThan("lat",wgsMin.latitude.toString())
-                        //.whereGreaterThan("lon",wgsMin.longitude.toString())
-                        .whereLessThan("lat",wgsMax.latitude.toString())
-                        //.whereLessThan("lon",wgsMax.longitude.toString())
-                        .get()
-                        .addOnSuccessListener { documents ->
-                            for (document in documents) {
-                                val latDocument: Double = document.data["lat"].toString().toDouble()
-                                val lonDocument: Double = document.data["lon"].toString().toDouble()
+                    indeterminateBar.visibility = View.VISIBLE
 
-                                //Log.d("cfauli", "document firestore" + document.data["lat"].toString() + " " + document.data["lon"].toString().toDouble())
-                                mMap.addMarker(
-                                    MarkerOptions()
-                                        .position(LatLng(latDocument, lonDocument))
-                                        .title(document.data["mcc"].toString() + "-" + document.data["net"].toString() + "-" + document.data["area"].toString() + "-" + document.data["cell"].toString())
-                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                                )
-                            }
+                    // obtain radios and networks
+                    val radios = getRadios()
+                    val nets = getNetworks()
+                    Log.d("cfauli", "networks " + radios + " " + nets )
+                    for (i in 1..radios.size-1) {
+                        for (j in 1..nets.size-1) {
+                            val radio = radios[i]
+                            val net = nets[j]
+                            // Create a query against the collection. All where filters other than whereEqualTo() must be on the same field.
+                            celltower.whereEqualTo("radio", radio).whereEqualTo("net", net)
+                                //.whereGreaterThan("lat",wgsMin.latitude.toString())
+                                .whereGreaterThan("lon",wgsMin.longitude.toString())
+                                //.whereLessThan("lat",wgsMax.latitude.toString())
+                                .whereLessThan("lon",wgsMax.longitude.toString())
+                                .get()
+                                .addOnSuccessListener { documents ->
+                                    indeterminateBar.visibility = View.GONE
+                                    for (document in documents) {
+                                        val latDocument: Double = document.data["lat"].toString().toDouble()
+                                        val lonDocument: Double = document.data["lon"].toString().toDouble()
+                                        if (latDocument < wgsMax.latitude && latDocument > wgsMin.latitude ) {
+                                            val iconOperatorSelected = selectOperatorIcon(document.data["mcc"].toString().toInt(), document.data["net"].toString().toInt())
+                                            //Log.d("cfauli", "document firestore" + document.data["lat"].toString() + " " + document.data["lon"].toString().toDouble())
+                                            if (iconOperatorSelected[1] !== null) {
+                                                mMap.addMarker(
+                                                    MarkerOptions()
+                                                        .position(LatLng(latDocument, lonDocument))
+                                                        .title(document.data["mcc"].toString() + "-" + document.data["net"].toString() + "-" + document.data["area"].toString() + "-" + document.data["cell"].toString())
+                                                        .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected[1] as Int))
+                                                )
+                                            } else {
+                                                mMap.addMarker(
+                                                    MarkerOptions()
+                                                        .position(LatLng(latDocument, lonDocument))
+                                                        .title(document.data["mcc"].toString() + "-" + document.data["net"].toString() + "-" + document.data["area"].toString() + "-" + document.data["cell"].toString())
+                                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
+                                                )
+                                            }
+
+                                        }
+                                    }
+                                }
+                                .addOnFailureListener { exception ->
+                                    indeterminateBar.visibility = View.GONE
+                                    Log.w("cfauli", "Error getting documents: ", exception)
+                                }
                         }
-                        .addOnFailureListener { exception ->
-                            Log.w("cfauli", "Error getting documents: ", exception)
-                        }
+                    }
+
+
                 }
             }
 
 
+    }
+
+    fun selectOperatorIcon (mcc:Int, net:Int): Array<Any?> {
+        var icon: Int? =null
+        var operator =""
+
+        when (mcc) {
+            214 -> when (net) {
+                1-> {
+                   operator = "Vodafone"
+                    icon = R.drawable.ic_vodafone
+                }
+                3-> {
+                    operator = "Orange"
+                    icon = R.drawable.ic_orange
+                }
+                4-> {
+                    operator = "Yoigo"
+                }
+                7-> {
+                    operator = "Movistar"
+                    icon = R.drawable.ic_movistar
+                }
+            }
+
+            }
+            return arrayOf(operator,icon)
+        }
+
+    fun arrayNetworks(mcc:Int):Array<String>? {
+        var list: Array<String>? = null
+        when (mcc) {
+            214 -> list = arrayOf("Movistar", "Orange", "Vodafone", "Yoigo", "GSM", "UMTS", "LTE")
+        }
+        return list
+    }
+
+    fun getRadios(): MutableList<String> {
+        var salida: MutableList<String> = mutableListOf("")
+        for (i in 4..6) {
+            if (checkedItems[i]) {
+                salida.add(networkList!![i])
+            }
+        }
+        return salida
+    }
+
+    fun getNetworks(): MutableList<String> {
+        var salida: MutableList<String> = mutableListOf("")
+        for (i in 0..3) {
+            if (checkedItems[i]) {
+                when (pDevice.mcc) {
+                    214 -> {
+                        when (networkList?.get(i)) {
+                            "Movistar" -> salida.add(7.toString())
+                            "Vodafone" -> salida.add(1.toString())
+                            "Orange" -> salida.add(3.toString())
+                            "Yoigo" -> salida.add(4.toString())
+                        }
+                    }
+                }
+        }
+        }
+        return salida
     }
 }
 

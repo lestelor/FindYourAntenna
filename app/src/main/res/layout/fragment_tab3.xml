@@ -89,6 +89,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fab_tab3_clear" />
 
+        <ProgressBar
+            android:visibility="invisible"
+            android:id="@+id/indeterminateBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_margin="@dimen/fab_margin"
+            app:layout_constraintTop_toBottomOf="@+id/fab_tab3_world"
+            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

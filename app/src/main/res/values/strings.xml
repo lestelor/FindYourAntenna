@@ -82,6 +82,8 @@
     <string name="ThanksForChecking">Thanks for sharing anonymous data. Now you can use the options menu</string>
     <string name="ThankForNotChecking">Data is no longer shared. Enable it to use the options menu</string>
     <string name="DownloadOpenCell">Download sites from Opencell.org</string>
+    <string name="DialogSamplesTitle">Save Samples and Towers?</string>
+    <string name="DialogSamplesMessage">Samples will be found in local external drive: </string>
 
 
 </resources>
