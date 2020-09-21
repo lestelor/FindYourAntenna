@@ -71,7 +71,7 @@
     <string name="ThanksForChecking">Gracias por compartir datos anónimos. Ahora puede usar el menú de opciones</string>
     <string name="ThankForNotChecking"> Los datos ya no se comparten. Habilítelo para usar el menú de opciones </string>
     <string name="DownloadOpenCell">Descarga los datos de Opencell.org</string>
-    <string name="DialogSamplesTitle">¿Guardar muestras i emplazamientos?</string>
+    <string name="DialogSamplesTitle">¿Guardar muestras y emplazamientos?</string>
     <string name="DialogSamplesMessage">Los archivos se encuentran en el almacenamiento externo: "</string>
 
 

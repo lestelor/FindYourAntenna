@@ -149,6 +149,10 @@ class Tab2 : Fragment() {
 
         val tvWifi = fragmentView.findViewById<View>(R.id.tv_wifi) as TextView
         tvWifi.text = getString(R.string.tvWIFIwithoutSSID)
+
+        // needed to wait until location is enabled, otherwhise the wifi networks dont appear
+        waitGPS(requireContext())
+
         scanWifi.scanwifi(requireActivity(), wifiManager) {
             tvWifi.text = "WIFI"
             adapter.clear()

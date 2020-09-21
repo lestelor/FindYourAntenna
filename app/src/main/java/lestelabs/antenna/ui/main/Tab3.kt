@@ -52,6 +52,7 @@ import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.calculateFreq
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
+import lestelabs.antenna.ui.main.scanner.waitGPS
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -152,23 +153,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // call the superclass method first
         super.onStart()
         Log.d("cfauli", "OnStart Tab3")
-        var gps_enabled = false
-        var lm: LocationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
-        gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-        if (!gps_enabled) {
-            Log.d("cfauli", "GPS NOT enabled")
-            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-            startActivity(intent)
-        }
-
-        Log.d("cfauli", "GPS enabled" + gps_enabled.toString())
-        while (!gps_enabled) {
-            lm = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
-            try {
-                gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-            } catch (ex: Exception) {
-            }
-        }
+        waitGPS(requireContext())
         startGPS()
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     }
@@ -399,7 +384,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         minDist = sharedPreferences.getInt("num_dist_samples", getString(R.string.minDistSample).toInt()).toFloat()
         minTime  = sharedPreferences.getInt("num_time_samples", getString(R.string.minTimeSample).toInt()).toLong() * 1000
         Log.d("cfauli", "OnResume tab3")
-        if (!firstOnResume) startGPS()
+        if (!firstOnResume) {
+            waitGPS(requireContext())
+            startGPS()
+        }
         firstOnResume = false
     }
 
@@ -427,13 +415,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         readInitialConfiguration()
         //MapsInitializer.initialize(context)
         Log.d("cfauli", "OnmapReady")
-        Log.d("cfauli", "mMap 1 " + mMap)
-        mMap = googleMap
-        Log.d("cfauli", "mMap 2 " + mMap)
+        Log.d("cfauli", "mMap " + mMap)
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         mMap.isMyLocationEnabled = true
 
-
+        waitGPS(requireContext())
         startGPS()
         tv_fr3_distance.text = getString(R.string.waitingGPS)
 
@@ -669,6 +655,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     // print the tower markers (green the serving and red the others) and make appropriate zoom
                     Log.d("cfauli", "LocateTowerMap 1")
                     locateTowerMap(listTowersFound)
+                    Log.d("cfauli", "mMap onlocationchanged " + mMap)
                     if (mMap != null) cameraAnimate(listTowersFound[towerinListInt], location)
                     updateTextViewDistanceTower(locationOk!!)
 
@@ -766,6 +753,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     fun startGPS() {
+
         Log.d("cfauli", "startGPS locationmanager gpsactive " + gpsActive)
         if (!gpsActive) {
 

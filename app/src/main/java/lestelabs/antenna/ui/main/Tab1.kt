@@ -600,58 +600,61 @@ Thread.sleep(1000)
         var lon = 0.0
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
-                lat = location!!.latitude
-                lon = location!!.longitude
-                val date = Calendar.getInstance()
-                val day = setDay(date)
-                val monthNumber = DateFormat.format("MM", date) as String // 06
-                val year = DateFormat.format("yyyy", date) as String // 2013
+                if (location !=null) {
+                    lat = location.latitude
+                    lon = location.longitude
 
-                // Create a new user with a first and last name
-                val speedTestSample: MutableMap<String, Any?> = HashMap()
+                    val date = Calendar.getInstance()
+                    val day = setDay(date)
+                    val monthNumber = DateFormat.format("MM", date) as String // 06
+                    val year = DateFormat.format("yyyy", date) as String // 2013
 
-                speedTestSample["year"] = year
-                speedTestSample["month"] = monthNumber
+                    // Create a new user with a first and last name
+                    val speedTestSample: MutableMap<String, Any?> = HashMap()
 
-
-                speedTestSample["lat"] = lat
-                speedTestSample["lon"] = lon
-
-                if (networkType == "MOBILE") {
-                    speedTestSample["type"] = "MOBILE"
-                    speedTestSample["network"] = pDevice.type
-                    speedTestSample["mcc"] = pDevice.mcc
-                    speedTestSample["mnc"] = pDevice.mnc
-                    speedTestSample["lac"] = pDevice.lac
-                    speedTestSample["cid"] = pDevice.cid
-                    speedTestSample["dBm"] = pDevice.dbm
-
-                } else if (networkType == "WIFI") {
-                    speedTestSample["type"] = "WIFI"
-                    speedTestSample["network"] = deviceWifi.ssid
-                    speedTestSample["dBm"] = deviceWifi.level
-
-                }
+                    speedTestSample["year"] = year
+                    speedTestSample["month"] = monthNumber
 
 
-                val sharedPreferences = requireContext().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-                val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
+                    speedTestSample["lat"] = lat
+                    speedTestSample["lon"] = lon
+
+                    if (networkType == "MOBILE") {
+                        speedTestSample["type"] = "MOBILE"
+                        speedTestSample["network"] = pDevice.type
+                        speedTestSample["mcc"] = pDevice.mcc
+                        speedTestSample["mnc"] = pDevice.mnc
+                        speedTestSample["lac"] = pDevice.lac
+                        speedTestSample["cid"] = pDevice.cid
+                        speedTestSample["dBm"] = pDevice.dbm
+
+                    } else if (networkType == "WIFI") {
+                        speedTestSample["type"] = "WIFI"
+                        speedTestSample["network"] = deviceWifi.ssid
+                        speedTestSample["dBm"] = deviceWifi.level
+
+                    }
+
+
+                    val sharedPreferences = requireContext().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+                    val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
 
 
 
 
-                if (networkType != "" && pleaseContribute) {
-                    // Add a new document with a generated ID
-                    db.collection("Samples").document(day)
-                        .set(speedTestSample)
-                        .addOnSuccessListener {
-                            Log.d("cfauli", "DocumentSnapshot added with ID: " + day)
-                        }
+                    if (networkType != "" && pleaseContribute) {
+                        // Add a new document with a generated ID
+                        db.collection("Samples").document(day)
+                            .set(speedTestSample)
+                            .addOnSuccessListener {
+                                Log.d("cfauli", "DocumentSnapshot added with ID: " + day)
+                            }
 
-                        .addOnFailureListener {
+                            .addOnFailureListener {
 
-                            Log.d("cfauli", "Error adding document: " + it)
-                        }
+                                Log.d("cfauli", "Error adding document: " + it)
+                            }
+                    }
                 }
 
             }
