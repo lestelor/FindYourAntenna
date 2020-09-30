@@ -21,14 +21,12 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
-import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.navigation.NavigationView
@@ -40,7 +38,6 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
 import java.io.File
-import java.util.*
 
 interface GetfileState {
     fun getFileState():List<Int>
@@ -84,9 +81,9 @@ interface GetfileState {
         // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
 
         MobileAds.initialize(this)
-        RequestConfiguration.Builder().setTestDeviceIds(Arrays.asList("9E4FF26E78ADE9DFD73A3F51A0D208CA"))
-        val adRequest  =  AdRequest.Builder()
-        adRequest.addTestDevice("9E4FF26E78ADE9DFD73A3F51A0D208CA")
+        RequestConfiguration.Builder().setTestDeviceIds(listOf("9E4FF26E78ADE9DFD73A3F51A0D208CA"))
+        //val adRequest  =  AdRequest.Builder()
+        //adRequest.addTestDevice("9E4FF26E78ADE9DFD73A3F51A0D208CA")
 
 
 
@@ -181,6 +178,8 @@ interface GetfileState {
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
 
+
+
     }
 
 
@@ -207,7 +206,21 @@ interface GetfileState {
                     //intent.putExtra("popuptitle", "Error")
                     startActivity(intent)
                     //(drawerLayout as DrawerLayout).closeDrawer(GravityCompat.START)
-                } else Toast.makeText(baseContext, getString(R.string.CheckTheBoxBelow), Toast.LENGTH_LONG).show()
+                } else {
+                    val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+                    builder.setTitle(getString(R.string.pleasedonotUncheckTitle))
+                    builder.setMessage(getString(R.string.pleasedonotUncheck))
+                    builder.setPositiveButton("OK") { dialog, which ->
+                        checkBox.isChecked = true
+                        val intent = Intent(this, PopUpSettings::class.java)
+                        startActivity(intent)
+                    }
+                    builder.setNegativeButton("Cancel", null)
+
+                    val dialog = builder.create()
+                    dialog.show()
+                    Toast.makeText(baseContext, getString(R.string.CheckTheBoxBelow), Toast.LENGTH_LONG).show()
+                }
 
             }
             R.id.nav_tab1 -> {

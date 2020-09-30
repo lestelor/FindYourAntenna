@@ -71,7 +71,7 @@
     <string name="results">Results</string>
     <string name="tvWIFIwithoutSSID">WIFI     No WIFI network detected</string>
     <string name="BannerIDold" translatable="false">ca-app-pub-8346072505648333/4204789619</string>
-    <string name="Bannernew" translatable="false">ca-app-pub-8346072505648333/5715495023</string>
+    <string name="BannerNew" translatable="false">ca-app-pub-8346072505648333/5715495023</string>
     <string name="BannerID" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
     <string name="AddsId" translatable="false">ca-app-pub-8346072505648333~1653829654</string>
     <string name="SpeedTestStarted">Please wait. The test started …</string>
@@ -80,11 +80,18 @@
     <string name="Contribute">Share anonymous inf.</string>
     <string name="contribute">Contribute:</string>
     <string name="CheckTheBoxBelow">Please check the box below to contribute and share anonymous information. Thanks!</string>
-    <string name="ThanksForChecking">Thanks for sharing anonymous data. Now you can use the options menu</string>
+    <string name="ThanksForChecking">Thanks for sharing anonymous data. Now you can use the settings menu</string>
     <string name="ThankForNotChecking">Data is no longer shared. Enable it to use the options menu</string>
     <string name="DownloadOpenCell">Download sites from Opencell.org</string>
     <string name="DialogSamplesTitle">Save Samples and Towers?</string>
     <string name="DialogSamplesMessage">Samples will be found in local external drive: </string>
+    <string name="pleasedonotUncheck">Please contribute with anonymized information on signal strength</string>
+    <string name="pleasedonotUncheckTitle">Share anonymous information?</string>
+    <string name="IfYouEnjoy">If you enjoy using </string>
+    <string name="ThaksForSupport">, please take a moment to rate it.\n\nThanks for your support!</string>
+    <string name="Rate">Rate </string>
+    <string name="RemindMeLater">Remind me later</string>
+    <string name="NoThanks">No, thanks</string>
 
 
 </resources>

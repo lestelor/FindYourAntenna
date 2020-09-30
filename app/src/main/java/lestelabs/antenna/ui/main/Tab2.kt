@@ -261,6 +261,7 @@ class Tab2 : Fragment() {
         Log.d ("cfauli", "fillMobileTextView")
         val tvLevel = view.findViewById<View>(R.id.tv_mobile_level) as TextView
         val tvOperator = view.findViewById<View>(R.id.tv_mobile_operator) as TextView
+        val tvOperatorName = view.findViewById<View>(R.id.tv_mobile_operator_name) as TextView
         val tvLac = view.findViewById<View>(R.id.tv_mobile_lac) as TextView
         val tvId = view.findViewById<View>(R.id.tv_mobile_id) as TextView
         val tvNetwork = view.findViewById<View>(R.id.tv_mobile_network) as TextView
@@ -268,16 +269,14 @@ class Tab2 : Fragment() {
         val tvLat = view.findViewById<View>(R.id.tv_mobile_lat) as TextView
         val tvLon = view.findViewById<View>(R.id.tv_mobile_lon) as TextView
         val ivIconLevel = view.findViewById<View>(R.id.iv_mobile_signalIcon) as ImageView
-
         val tvMobile = view.findViewById<View>(R.id.tv_mobile_txt) as TextView
 
-        var pDevice: DevicePhone = DevicePhone()
 
+        val pDevice = loadCellInfo(telephonyManager)
 
-        // Remove the condition since we also want the info when is wifi connected
-        //if (Connectivity.isConnectedMobile(requireContext())) {
-                pDevice = loadCellInfo(telephonyManager)
-        //}
+        findOperatorName(pDevice) {
+            it -> tvOperatorName.text= it
+        }
 
         tvMobile.text = getString(R.string.MobileTxt)
         tvLevel.text = pDevice.dbm.toString() + "dBm"

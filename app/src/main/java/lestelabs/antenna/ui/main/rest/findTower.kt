@@ -19,12 +19,12 @@ fun findTower(openCellIdInterface: OpenCellIdInterface,pDevicePhone: DevicePhone
         override fun onResponse(call: Call<Towers>, response: Response<Towers>) {
             if(response.body()!!.result == 200) {
                 try {
-                    System.out.println(response.body())
+                    //System.out.println(response.body())
                     coordenadas.lat = response.body()?.data?.lat
                     coordenadas.lon = response.body()?.data?.lon
                     Log.d(
                         "cfauli",
-                        "Retrofit 200 " + response.body()!!.data.lat.toString() + ", " + response.body()!!.data.lon.toString()
+                        "Retrofit 200 " + response.body()?.data?.lat.toString() + ", " + response.body()?.data?.lon.toString()
                     )
                     callback(coordenadas)
 

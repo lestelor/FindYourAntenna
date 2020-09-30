@@ -73,6 +73,13 @@
     <string name="DownloadOpenCell">Descarga los datos de Opencell.org</string>
     <string name="DialogSamplesTitle">¿Guardar muestras y emplazamientos?</string>
     <string name="DialogSamplesMessage">Los archivos se encuentran en el almacenamiento externo: "</string>
+    <string name="pleasedonotUncheck">Por favor, Contribuya con información anónima sobre la intensidad de la señal</string>
+    <string name="pleasedonotUncheckTitle">Compartir información anónima?</string>
 
+    <string name="IfYouEnjoy">Si te gusta la aplicación </string>
+    <string name="ThaksForSupport">, por favor dale 5 estrellas.\n\n¡Gracias por tu apoyo!</string>
+    <string name="Rate">Puntúa con 5 estrellas </string>
+    <string name="RemindMeLater">Recuérdame más tarde</string>
+    <string name="NoThanks">No, gracias</string>
 
 </resources>

@@ -41,15 +41,19 @@
             android:orientation="vertical"
             android:layout_gravity="center_horizontal"
             android:layout_marginStart="5dp">
+            <TextView
+                android:id="@+id/tv_mobile_operator_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
 
+                android:text="Operator name"
+                android:textSize="16sp"
+                android:textStyle="bold" />
             <TextView
                 android:id="@+id/tv_mobile_operator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
-                android:text="Operator"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:text="Operator" />
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

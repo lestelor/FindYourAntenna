@@ -74,6 +74,15 @@
     <string name="DownloadOpenCell">Descarrega emplaçaments de Opencell.org</string>
     <string name="DialogSamplesTitle">Guardar mostres i emplaçaments?</string>
     <string name="DialogSamplesMessage">\"Trobarà les mostres al disc dur extern: "</string>
+    <string name="pleasedonotUncheck">Si us plau, Contribuïu amb informació anònima sobre la intensitat del senyal</string>
+    <string name="pleasedonotUncheckTitle">Compartir informació anònima?</string>
+
+    <string name="IfYouEnjoy">Si t\'agrada l\'aplicació </string>
+    <string name="ThaksForSupport">, si us plau possa-li 5 estrelles.\nGràcies pel teu suport!</string>
+    <string name="Rate">Dóna 5 estrelles </string>
+    <string name="RemindMeLater">Recorde\'m més tard</string>
+    <string name="NoThanks">No, gràcies</string>
+
 
 
 </resources>

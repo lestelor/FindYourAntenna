@@ -92,6 +92,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     // The app build gradle is sync with the maps library
 
     private lateinit var mMap: GoogleMap
+    private var mMapInitialized: Boolean = false
     private lateinit var fragmentView: View
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -209,17 +210,17 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // Floating button save
         fab_save.setBackgroundResource(R.drawable.ic_diskette)
         fab_save.setOnClickListener { view ->
-            changebutton(fragmentView)
-            Log.d("cfauli", "onclick buttom")
-            if (fabSaveClicked) {
-                storageDir = getStorageDir()
-                Toast.makeText(context, getString(R.string.FileSavedIn) + storageDir, Toast.LENGTH_LONG).show()
+
+            if (!fabSaveClicked) {
                 val builder = AlertDialog.Builder(requireContext())
                 builder.setTitle(getString(R.string.DialogSamplesTitle))
                 builder.setMessage(getString(R.string.DialogSamplesMessage) + storageDir)
                 builder.setPositiveButton("OK") { dialog, which ->
+                    changebutton(fragmentView)
+                    Log.d("cfauli", "onclick buttom")
+                    storageDir = getStorageDir()
+                    Toast.makeText(context, getString(R.string.FileSavedIn) + storageDir, Toast.LENGTH_LONG).show()
                     // Create towers file
-
                     storageDirTowers = File(storageDir!!)
                     if (!storageDirTowers!!.exists()) {
                         storageDirTowers!!.mkdirs()
@@ -275,7 +276,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 val dialog = builder.create()
                 dialog.show()
 
-            }
+            } else changebutton(fragmentView)
 
 
 
@@ -408,7 +409,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
+        waitGPS(requireContext())
+
         mMap = googleMap
+        mMapInitialized = true
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
         //Thread.sleep(1000)
@@ -555,7 +559,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         val myLocation = LatLng(location.latitude, location.longitude)
 
         Log.d("cfauli", "LocateTowerMap function " + location.latitude + " " + location.longitude + " " + mZoom)
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
+
+        if (mMapInitialized) mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
         //mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
     }
 
@@ -655,8 +660,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     // print the tower markers (green the serving and red the others) and make appropriate zoom
                     Log.d("cfauli", "LocateTowerMap 1")
                     locateTowerMap(listTowersFound)
-                    Log.d("cfauli", "mMap onlocationchanged " + mMap)
-                    if (mMap != null) cameraAnimate(listTowersFound[towerinListInt], location)
+
+                    if (mMapInitialized) cameraAnimate(listTowersFound[towerinListInt], locationOk!!)
                     updateTextViewDistanceTower(locationOk!!)
 
 
@@ -816,8 +821,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     fun changebutton(view: View) {
+        fabSaveClicked = !fabSaveClicked // reverse
         fab_tab3_save.setBackgroundColor(resources.getColor(R.color.black));
-        if (fabSaveClicked) {
+        if (!fabSaveClicked) {
             fab_tab3_save.setImageResource(R.drawable.ic_diskette)
             fab_tab3_save.setBackgroundColor(resources.getColor(R.color.colorPrimary))
 
@@ -825,7 +831,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             fab_tab3_save.setImageResource(R.drawable.ic_stop)
             fab_tab3_save.setBackgroundColor(resources.getColor(R.color.black))
         }
-        fabSaveClicked = !fabSaveClicked // reverse
+
     }
 
     /*override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {

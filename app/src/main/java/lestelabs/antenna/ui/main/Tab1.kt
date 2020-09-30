@@ -1,5 +1,6 @@
 package lestelabs.antenna.ui.main
 
+
 import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
@@ -76,8 +77,10 @@ class Tab1 : Fragment() {
     private var lastDownload = 0.0f
 
     var mHandler: Handler = Handler()
+
     var clockTimerHanlerActive = false
     private lateinit var mHandlerTask: Runnable
+    private lateinit var mHandlerRater: Runnable
     private var firstOnResume = true
     private var minTime:Long = 10000
 
@@ -321,6 +324,28 @@ class Tab1 : Fragment() {
                                                         adapter.addAll(listOfSpeedTest)
                                                         adapter.notifyDataSetChanged()
 
+                                                        var numRater = 0
+                                                        mHandlerRater = object : Runnable {
+                                                            override fun run() {
+                                                                when (numRater) {
+                                                                    0 -> {
+                                                                        mHandler.postDelayed(this, 10000)
+                                                                        numRater += 1
+                                                                    }
+                                                                    1 -> {
+                                                                        AppRater.app_launched((requireContext()))
+                                                                        mHandler.removeCallbacks(this)
+                                                                        numRater += 1
+                                                                    }
+                                                                    else -> {}
+                                                                }
+
+
+                                                            }
+                                                        }
+
+                                                        mHandlerRater.run()
+
                                                     }
 
                                                     Log.d("cfauli speedtest", "end...................")
@@ -401,7 +426,7 @@ class Tab1 : Fragment() {
             params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
             params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab1")
             firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
-Log.d ("cfauli", "Oncreateview tab1 final")
+Log.d("cfauli", "Oncreateview tab1 final")
             return fragmentView
 
     }
