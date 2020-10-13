@@ -19,6 +19,6 @@
     The following is for the PEC3APP project API in google cloud console
     -->
     <!-- <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false"></string> -->
-    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBvhUfMi3F7gBcCJF2JCW5kdhPe22KpRQw</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false"></string>
 
 </resources>
