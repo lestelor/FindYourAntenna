@@ -37,8 +37,13 @@ import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
 import fr.bmartel.speedtest.inter.IRepeatListener
 import fr.bmartel.speedtest.utils.SpeedTestUtils
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.*
+import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.pow
@@ -420,13 +425,16 @@ class Tab1 : Fragment() {
             //fillNetworkTextView(view)
             // [START shared_app_measurement]
             // Obtain the FirebaseAnalytics instance.
+            /*
             firebaseAnalytics = FirebaseAnalytics.getInstance(requireContext())
+
             // [END shared_app_measurement]
             val params = Bundle()
             params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
             params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab1")
             firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
-Log.d("cfauli", "Oncreateview tab1 final")
+            */
+            Log.d("cfauli", "Oncreateview tab1 final")
             return fragmentView
 
     }
@@ -554,17 +562,16 @@ Log.d("cfauli", "Oncreateview tab1 final")
         if (Connectivity.isConnectedMobile(requireContext())) networkType = "MOBILE"
         else if (Connectivity.isConnectedWifi(requireContext())) networkType = "WIFI"
 
+        if (firstOnResume)   telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        pDevice = loadCellInfo(telephonyManager)
+        deviceWifi = Connectivity.getWifiParam(requireContext())
+
         if (Connectivity.isConnectedMobile(requireContext())) {
-            if (firstOnResume)   telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-
-            pDevice = loadCellInfo(telephonyManager)
-            //Log.d("cfauli pDevice ", pDevice.toString())
-
             listNetwork = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type, pDevice.band)) + "MHz " + pDevice.dbm + "dBm id: " + pDevice.mcc + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
             tvNetwork.text = listNetwork
 
         } else if (Connectivity.isConnectedWifi(requireContext()))  {
-            deviceWifi = Connectivity.getWifiParam(requireContext())
+
             Log.d("cfauli deviceWifi ", deviceWifi.toString())
             val freq = deviceWifi.centerFreq2
             val channel: Int = getChannel(freq)
@@ -615,77 +622,70 @@ Log.d("cfauli", "Oncreateview tab1 final")
 fun saveDocument() {
 
 
-Thread.sleep(1000)
-        if ((ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
-            (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-        ) {
-            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
-        }
-        var lat = 0.0
-        var lon = 0.0
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-                if (location !=null) {
-                    lat = location.latitude
-                    lon = location.longitude
-
-                    val date = Calendar.getInstance()
-                    val day = setDay(date)
-                    val monthNumber = DateFormat.format("MM", date) as String // 06
-                    val year = DateFormat.format("yyyy", date) as String // 2013
-
-                    // Create a new user with a first and last name
-                    val speedTestSample: MutableMap<String, Any?> = HashMap()
-
-                    speedTestSample["year"] = year
-                    speedTestSample["month"] = monthNumber
-
-
-                    speedTestSample["lat"] = lat
-                    speedTestSample["lon"] = lon
-
-                    if (networkType == "MOBILE") {
-                        speedTestSample["type"] = "MOBILE"
-                        speedTestSample["network"] = pDevice.type
-                        speedTestSample["mcc"] = pDevice.mcc
-                        speedTestSample["mnc"] = pDevice.mnc
-                        speedTestSample["lac"] = pDevice.lac
-                        speedTestSample["cid"] = pDevice.cid
-                        speedTestSample["dBm"] = pDevice.dbm
-
-                    } else if (networkType == "WIFI") {
-                        speedTestSample["type"] = "WIFI"
-                        speedTestSample["network"] = deviceWifi.ssid
-                        speedTestSample["dBm"] = deviceWifi.level
-
-                    }
-
-
-                    val sharedPreferences = requireContext().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-                    val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
-
-
-
-
-                    if (networkType != "" && pleaseContribute) {
-                        // Add a new document with a generated ID
-                        db.collection("Samples").document(day)
-                            .set(speedTestSample)
-                            .addOnSuccessListener {
-                                Log.d("cfauli", "DocumentSnapshot added with ID: " + day)
-                            }
-
-                            .addOnFailureListener {
-
-                                Log.d("cfauli", "Error adding document: " + it)
-                            }
-                    }
-                }
-
+        try {
+            //Thread.sleep(1000)
+            if ((ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
+                (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            ) {
+                ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
             }
+            var lat = 0.0
+            var lon = 0.0
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    if (location != null) {
+                        lat = location.latitude
+                        lon = location.longitude
+                        val dateNow = Date()
+                        val dateFormated = DateFormat.format("yyyy/MM/dd HH:mm:ss", dateNow)
 
+                        // Create a new user with a first and last name
+                        val speedTestSample: MutableMap<String, Any?> = HashMap()
+
+                        speedTestSample["date"] = dateFormated
+                        speedTestSample["lat"] = lat
+                        speedTestSample["lon"] = lon
+                        speedTestSample["type"] = networkType
+                        speedTestSample["MobileNetwork"] = pDevice.type
+                        speedTestSample["MobileMcc"] = pDevice.mcc
+                        speedTestSample["MobileMnc"] = pDevice.mnc
+                        speedTestSample["MobileLac"] = pDevice.lac
+                        speedTestSample["MobileCid"] = pDevice.cid
+                        speedTestSample["MobiledBm"] = pDevice.dbm
+                        speedTestSample["WifiNetwork"] = deviceWifi.ssid
+                        speedTestSample["WifidBm"] = deviceWifi.level
+
+                        val sharedPreferences = requireContext().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+                        val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
+
+
+                        if (networkType != "" && pleaseContribute) {
+                            val documentId = DateFormat.format("yyyyMMdd", dateNow).toString() + "/" + DateFormat.format("HHmmss", dateNow).toString() + "/" + pDevice.cid + ";" + deviceWifi.ssid
+                            // Add a new document with a generated ID
+                            db.collection("Samples").document(documentId)
+                                .set(speedTestSample)
+                                .addOnSuccessListener {
+                                    Log.d("cfauli", "DocumentSnapshot added with ID: " + documentId)
+                                }
+
+                                .addOnFailureListener {
+
+                                    Log.d("cfauli", "Error adding document: " + it)
+                                }
+                        }
+                    }
+
+                }
+        } catch (npe: NullPointerException) {
+            Log.d("cfauli", "saveDoument: Unable to save samples: ", npe)
+        }
+        catch (e: IOException) {
+            Log.d("cfauli", "saveDoument: Unable to save samples: ", e)
+        }
 
 }
+
+
 
     fun fillSpeedList(new: Boolean, network: String, download: String, upload: String, ping: String): List<SpeedTest> {
 
@@ -699,17 +699,13 @@ Thread.sleep(1000)
 
 
         if (new) {
-            val date = Calendar.getInstance()
-            //val dayOfTheWeek = DateFormat.format("EEEE", date) as String // Thursday
-            val dayStr = DateFormat.format("dd", date) as String // 20
-            //val monthString = DateFormat.format("MMM", date) as String // Jun
-            val monthNumber = DateFormat.format("MM", date) as String // 06
-            val year = DateFormat.format("yyyy", date) as String // 2013
-            val hour = DateFormat.format("hh", date) as String // 2013
-            val minute = DateFormat.format("mm", date) as String // 2013
+            val dateNow = Date()
+            val dateFormated = DateFormat.format("dd/MM/yyy HH:mm", dateNow)
+            var day =
+                dateFormated.toString() +
+                        if (Connectivity.isConnectedWifi(requireContext())) " WIFI"
+                        else " " + pDevice.type
 
-            val day =
-                dayStr + "/" + monthNumber + "/" + year + " " + hour + ":" + minute
 
             Log.d("cfauli", "numspeedtest " + numSpeedTest)
             numSpeedTest += 1
@@ -815,62 +811,42 @@ Thread.sleep(1000)
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 lat = location!!.latitude
-                lon = location!!.longitude
-                val date = Calendar.getInstance()
-                //val dayOfTheWeek = DateFormat.format("EEEE", date) as String // Thursday
-                val dayStr = DateFormat.format("dd", date) as String // 20
-                //val monthString = DateFormat.format("MMM", date) as String // Jun
-                val monthNumber = DateFormat.format("MM", date) as String // 06
-                val year = DateFormat.format("yyyy", date) as String // 2013
-                /*val hour = DateFormat.format("hh", date) as String // 2013
-                val minute = DateFormat.format("mm", date) as String // 2013*/
+                lon = location.longitude
+                val dateNow = Date()
+                val documentId = DateFormat.format("yyyyMMdd",dateNow).toString() + "/" +  DateFormat.format("HHmmss",dateNow).toString() + "/"  + pDevice.cid + ";" + deviceWifi.ssid
 
-                val day = setDay(date) // year;month;day;hour;min;sec
-                // Create a new user with a first and last name
                 val speedTestSample: MutableMap<String, Any?> = HashMap()
 
-                speedTestSample["year"] = year
-                speedTestSample["month"] = monthNumber
-                speedTestSample["day"] = dayStr
-
+                speedTestSample["date"] = DateFormat.format("yyyy/MM/dd HH:mm:ss", dateNow)
+                speedTestSample["type"] = networkType
                 speedTestSample["lat"] = lat
                 speedTestSample["lon"] = lon
-
                 speedTestSample["downlink"] = downlink
                 speedTestSample["uplink"] = uplink
                 speedTestSample["latency"] = latency
 
-                if (networkType=="MOBILE") {
-                    speedTestSample["type"] = "MOBILE"
-                    speedTestSample["network"] = pDevice.type
-                    speedTestSample["mcc"] = pDevice.mcc
-                    speedTestSample["mnc"] = pDevice.mnc
-                    speedTestSample["lac"] = pDevice.lac
-                    speedTestSample["cid"] = pDevice.cid
-                    speedTestSample["ch"] = pDevice.band
-                    speedTestSample["freq"] = calculateFreq(pDevice.type, pDevice.band)
-                    speedTestSample["dBm"] = pDevice.dbm
+
+                    speedTestSample["MobileNetwork"] = pDevice.type
+                    speedTestSample["MobileMcc"] = pDevice.mcc
+                    speedTestSample["MobileMnc"] = pDevice.mnc
+                    speedTestSample["MobileLac"] = pDevice.lac
+                    speedTestSample["MobileCid"] = pDevice.cid
+                    speedTestSample["MobileCh"] = pDevice.band
+                    speedTestSample["MobileFreq"] = calculateFreq(pDevice.type, pDevice.band)
+                    speedTestSample["MobiledBm"] = pDevice.dbm
 
 
-                } else if(networkType=="WIFI") {
-                    speedTestSample["type"] = "WIFI"
-                    speedTestSample["network"] = deviceWifi.ssid
-                    //speedTestSample["mcc"] = pDevice.mcc
-                    //speedTestSample["mnc"] = pDevice.mnc
-                    //speedTestSample["lac"] = pDevice.lac
-                    //speedTestSample["cid"] = pDevice.cid
-                    speedTestSample["freq"] = deviceWifi.centerFreq2
-                    speedTestSample["ch"] = getChannel(deviceWifi.centerFreq2)
-                    speedTestSample["dBm"] = deviceWifi.level
-                }
-
+                    speedTestSample["WifiNetwork"] = deviceWifi.ssid
+                    speedTestSample["WifiFreq"] = deviceWifi.centerFreq2
+                    speedTestSample["WifiCh"] = getChannel(deviceWifi.centerFreq2)
+                    speedTestSample["WifidBm"] = deviceWifi.level
 
                 if (networkType!="") {
                     // Add a new document with a generated ID
-                    db.collection("SpeedTest").document(day)
+                    db.collection("SpeedTest").document(documentId)
                         .set(speedTestSample)
                         .addOnSuccessListener {
-                                Log.d("cfauli", "DocumentSnapshot SpeedTest added with ID: " + day)
+                                Log.d("cfauli", "DocumentSnapshot SpeedTest added with ID: " + documentId)
                         }
                         .addOnFailureListener {
                             Log.d("cfauli", "Error adding SpeedTest document ", it)
@@ -882,16 +858,5 @@ Thread.sleep(1000)
 
     }
 
-    fun setDay(date: Calendar): String {
-        val dayStr = DateFormat.format("dd", date) as String // 20
-        //val monthString = DateFormat.format("MMM", date) as String // Jun
-        val monthNumber = DateFormat.format("MM", date) as String // 06
-        val year = DateFormat.format("yyyy", date) as String // 2013
-        val hour = DateFormat.format("hh", date) as String // 2013
-        val minute = DateFormat.format("mm", date) as String // 2013
-        val seconds = DateFormat.format("ss", date) as String // 2013
-
-        return year + ";" + monthNumber + ";" + dayStr + ";" + hour + ";" + minute + ";" + seconds
-    }
 }
 

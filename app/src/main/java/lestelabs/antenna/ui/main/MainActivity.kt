@@ -9,10 +9,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -29,6 +31,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
@@ -37,6 +41,8 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.menu.PopUpSettings
+import lestelabs.antenna.ui.main.scanner.DevicePhone
+import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import java.io.File
 
 interface GetfileState {
@@ -63,6 +69,11 @@ interface GetfileState {
      private lateinit var checkBox: CheckBox
 
      private lateinit var firebaseAnalytics: FirebaseAnalytics
+
+     private lateinit var telephonyManager: TelephonyManager
+     private var pDevice:DevicePhone = DevicePhone()
+     private lateinit var fusedLocationClient: FusedLocationProviderClient
+     private var myLocation:Location? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -135,48 +146,95 @@ interface GetfileState {
         tabLayout.addTab(tabLayout.newTab())
         tabLayout.addTab(tabLayout.newTab())
 
-        tabLayout.tabGravity = TabLayout.GRAVITY_FILL
-        val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
-        tabLayout.setupWithViewPager(viewPager)
-        val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount)
-        viewPager.adapter = adapter
-        viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
-        // Define the number of adjacent TABs that are preloaded. Cannot be set to 0.
-        // Lifecycle:
-        // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
-        // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
-        // Home -> OnPause/OnStop -> OnStart/OnResume
-        // Since Back is implementd as home button, the oncreateview is only trigered once.
-        // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
-        // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
+        telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        pDevice = loadCellInfo(telephonyManager)
+        if (pDevice.mcc == 214) {
+            tabLayout.addTab(tabLayout.newTab())
 
-        viewPager.offscreenPageLimit = 2
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    myLocation = location
+                    tabLayout.tabGravity = TabLayout.GRAVITY_FILL
+                    val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
+                    tabLayout.setupWithViewPager(viewPager)
+                    val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount, pDevice, myLocation)
+                    viewPager.adapter = adapter
+                    viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
 
-        tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
-        tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
-        tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
+                    // Define the number of adjacent TABs that are preloaded. Cannot be set to 0.
+                    // Lifecycle:
+                    // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
+                    // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
+                    // Home -> OnPause/OnStop -> OnStart/OnResume
+                    // Since Back is implementd as home button, the oncreateview is only trigered once.
+                    // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
+                    // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
 
-        tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                // [START shared_app_measurement]
-                // Obtain the FirebaseAnalytics instance.
-                firebaseAnalytics = FirebaseAnalytics.getInstance(this@MainActivity)
-                // [END shared_app_measurement]
-                val params = Bundle()
-                params.putString(FirebaseAnalytics.Param.ITEM_CATEGORY, "screen")
-                params.putString(FirebaseAnalytics.Param.ITEM_NAME, "Tab" + tab.position)
-                firebaseAnalytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, params)
+                    viewPager.offscreenPageLimit = 2
 
-                tabSelectedInt = tab.position
-                viewPager.currentItem = tab.position
-                tab.select()
+                    tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
+                    tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
+                    tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
 
-                Log.d("cfauli", "TAB" + tab.position)
-            }
+                    if (pDevice.mcc == 214) tabLayout.getTabAt(3)?.setIcon(R.drawable.gsmantenas)
 
-            override fun onTabUnselected(tab: TabLayout.Tab) {}
-            override fun onTabReselected(tab: TabLayout.Tab) {}
-        })
+                    tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
+                        override fun onTabSelected(tab: TabLayout.Tab) {
+                            tabSelectedInt = tab.position
+                            viewPager.currentItem = tab.position
+                            tab.select()
+
+                            Log.d("cfauli", "TAB" + tab.position)
+                        }
+
+                        override fun onTabUnselected(tab: TabLayout.Tab) {}
+                        override fun onTabReselected(tab: TabLayout.Tab) {}
+                    })
+                }
+        } else {
+            // repeat the same since we do not want to wait to location if mcc!=214
+            tabLayout.tabGravity = TabLayout.GRAVITY_FILL
+            val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
+            tabLayout.setupWithViewPager(viewPager)
+            val adapter = PagerAdapter(supportFragmentManager, tabLayout.tabCount, pDevice, myLocation)
+            viewPager.adapter = adapter
+            viewPager.addOnPageChangeListener(TabLayoutOnPageChangeListener(tabLayout))
+
+            // Define the number of adjacent TABs that are preloaded. Cannot be set to 0.
+            // Lifecycle:
+            // OnAttach/Oncreate/OnCreateview/OnStart/OnResume
+            // Back  -> OnPause/OnStop/OnDetach -> OnAttach/OnCreate/OnCreateView/OnStart/OnResume
+            // Home -> OnPause/OnStop -> OnStart/OnResume
+            // Since Back is implementd as home button, the oncreateview is only trigered once.
+            // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
+            // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
+
+            viewPager.offscreenPageLimit = 2
+
+            tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
+            tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
+            tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
+
+            if (pDevice.mcc == 214) tabLayout.getTabAt(3)?.setIcon(R.drawable.gsmantenas)
+
+            tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    tabSelectedInt = tab.position
+                    viewPager.currentItem = tab.position
+                    tab.select()
+
+                    Log.d("cfauli", "TAB" + tab.position)
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab) {}
+                override fun onTabReselected(tab: TabLayout.Tab) {}
+            })
+        }
+
+
+
+
 
 
 

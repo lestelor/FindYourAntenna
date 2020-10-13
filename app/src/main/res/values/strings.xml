@@ -35,7 +35,7 @@
     <string name="upload">Upload</string>
     <string name="download">Download</string>
     <string name="latency">Ping</string>
-    <string name="banner_id" translatable="false">ca-app-pub-8346072505648333/9907948565</string>
+    <string name="banner_id" translatable="false">ca-app-pub-8346072505648333~1653829654</string>
     <string name="rbHTTP" translatable="false">http:8080 web</string>
     <string name="rbFTP" translatable="false">ftp connection</string>
     <string name="rb10MB" translatable="false">10 MB file</string>
@@ -71,8 +71,8 @@
     <string name="results">Results</string>
     <string name="tvWIFIwithoutSSID">WIFI     No WIFI network detected</string>
     <string name="BannerIDold" translatable="false">ca-app-pub-8346072505648333/4204789619</string>
-    <string name="BannerNew" translatable="false">ca-app-pub-8346072505648333/5715495023</string>
-    <string name="BannerID" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="BannerID" translatable="false">ca-app-pub-8346072505648333/5715495023</string>
+    <string name="BannerTest" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
     <string name="AddsId" translatable="false">ca-app-pub-8346072505648333~1653829654</string>
     <string name="SpeedTestStarted">Please wait. The test started …</string>
     <string name="SpeedTestStoped">Test aborted!</string>
@@ -92,6 +92,7 @@
     <string name="Rate">Rate </string>
     <string name="RemindMeLater">Remind me later</string>
     <string name="NoThanks">No, thanks</string>
+
 
 
 </resources>

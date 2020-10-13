@@ -17,6 +17,8 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.telephony.TelephonyManager
+import android.text.format.DateFormat
+
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -39,7 +41,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.BitmapDescriptorFactory.fromResource
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
@@ -57,6 +58,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.time.LocalDateTime
+import java.util.*
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -212,13 +214,13 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         fab_save.setOnClickListener { view ->
 
             if (!fabSaveClicked) {
+                storageDir = getStorageDir()
                 val builder = AlertDialog.Builder(requireContext())
                 builder.setTitle(getString(R.string.DialogSamplesTitle))
                 builder.setMessage(getString(R.string.DialogSamplesMessage) + storageDir)
                 builder.setPositiveButton("OK") { dialog, which ->
                     changebutton(fragmentView)
                     Log.d("cfauli", "onclick buttom")
-                    storageDir = getStorageDir()
                     Toast.makeText(context, getString(R.string.FileSavedIn) + storageDir, Toast.LENGTH_LONG).show()
                     // Create towers file
                     storageDirTowers = File(storageDir!!)
@@ -248,7 +250,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                         isFileTowersCreated = true
                     }
                     //create samples file
-                    sampleFile = "samples_" + LocalDateTime.now() + ".csv"
+                    sampleFile = "samples_" + DateFormat.format("yyyy-MM-dd-HH-mm-ss",Date()) + ".csv"
                     Log.d("cfauli", "File first created" + LocalDateTime.now())
                     storageDirFile = File(storageDir!!)
 
@@ -256,7 +258,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                         storageDirFile!!.mkdirs()
                     }
                     sampleFilePath = File(storageDirFile, sampleFile!!)
-                    File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;ferquency;dBm;lat;lon;arfcn")
+                    Log.d("cfauli", "File samplefile " + sampleFilePath)
+                    File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;frequency;dBm;lat;lon;arfcn")
 
                     File(sampleFilePath.toString()).appendText(
                         "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
