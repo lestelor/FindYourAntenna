@@ -82,6 +82,19 @@ interface GetfileState {
         setContentView(R.layout.activity_main)
 
         val navigationView: NavigationView = findViewById(R.id.nav_view)
+        Log.d("cfauli", R.drawable.ic_settings.toString())
+        Log.d("cfauli", R.drawable.ic_speed_dark.toString())
+        Log.d("cfauli", R.drawable.ic_network_dark.toString())
+        Log.d("cfauli", R.drawable.ic_map_dark.toString())
+        Log.d("cfauli", R.drawable.ic_contribute.toString())
+        Log.d("cfauli", R.drawable.ic_exit.toString())
+
+        /*ic_settings
+        ic_speed_dark
+        ic_network_dark
+        ic_map_dark
+        ic_contribute
+        ic_exit*/
 
         //val toolbar = findViewById<Toolbar>(R.id.toolbar)
         val drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout?
@@ -171,7 +184,7 @@ interface GetfileState {
                     // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
                     // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
 
-                    viewPager.offscreenPageLimit = 2
+                    viewPager.offscreenPageLimit = 3
 
                     tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
                     tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
