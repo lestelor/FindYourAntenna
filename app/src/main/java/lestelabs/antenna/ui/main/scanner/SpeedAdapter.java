@@ -31,13 +31,13 @@ public class SpeedAdapter extends ArrayAdapter<SpeedTest> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_speed, parent, false);
         }
         // Lookup view for data population
-        TextView tvNetwork = (TextView) convertView.findViewById(R.id.tvF1Network);
+        //TextView tvNetwork = (TextView) convertView.findViewById(R.id.tvF1Network);
         TextView tvSpeed = (TextView) convertView.findViewById(R.id.tvF1Speed);
         TextView tvDate = (TextView) convertView.findViewById(R.id.tvF1Date);
 
         // Populate the data into the template view using the data object
         assert speedTest != null;
-        tvNetwork.setText(speedTest.getNetwork());
+        //tvNetwork.setText(speedTest.getNetwork());
         tvSpeed.setText(speedTest.getSpeed());
         tvDate.setText(speedTest.getDate());
         // Return the completed view to render on screen

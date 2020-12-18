@@ -1,6 +1,7 @@
 package lestelabs.antenna.ui.main.scanner
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
 import android.telephony.*
 import android.util.Log
@@ -17,13 +18,13 @@ import androidx.annotation.RequiresApi
  */
 
 
+
 @SuppressLint("MissingPermission")
-fun loadCellInfo(tm: TelephonyManager): DevicePhone {
+fun loadCellInfo(tm: TelephonyManager): DevicePhone? {
 
 
-    var pDevicePhone:DevicePhone = DevicePhone("","",0,0,0,0,0,0,0)
+    val pDevicePhone:DevicePhone = DevicePhone("", "", 0, 0, 0, 0, 0, 0, 0)
     val lCurrentApiVersion = Build.VERSION.SDK_INT
-
 
 
     try {
@@ -66,6 +67,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
                     info.cellIdentity
                 // Signal Strength
                 pDevicePhone.dbm =cdma.dbm
+
                 // Cell Identity
                 pDevicePhone.cid = identityCdma.basestationId
                 pDevicePhone.mnc = identityCdma.systemId
@@ -138,6 +140,8 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone {
         } catch (npe: NullPointerException) {
             Log.d("cfauli", "loadCellInfo: Unable to obtain cell signal information: ", npe)
         }
+
+
         return pDevicePhone
     }
 

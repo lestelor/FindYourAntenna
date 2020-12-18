@@ -9,16 +9,15 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.SeekBar
+import android.widget.*
 import android.widget.SeekBar.OnSeekBarChangeListener
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import kotlinx.android.synthetic.main.activity_pop_up_settings.*
+import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.Constants
 
@@ -37,9 +36,10 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
         val sharedPreferences: SharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         val editor:SharedPreferences.Editor =  sharedPreferences.edit()
 
+        this.seekBarDistance.setOnSeekBarChangeListener(this)
+        this.seekBarTime.setOnSeekBarChangeListener(this)
 
-        this.seekBarDistance!!.setOnSeekBarChangeListener(this)
-        this.seekBarTime!!.setOnSeekBarChangeListener(this)
+
 
 
         readInitialConfiguration()
@@ -129,7 +129,6 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
             editor.commit()
             finish()
         }*/
-
     }
 
     private fun readInitialConfiguration() {
@@ -210,6 +209,18 @@ class PopUpSettings : AppCompatActivity(), OnSeekBarChangeListener {
             }
         }
     }
+
+    // Override finish animation for actionbar back arrow
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+        if (id == android.R.id.home) { // This ID represents the Home or Up button (back).
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+
     override fun onBackPressed() {
 
             //finishAffinity() // back

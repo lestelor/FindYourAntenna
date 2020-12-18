@@ -8,17 +8,14 @@ import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.text.format.DateFormat
-
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -48,6 +45,7 @@ import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.algorithms.UTM
 import lestelabs.antenna.ui.main.algorithms.WGS84
+import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
@@ -82,7 +80,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var mParam2: String? = null
     //private var mListener: Tab3.OnFragmentInteractionListener? = null
     private var location:Location? = null
-    private lateinit var mAdView : AdView
+    private var mAdView : AdView? = null
     private var gpsActive = false
     private var firstOnResume = true
     private var listener: GetfileState? = null
@@ -97,17 +95,17 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var mMapInitialized: Boolean = false
     private lateinit var fragmentView: View
     private lateinit var mapFragment: SupportMapFragment
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var fusedLocationClient: FusedLocationProviderClient? = null
     private lateinit var telephonyManager:TelephonyManager
-    private lateinit var pDevice:DevicePhone
+    private  var pDevice:DevicePhone? = null
     private val openCellIdInterface = retrofitFactory()
     private var listTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
     private var locationAnt: Location? = null
-    private var locationOk: Location? = null
+    private lateinit var locationOk: Location
     private lateinit var locationManager: LocationManager
     private var towerinListInt: Int = -1
-    private var minDist: Float? = null
-    private var minTime:Long? = null
+    private var minDist: Float?=null
+    private var minTime:Long?=null
     private var okSaveTowers:Boolean? = null
     private var okSaveSamples: Boolean? = null
     private var previousTower: DevicePhone? = DevicePhone()
@@ -117,7 +115,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     private val fileTowers = "towers.csv"
     private var sampleFile: String? = null
-    private var storageDir: String? = null
+    private var storageDir: String?=null
     private  var towersFilePath: File? = null
     private  var storageDirTowers: File? = null
     private  var sampleFilePath: File? = null
@@ -128,8 +126,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var distance:Double=0.0
     private var distanceAnt:Double = 100000.0
 
-    private var networkList: Array<String>? = arrayOf("")
+    private var networkList: Array<String> = arrayOf("")
     private var checkedItems = booleanArrayOf(false)
+
+    private val tabName = "Tab3"
+    private var crashlyticsKeyAnt = ""
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -141,10 +142,15 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             mParam2 = requireArguments().getString(ARG_PARAM2)
         }
         Log.d("cfauli", "OnCreate Tab3")
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
         readInitialConfiguration()
 
 
-
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
 
             /*while (!gps_enabled) {
@@ -156,7 +162,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // call the superclass method first
         super.onStart()
         Log.d("cfauli", "OnStart Tab3")
-        waitGPS(requireContext())
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+        waitGPS(context)
         startGPS()
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     }
@@ -185,23 +195,32 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // prevent window from going to sleep
-        view?.keepScreenOn = true
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+        locationOk = Location("")
+        locationOk.latitude = -1000.0
+        locationOk.longitude = -1000.0
+
         locationAnt = location
+        if (location!=null) locationOk = location as Location
         // Inflate the layout for this fragment
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
+        // prevent window from going to sleep
+        fragmentView.keepScreenOn = true
+
         val fab_save = fragmentView.findViewById(R.id.fab_tab3_save) as ImageView
         val fab_clear = fragmentView.findViewById(R.id.fab_tab3_clear) as ImageView
         val fab_load = fragmentView.findViewById(R.id.fab_tab3_open) as ImageView
         val fab_world = fragmentView.findViewById(R.id.fab_tab3_world) as ImageView
-        mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
+        mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
         mapFragment.getMapAsync(this)
         Log.d("cfauli", "OnCreateView Tab3")
 
         // if not Firestore uploaded, then hide button
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
-        if (pDevice.mcc != 214) fab_world.isVisible = false
+        if (pDevice?.mcc != 214) fab_world.isVisible = false
 
 
 
@@ -213,17 +232,22 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         fab_save.setBackgroundResource(R.drawable.ic_diskette)
         fab_save.setOnClickListener { view ->
 
-            if (!fabSaveClicked) {
-                storageDir = getStorageDir()
-                val builder = AlertDialog.Builder(requireContext())
-                builder.setTitle(getString(R.string.DialogSamplesTitle))
-                builder.setMessage(getString(R.string.DialogSamplesMessage) + storageDir)
-                builder.setPositiveButton("OK") { dialog, which ->
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+            storageDir = getStorageDir()
+
+            if (!fabSaveClicked && storageDir!=null) {
+
+
+                val builder = this.context?.let { AlertDialog.Builder(it) }
+                builder?.setTitle(getString(R.string.DialogSamplesTitle))
+                builder?.setMessage(getString(R.string.DialogSamplesMessage) + storageDir)
+                builder?.setPositiveButton("OK") { dialog, which ->
                     changebutton(fragmentView)
                     Log.d("cfauli", "onclick buttom")
                     Toast.makeText(context, getString(R.string.FileSavedIn) + storageDir, Toast.LENGTH_LONG).show()
                     // Create towers file
-                    storageDirTowers = File(storageDir!!)
+                    storageDirTowers = File(storageDir)
                     if (!storageDirTowers!!.exists()) {
                         storageDirTowers!!.mkdirs()
                     }
@@ -238,19 +262,21 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     pDevice = loadCellInfo(telephonyManager)
                     findTower(openCellIdInterface, pDevice)
                     { coordenadas ->
-                        pDevice.lat = coordenadas.lat!!
-                        pDevice.lon = coordenadas.lon!!
-                        previousTower = pDevice
+                        coordenadas.let {
+                            pDevice?.lat = coordenadas.lat
+                            pDevice?.lon = coordenadas.lon
+                            previousTower = pDevice
 
-                        File(towersFilePath.toString()).appendText(
-                            "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
-                                    ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
-                                    ";" + "%.5f".format(pDevice.lat) + ";" + "%.5f".format(pDevice.lon)
-                        )
-                        isFileTowersCreated = true
+                            File(towersFilePath.toString()).appendText(
+                                "\n" + LocalDateTime.now() + ";" + pDevice?.mcc +
+                                        ";" + pDevice?.mnc + ";" + pDevice?.lac + ";" + pDevice?.cid +
+                                        ";" + "%.5f".format(pDevice?.lat) + ";" + "%.5f".format(pDevice?.lon)
+                            )
+                            isFileTowersCreated = true
+                        }
                     }
                     //create samples file
-                    sampleFile = "samples_" + DateFormat.format("yyyy-MM-dd-HH-mm-ss",Date()) + ".csv"
+                    sampleFile = "samples_" + DateFormat.format("yyyy-MM-dd-HH-mm-ss", Date()) + ".csv"
                     Log.d("cfauli", "File first created" + LocalDateTime.now())
                     storageDirFile = File(storageDir!!)
 
@@ -262,22 +288,22 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     File(sampleFilePath.toString()).writeText("time;mcc;mnc;lac;id;type;frequency;dBm;lat;lon;arfcn")
 
                     File(sampleFilePath.toString()).appendText(
-                        "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
-                                ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
-                                ";" + "%.1f".format(calculateFreq(pDevice.type, pDevice.band)) + ";" + pDevice.dbm +
-                                ";" + "%.5f".format(locationOk!!.latitude) + ";" + "%.5f".format(locationOk!!.longitude) +
-                                ";" + pDevice.band
+                        "\n" + LocalDateTime.now() + ";" + pDevice?.mcc +
+                                ";" + pDevice?.mnc + ";" + pDevice?.lac + ";" + pDevice?.cid + ";" + pDevice?.type +
+                                ";" + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + ";" + pDevice?.dbm +
+                                ";" + "%.5f".format(locationOk.latitude) + ";" + "%.5f".format(locationOk.longitude) +
+                                ";" + pDevice?.band
                     )
 
                     Log.d("cfauli", sampleFilePath.toString())
-                    plotColoredDot(LatLng(locationOk!!.latitude, locationOk!!.longitude), pDevice.dbm!!)
+                    pDevice?.dbm?.let { plotColoredDot(LatLng(locationOk.latitude, locationOk.longitude), it) }
 
                     isFileSamplesOpened = true
                 }
-                builder.setNegativeButton("Cancel", null)
+                builder?.setNegativeButton("Cancel", null)
 
-                val dialog = builder.create()
-                dialog.show()
+                val dialog = builder?.create()
+                dialog?.show()
 
             } else changebutton(fragmentView)
 
@@ -287,51 +313,61 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
         // Floating button clear
         fab_clear.setOnClickListener { view ->
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
             mMap.clear()
 
             pDevice = loadCellInfo(telephonyManager)
-            Log.d("cfauli", "fab clear pDevice cid" + pDevice.cid)
+            Log.d("cfauli", "fab clear pDevice cid" + pDevice?.cid)
             val towerinListSize = listTowersFound.size
             towerinListInt = checkTowerinList(pDevice)
             // Delete if since allways print all the markers
             //if (towerinListSize == towerinListInt) {
-                Log.d("cfauli", "fab clear pDevice cid 2 " + pDevice.cid)
+                Log.d("cfauli", "fab clear pDevice cid 2 " + pDevice?.cid)
                 findTower(openCellIdInterface, pDevice)
                 { coordenadas ->
-                    pDevice.lat = coordenadas.lat!!
-                    pDevice.lon = coordenadas.lon!!
-                    Log.d("cfauli", "fab clear pDevice lat " + pDevice.lat)
-                    listTowersFound[towerinListInt].lat = coordenadas.lat!!
-                    listTowersFound[towerinListInt].lon = coordenadas.lon!!
+                    pDevice?.lat = coordenadas?.lat
+                    pDevice?.lon = coordenadas?.lon
+                    Log.d("cfauli", "fab clear pDevice lat " + pDevice?.lat)
+                    listTowersFound[towerinListInt].lat = coordenadas.lat
+                    listTowersFound[towerinListInt].lon = coordenadas.lon
                     previousTower = pDevice
-                    Log.d("cfauli", "fab clear locationOk " + locationOk!!.latitude)
+                    Log.d("cfauli", "fab clear locationOk " + locationOk?.latitude)
                     // fill the distance and tower textview, repeated since it is an async function
                     // print the tower markers (green the serving and red the others) and make appropriate zoom
                     Log.d("cfauli", "LocateTowerMap 3")
                     locateTowerMap(listTowersFound)
-                    cameraAnimate(listTowersFound[towerinListInt], locationOk!!)
-                    updateTextViewDistanceTower(locationOk!!)
+                    cameraAnimate(listTowersFound[towerinListInt], locationOk)
+                    updateTextViewDistanceTower(locationOk)
             }
         }
         // Floating button load
 
         fab_load.setOnClickListener { view ->
             Log.d("cfauli", "onclick buttom")
-            storageDir = getStorageDir()
-            storageDirTowers = File(storageDir!!)
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-            towersFilePath = File(storageDirTowers, fileTowers)
-            performTowerSearch()
-            performFileSearch()
-            Log.d("cfauli", "performfilesearch")
+            storageDir = getStorageDir()
+            storageDir?.let {
+                storageDirTowers = File(storageDir)
+                towersFilePath = File(storageDirTowers, fileTowers)
+                performTowerSearch()
+                performFileSearch()
+                Log.d("cfauli", "performfilesearch")
+            }
         }
 
 
         fab_world.setOnClickListener { view ->
             Log.d("cfauli", "onclick buttom fab_world")
             // To be defined according to the mcc. This is for 214
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-            networkList = pDevice.mcc?.let { arrayNetworks(it) }
+
+            networkList = pDevice?.mcc?.let { arrayNetworks(it) }!!
             checkedItems = booleanArrayOf(true, false, false, false, false, false, true)
 
             val builder = AlertDialog.Builder(requireContext())
@@ -384,12 +420,14 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minDist = sharedPreferences.getInt("num_dist_samples", getString(R.string.minDistSample).toInt()).toFloat()
-        minTime  = sharedPreferences.getInt("num_time_samples", getString(R.string.minTimeSample).toInt()).toLong() * 1000
+        val sharedPreferences = context?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+
+        minDist = sharedPreferences?.getInt("num_dist_samples", getString(R.string.minDistSample).toInt())?.toFloat() ?: getString(R.string.minDistSample).toFloat()
+        minTime = sharedPreferences?.getInt("num_time_samples", getString(R.string.minTimeSample).toInt())?.toLong()?.times(1000) ?: getString(R.string.minTimeSample).toLong() * 1000
+
         Log.d("cfauli", "OnResume tab3")
         if (!firstOnResume) {
-            waitGPS(requireContext())
+            waitGPS(context)
             startGPS()
         }
         firstOnResume = false
@@ -412,12 +450,21 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
-        waitGPS(requireContext())
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+        waitGPS(context)
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
         mMap = googleMap
         mMapInitialized = true
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
         //Thread.sleep(1000)
         readInitialConfiguration()
         //MapsInitializer.initialize(context)
@@ -426,15 +473,24 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         mMap.isMyLocationEnabled = true
 
-        waitGPS(requireContext())
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+        waitGPS(context)
         startGPS()
         tv_fr3_distance.text = getString(R.string.waitingGPS)
 
         // First try. Same that findPdeviceAddMarkerAnimateCameraUdateTextView but always printing the Green Marker and no other else (on the contrary of locatetowermap)
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+        fusedLocationClient = context?.let { LocationServices.getFusedLocationProviderClient(it) }
+        fusedLocationClient?.lastLocation
+            ?.addOnSuccessListener { location: Location? ->
+                // Control point for Crashlitycs
+                crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
                 if (location != null) {
                     // create pDevice and add green marker
                     locationOk = location
@@ -444,28 +500,37 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     towerinListInt = checkTowerinList(pDevice)
                     Log.d("cfauli", "findPdeviceAddMarkerUpdate " + towerinListSize + " " + towerinListInt)
                     if (towerinListSize == towerinListInt) {
-                        Log.d("cfauli", "gps onstart pdevicelat " + pDevice.lat)
+                        Log.d("cfauli", "gps onstart pdevicelat " + pDevice?.lat)
                         findTower(openCellIdInterface, pDevice)
                         { coordenadas ->
-                            pDevice.lat = coordenadas.lat!!
-                            pDevice.lon = coordenadas.lon!!
-                            listTowersFound[towerinListInt].lat = coordenadas.lat!!
-                            listTowersFound[towerinListInt].lon = coordenadas.lon!!
+                            // Control point for Crashlitycs
+                            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+                            coordenadas?.let {
+                                pDevice?.lat = coordenadas?.lat
+                                pDevice?.lon = coordenadas?.lon
+                                listTowersFound[towerinListInt].lat = coordenadas?.lat
+                                listTowersFound[towerinListInt].lon = coordenadas?.lon
+                            }
                             previousTower = pDevice
                             // fill the distance and tower textview, repeated since it is an async function
                             // print the tower markers (green the serving and red the others) and make appropriate zoom
-                            mMap.addMarker(
-                                MarkerOptions()
-                                    .position(LatLng(pDevice.lat, pDevice.lon))
-                                    .title(pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid)
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                            )
-                            val mZoom = mZoom(pDevice, location)
-                            val myLocation = LatLng(location.latitude, location.longitude)
+                            pDevice?.let {
+                                mMap.addMarker(
+                                    pDevice?.lat?.let { it1 -> pDevice?.lon?.let { it2 -> LatLng(it1, it2) } }?.let { it2 ->
+                                        MarkerOptions()
+                                            .position(it2)
+                                            .title(pDevice?.mcc.toString() + "-" + pDevice?.mnc + "-" + pDevice?.lac + "-" + pDevice?.cid)
+                                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                                    }
+                                )
+                                val mZoom = mZoom(pDevice, location)
+                                val myLocation = LatLng(location.latitude, location.longitude)
 
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
-                            //locateTowerMap(listTowersFound[towerinListInt], locationOk!!)
-                            updateTextViewDistanceTower(locationOk!!)
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, mZoom))
+                                //locateTowerMap(listTowersFound[towerinListInt], locationOk)
+                                updateTextViewDistanceTower(locationOk)
+                            }
 
 
                         }
@@ -477,13 +542,13 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 }
 
 
-        mAdView = view?.findViewById(R.id.adViewFragment3)!!
-        val adView = AdView(requireActivity())
-        MobileAds.initialize(requireActivity())
+        mAdView = view?.findViewById(R.id.adViewFragment3)
+        val adView = AdView(context)
+        MobileAds.initialize(context)
         val adRequest = AdRequest.Builder().build()
 
-        mAdView.loadAd(adRequest)
-        mAdView.adListener = object: AdListener() {
+        mAdView?.loadAd(adRequest)
+        mAdView?.adListener = object: AdListener() {
             override fun onAdLoaded() {
                 // Code to be executed when an ad finishes loading.
             }
@@ -517,6 +582,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
     private fun locateTowerMap(listTowersFound: List<DevicePhone>) {
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
         Log.d("cfauli", "listTowersize " + listTowersFound.size)
         if (listTowersFound.size > 1) {
@@ -554,7 +621,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     }
 
-    private fun cameraAnimate(pDevice: DevicePhone, location: Location) {
+    private fun cameraAnimate(pDevice: DevicePhone?, location: Location) {
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
         Log.d("cfauli", "locateTowerMap markerok distance " + distance)
 
 
@@ -567,35 +637,49 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         //mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 0))
     }
 
-    private fun checkTowerinList(devicePhone: DevicePhone):Int {
+    private fun checkTowerinList(devicePhone: DevicePhone?):Int {
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
         //var devicePhonecheck: DevicePhone? = listTowersFound.find { it.totalCellId == devicePhone.totalCellId }
-        var indexOfTower = listTowersFound.indexOfFirst { it.totalCellId == devicePhone.totalCellId }
+        var indexOfTower = listTowersFound.indexOfFirst { it.totalCellId == devicePhone?.totalCellId }
         Log.d("cfauli", "checkTowerList indexofTower " + indexOfTower)
         if (indexOfTower == -1) {
             Log.d("cfauli", "checkTowerList number towers" + listTowersFound[0].totalCellId)
-            listTowersFound.add(devicePhone)
-            Log.d("cfauli", "checkTowerList Added tower" + devicePhone.totalCellId)
-            indexOfTower = listTowersFound.size-1
+            devicePhone?.let {
+                listTowersFound.add(devicePhone)
+                Log.d("cfauli", "checkTowerList Added tower" + devicePhone.totalCellId)
+                indexOfTower = listTowersFound.size-1
+            }
         }
         return indexOfTower
     }
 
     private fun distance(
-        lat1: Double,
-        lng1: Double,
-        lat2: Double,
-        lng2: Double
+        lat1: Double?,
+        lng1: Double?,
+        lat2: Double?,
+        lng2: Double?
     ): Double {
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+        var c:Double = 0.0
         val earthRadius = 6371000.0 //meters
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLng = Math.toRadians(lng2 - lng1)
-        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                cos(Math.toRadians(lat1)) * Math.cos(
-            Math.toRadians(lat2)
-        ) *
-                sin(dLng / 2) * Math.sin(dLng / 2)
-        val c =
-            2 * atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+        if (lat1 != null && lat2!=null && lng1 != null &&  lng2 != null) {
+
+            val dLat = Math.toRadians(lat2 - lat1)
+            val dLng = Math.toRadians(lng2 - lng1)
+            val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    cos(Math.toRadians(lat1)) * Math.cos(
+                Math.toRadians(lat2)
+            ) *
+                    sin(dLng / 2) * Math.sin(dLng / 2)
+            c =
+                2 * atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        }
+
+
         return (earthRadius * c)
     }
 
@@ -631,6 +715,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         @RequiresApi(Build.VERSION_CODES.P)
         override fun onLocationChanged(location: Location) {
+
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
             readInitialConfiguration()
 
 
@@ -642,11 +729,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             val towerinListSize = listTowersFound.size
             towerinListInt = checkTowerinList(pDevice)
 
-            Log.d("cfauli", "gps onlocationchange pdevicelat " + pDevice.lat + "towerinlistsize " + towerinListSize + "towerinlistint " + towerinListInt)
+            Log.d("cfauli", "gps onlocationchange pdevicelat " + pDevice?.lat + "towerinlistsize " + towerinListSize + "towerinlistint " + towerinListInt)
 
             Log.d("cfauli", "onlocationchanged towerinlist " + towerinListInt)
-            Log.d("cfauli", "onlocationchanged previous tower " + previousTower?.totalCellId + " pdevice " + pDevice.totalCellId + " " + towerinListInt + " " + towerinListSize)
-            //Toast.makeText(context, "onlocationchanged " + previousTower?.cid + " " + pDevice.cid + " " + towerinListInt + " " + towerinListSize, Toast.LENGTH_LONG).show()
+            Log.d("cfauli", "onlocationchanged previous tower " + previousTower?.totalCellId + " pdevice " + pDevice?.totalCellId + " " + towerinListInt + " " + towerinListSize)
+            //Toast.makeText(context, "onlocationchanged " + previousTower?.cid + " " + pDevice?.cid + " " + towerinListInt + " " + towerinListSize, Toast.LENGTH_LONG).show()
             // First check, if tower is the same as previous do nothing except update the textview.
 
             // In case the tower is not found (index = size, since new pDevice is added to listtowerfound) , then complete PDevice with the lat, lon information of the tower
@@ -654,37 +741,43 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 //Toast.makeText(context, "onlocationchanged newTower " + listTowersFound[towerinListInt].cid,Toast.LENGTH_LONG).show()
                 findTower(openCellIdInterface, pDevice)
                 { coordenadas ->
-                    pDevice.lat = coordenadas.lat!!
-                    pDevice.lon = coordenadas.lon!!
-                    listTowersFound[towerinListInt].lat = coordenadas.lat!!
-                    listTowersFound[towerinListInt].lon = coordenadas.lon!!
-                    previousTower = pDevice
-                    // fill the distance and tower textview, repeated since it is an async function
-                    // print the tower markers (green the serving and red the others) and make appropriate zoom
-                    Log.d("cfauli", "LocateTowerMap 1")
-                    locateTowerMap(listTowersFound)
+                    // Control point for Crashlitycs
+                    crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-                    if (mMapInitialized) cameraAnimate(listTowersFound[towerinListInt], locationOk!!)
-                    updateTextViewDistanceTower(locationOk!!)
+                    coordenadas.let {
+                        pDevice?.lat = coordenadas.lat
+                        pDevice?.lon = coordenadas.lon
+                        listTowersFound[towerinListInt].lat = coordenadas.lat
+                        listTowersFound[towerinListInt].lon = coordenadas.lon
+                        previousTower = pDevice
+                        // fill the distance and tower textview, repeated since it is an async function
+                        // print the tower markers (green the serving and red the others) and make appropriate zoom
+                        Log.d("cfauli", "LocateTowerMap 1")
+                        locateTowerMap(listTowersFound)
+
+                        if (mMapInitialized) cameraAnimate(listTowersFound[towerinListInt], locationOk)
+                        updateTextViewDistanceTower(locationOk)
 
 
-                    // Save towers in file
-                    Log.d("cfauli", "Save towers file filestate " + fabSaveClicked + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
-                    if (fabSaveClicked && okSaveTowers == true && isFileTowersCreated) {
-                        Log.d("cfauli", "Save tower file opened: " + isFileTowersCreated)
-                        if (isFileTowersCreated) {
-                            File(towersFilePath.toString()).appendText(
-                                "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
-                                        ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid +
-                                        ";" + "%.5f".format(pDevice.lat) + ";" + "%.5f".format(pDevice.lon)
-                            )
-                        }
+                        // Save towers in file
+                        Log.d("cfauli", "Save towers file filestate " + fabSaveClicked + " okSaveSample " + okSaveTowers + " isfileopened " + isFileTowersCreated)
+                        if (fabSaveClicked && okSaveTowers == true && isFileTowersCreated) {
+                            Log.d("cfauli", "Save tower file opened: " + isFileTowersCreated)
+                            if (isFileTowersCreated) {
+                                File(towersFilePath.toString()).appendText(
+                                    "\n" + LocalDateTime.now() + ";" + pDevice?.mcc +
+                                            ";" + pDevice?.mnc + ";" + pDevice?.lac + ";" + pDevice?.cid +
+                                            ";" + "%.5f".format(pDevice?.lat) + ";" + "%.5f".format(pDevice?.lon)
+                                )
+                            }
 
-                    } else if (!fabSaveClicked && isFileTowersCreated) isFileTowersCreated = false
+                        } else if (!fabSaveClicked && isFileTowersCreated) isFileTowersCreated = false
+                    }
 
                 }
             } else  {
-
+                // Control point for Crashlitycs
+                crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
                 //Toast.makeText(context, "onlocationchanged previousTower " + listTowersFound[towerinListInt].cid + " " + location.latitude,Toast.LENGTH_LONG).show()
                 // if tower exists in list, only update the colors of the markers and the textview
                 Log.d("cfauli", "LocateTowerMap 2")
@@ -693,7 +786,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 updateTextViewDistanceTower(location)
                 previousTower = listTowersFound[towerinListInt]
                 //val mZoom = mZoom(pDevice, location!!)
-                //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pDevice.lat, pDevice.lon), mZoom))
+                //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pDevice?.lat, pDevice?.lon), mZoom))
             }
 
 
@@ -701,18 +794,19 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             Log.d("cfauli", "Save file filestate " + fabSaveClicked + " okSaveSample " + okSaveSamples + " isfileopened " + isFileSamplesOpened)
             if (fabSaveClicked && okSaveSamples == true && isFileSamplesOpened)  {
 
-
+                // Control point for Crashlitycs
+                crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
                 Log.d("cfauli", "Save file opened: " + isFileSamplesOpened)
                 Log.d("cfauli", "File already created " + minTime + " " + minDist + " " + LocalDateTime.now())
                 File(sampleFilePath.toString()).appendText(
-                    "\n" + LocalDateTime.now() + ";" + pDevice.mcc +
-                            ";" + pDevice.mnc + ";" + pDevice.lac + ";" + pDevice.cid + ";" + pDevice.type +
-                            ";" + calculateFreq(pDevice.type, pDevice.band) + ";" + pDevice.dbm + ";"
+                    "\n" + LocalDateTime.now() + ";" + pDevice?.mcc +
+                            ";" + pDevice?.mnc + ";" + pDevice?.lac + ";" + pDevice?.cid + ";" + pDevice?.type +
+                            ";" + calculateFreq(pDevice?.type, pDevice?.band) + ";" + pDevice?.dbm + ";"
                             + "%.5f".format(location.latitude) + ";" + "%.5f".format(location.longitude)
                 )
 
-                plotColoredDot(LatLng(location.latitude, location.longitude), pDevice.dbm!!)
+                pDevice?.dbm?.let { plotColoredDot(LatLng(location.latitude, location.longitude), it) }
 
 
 
@@ -727,25 +821,35 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         }
 
-        override fun onProviderDisabled(arg0: String?) {
+        override fun onProviderDisabled(provider: String) {
+            Log.d("cfauli", "gps Onproviderdisabled" + provider.toString())
             // Do something here if you would like to know when the provider is disabled by the user
         }
 
-        override fun onProviderEnabled(arg0: String?) {
+        override fun onProviderEnabled(provider: String) {
+            Log.d("cfauli", "gps Onproviderenabled " + provider.toString())
             // Do something here if you would like to know when the provider is enabled by the user
         }
 
         override fun onStatusChanged(arg0: String?, arg1: Int, arg2: Bundle?) {
+            Log.d("cfauli", "gps onstatuschanged " + arg0.toString())
             // Do something here if you would like to know when the provider status changes
         }
     }
 
     private fun readInitialConfiguration() {
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        minDist = sharedPreferences.getInt("num_dist_samples", getString(R.string.minDistSample).toInt()).toFloat()
-        minTime  = sharedPreferences.getInt("num_time_samples", getString(R.string.minTimeSample).toInt()).toLong()* 1000
-        okSaveSamples = sharedPreferences.getBoolean("chkBoxSamples", true)
-        okSaveTowers = sharedPreferences.getBoolean("chkBoxTowers", true)
+
+
+
+        val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+
+        minDist = sharedPreferences?.getInt("num_dist_samples", getString(R.string.minDistSample).toInt())?.toFloat() ?: getString(R.string.minDistSample).toFloat()
+        minTime = sharedPreferences?.getInt("num_time_samples", getString(R.string.minTimeSample).toInt())?.toLong()?.times(1000) ?: getString(R.string.minTimeSample).toLong() * 1000
+        okSaveSamples = sharedPreferences?.getBoolean("chkBoxSamples", true) ?: true
+        okSaveTowers = sharedPreferences?.getBoolean("chkBoxTowers", true) ?: true
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
     }
     // The sdcard directory is equal to the partition storage/emulated/0 which corresponds to the public external storage
@@ -755,9 +859,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     // To save in other location needs to be analyzed if package_paths is to be used.
 
     private fun getStorageDir(): String? {
-
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        return sharedPreferences.getString("popFolder", requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString())
+        return context?.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
     }
 
     fun startGPS() {
@@ -765,7 +867,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         Log.d("cfauli", "startGPS locationmanager gpsactive " + gpsActive)
         if (!gpsActive) {
 
-            locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
+            context?.let { it -> locationManager = it.getSystemService(LOCATION_SERVICE) as LocationManager }
             /*if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 if (ActivityCompat.checkSelfPermission(requireActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(requireActivity(),arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
@@ -774,16 +876,17 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,minTime!!,minDist!!,myLocListener)
             }*/
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                if (ActivityCompat.checkSelfPermission(requireActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(requireActivity(), arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE)
+                if (context?.let { ActivityCompat.checkSelfPermission(it, android.Manifest.permission.ACCESS_FINE_LOCATION) } != PackageManager.PERMISSION_GRANTED) {
+                    activity?.let { ActivityCompat.requestPermissions(it, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE) }
                     return
                 }
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTime!!, minDist!!, myLocListener)
+                minTime?.let { minDist?.let { it1 -> locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, it, it1, myLocListener) } }
             }
         }
         gpsActive = true
         //locationManager = requireContext().getSystemService(LOCATION_SERVICE) as LocationManager
-
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
     }
 
     fun endGPS() {
@@ -794,16 +897,18 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             e.printStackTrace()
         }
         gpsActive = false
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
     }
 
 
     fun plotColoredDot(location: LatLng, pDevicedbm: Int) {
         // Plot colored dots
         val markerDot:Int
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        val thresMobBlack = sharedPreferences.getString("thres_mob_black", Constants.MINMOBILESIGNALBLACK)!!.toInt()
-        val thresMobRed = sharedPreferences.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)!!.toInt()
-        val thresMobYellow = sharedPreferences.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)!!.toInt()
+        val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val thresMobBlack = sharedPreferences?.getString("thres_mob_black", Constants.MINMOBILESIGNALBLACK)?.toInt() ?: Constants.MINMOBILESIGNALBLACK.toInt()
+        val thresMobRed = sharedPreferences?.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)?.toInt() ?: Constants.MINMOBILESIGNALRED.toInt()
+        val thresMobYellow = sharedPreferences?.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)?.toInt() ?: Constants.MINMOBILESIGNALYELLOW.toInt()
         val thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
 
         if (pDevicedbm >= -1*thresMobYellow) {
@@ -818,9 +923,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         mMap.addMarker(
             MarkerOptions()
                 .position(location)
-                .title(pDevice.dbm.toString() + " dBm")
+                .title(pDevice?.dbm.toString() + " dBm")
                 .icon(BitmapDescriptorFactory.fromResource(markerDot))
         )
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
     }
 
     fun changebutton(view: View) {
@@ -834,7 +941,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             fab_tab3_save.setImageResource(R.drawable.ic_stop)
             fab_tab3_save.setBackgroundColor(resources.getColor(R.color.black))
         }
-
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
     }
 
     /*override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
@@ -889,7 +997,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             e.printStackTrace()
             Toast.makeText(context, getString(R.string.towerFileNotFound), Toast.LENGTH_SHORT).show()
         }
-
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
     }
 
@@ -901,6 +1010,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         intent.type = "text/*"
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         startActivityForResult(intent, 0)
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
     }
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
@@ -952,10 +1064,13 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
         }
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
     }
 
-    fun mZoom(pDevice: DevicePhone, location: Location): Float {
-        distance = distance(pDevice.lat, pDevice.lon, location.latitude, location.longitude)
+    fun mZoom(pDevice: DevicePhone?, location: Location): Float {
+        distance = distance(pDevice?.lat, pDevice?.lon, location.latitude, location.longitude)
         Log.d("cfauli", "Zoom zoom " + distance)
         var mZoom = 13f
         when {
@@ -968,6 +1083,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         }
         Log.d("cfauli", "Zoom distance " + mZoom)
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
         return mZoom
     }
 
@@ -992,32 +1111,45 @@ fun updateTextViewDistanceTower(location: Location) {
 
         else -> tv_fr3_distance.text = getString(R.string.NotAvailable)
     }
-    tv_fr3_tower.text = pDevice.mcc.toString() + "-" + pDevice.mnc + "-" + pDevice.lac + "-" + pDevice.cid
-    tv_fr3_coverage.text = pDevice.dbm.toString() + "dBm"
+
+    // Control point for Crashlitycs
+    crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+    tv_fr3_tower.text = pDevice?.mcc.toString() + "-" + pDevice?.mnc + "-" + pDevice?.lac + "-" + pDevice?.cid
+    tv_fr3_coverage.text = pDevice?.dbm.toString() + "dBm"
 }
 
     private fun plotTowers() {
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+        fusedLocationClient = context?.let { LocationServices.getFusedLocationProviderClient(it) }
+        if (context?.let { ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) } != PackageManager.PERMISSION_GRANTED && context?.let {
+                ActivityCompat.checkSelfPermission(
+                    it,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            } != PackageManager.PERMISSION_GRANTED
         ) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             return
         }
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+        fusedLocationClient?.lastLocation
+            ?.addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     val wgsLocation = WGS84(location.latitude, location.longitude)
                     //val utmLocation = UTM(31, 'V', 375273.85, 6207884.59)
 
-                    val utmMin = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting - 5000,
-                        UTM(wgsLocation).northing - 5000)
-                    val utmMax = UTM(UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting + 5000,
-                        UTM(wgsLocation).northing + 5000)
+                    val utmMin = UTM(
+                        UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting - 5000,
+                        UTM(wgsLocation).northing - 5000
+                    )
+                    val utmMax = UTM(
+                        UTM(wgsLocation).zone, UTM(wgsLocation).letter, UTM(wgsLocation).easting + 5000,
+                        UTM(wgsLocation).northing + 5000
+                    )
 
                     val wgsMin = WGS84(utmMin)
                     val wgsMax = WGS84(utmMax)
@@ -1031,7 +1163,7 @@ fun updateTextViewDistanceTower(location: Location) {
                     // obtain radios and networks
                     val radios = getRadios()
                     val nets = getNetworks()
-                    Log.d("cfauli", "networks " + radios + " " + nets )
+                    Log.d("cfauli", "networks " + radios + " " + nets)
                     for (i in 1..radios.size-1) {
                         for (j in 1..nets.size-1) {
                             indeterminateBar.visibility = View.VISIBLE
@@ -1039,8 +1171,8 @@ fun updateTextViewDistanceTower(location: Location) {
                             val net = nets[j]
                             // Create a query against the collection. All where filters other than whereEqualTo() must be on the same field.
                             celltower.whereEqualTo("radio", radio).whereEqualTo("net", net)
-                                .whereGreaterThan("lat",wgsMin.latitude.toString())
-                                .whereLessThan("lat",wgsMax.latitude.toString())
+                                .whereGreaterThan("lat", wgsMin.latitude.toString())
+                                .whereLessThan("lat", wgsMax.latitude.toString())
 
                                 //.whereGreaterThan("lon",wgsMin.longitude.toString())
                                 //.whereLessThan("lon",wgsMax.longitude.toString())
@@ -1082,39 +1214,40 @@ fun updateTextViewDistanceTower(location: Location) {
 
                 }
             }
-
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
     }
 
-    fun selectOperatorIcon (mcc:Int, net:Int): Array<Any?> {
+    fun selectOperatorIcon(mcc: Int, net: Int): Array<Any?> {
         var icon: Int? =null
         var operator =""
 
         when (mcc) {
             214 -> when (net) {
-                1-> {
-                   operator = "Vodafone"
+                1 -> {
+                    operator = "Vodafone"
                     icon = R.drawable.ic_vodafone
                 }
-                3-> {
+                3 -> {
                     operator = "Orange"
                     icon = R.drawable.ic_orange
                 }
-                4-> {
+                4 -> {
                     operator = "Yoigo"
                 }
-                7-> {
+                7 -> {
                     operator = "Movistar"
                     icon = R.drawable.ic_movistar
                 }
             }
 
             }
-            return arrayOf(operator,icon)
+            return arrayOf(operator, icon)
         }
 
-    fun arrayNetworks(mcc:Int):Array<String>? {
-        var list: Array<String>? = null
+    fun arrayNetworks(mcc: Int):Array<String> {
+        var list: Array<String> = emptyArray()
         when (mcc) {
             214 -> list = arrayOf("Movistar", "Orange", "Vodafone", "Yoigo", "GSM", "UMTS", "LTE")
         }
@@ -1135,7 +1268,7 @@ fun updateTextViewDistanceTower(location: Location) {
         var salida: MutableList<String> = mutableListOf("")
         for (i in 0..3) {
             if (checkedItems[i]) {
-                when (pDevice.mcc) {
+                when (pDevice?.mcc) {
                     214 -> {
                         when (networkList?.get(i)) {
                             "Movistar" -> salida.add(7.toString())
@@ -1149,5 +1282,6 @@ fun updateTextViewDistanceTower(location: Location) {
         }
         return salida
     }
+    
 }
 

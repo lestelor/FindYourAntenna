@@ -6,6 +6,7 @@ object Constants {
     val SPEEDTESTDOWNLOAD: Array<String> = arrayOf(
         "http://ipv4.ikoula.testdebit.info/1M.iso",
         "http://ipv4.ikoula.testdebit.info/10M.iso",
+        //default
         "http://ipv4.ikoula.testdebit.info/100M.iso",
         "https://ipv4.scaleway.testdebit.info:6881/1M.iso",
         "https://ipv4.scaleway.testdebit.info:6881/10M.iso",
@@ -17,6 +18,7 @@ object Constants {
 
 
     val SPEEDTESTUPLOAD: Array<String> = arrayOf(
+        //default
         "http://ipv4.ikoula.testdebit.info/",
         "ftp://speedtest.tele2.net/upload/"
     )

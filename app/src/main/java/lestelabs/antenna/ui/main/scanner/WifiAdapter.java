@@ -58,7 +58,7 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
         tvMac.setText("mac: " + deviceWiFi.getMac().toString());
         tvSec.setText(deviceWiFi.getSecurity().toString());
         tvChannel.setText(R.string.channel);
-        Integer freq = deviceWiFi.getCenterFreq2();
+        Integer freq = deviceWiFi.getCenterFreq();
         tvFreq.setText(freq.toString() + " MHz");
 
         Integer channel;

@@ -8,9 +8,9 @@ import android.util.Log
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat.startActivity
 
-fun waitGPS(context: Context){
+fun waitGPS(context: Context?){
     var gps_enabled = false
-    var lm: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    var lm: LocationManager = context?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     if (!gps_enabled) {
         Log.d("cfauli", "GPS NOT enabled")

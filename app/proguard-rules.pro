@@ -19,5 +19,5 @@
 -keep public class lestelabs.antenna.ui.main.rest.models.Towers
 -keep public class lestelabs.antenna.ui.main.rest.models.* {*;}
 
-
+-keepattributes LineNumberTable,SourceFile
 

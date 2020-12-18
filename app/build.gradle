@@ -40,15 +40,15 @@ android {
         javaMaxHeapSize "4g"
     }
 
-    compileSdkVersion 29
+    compileSdkVersion 30
     buildToolsVersion "29.0.3"
 
     defaultConfig {
         applicationId "lestelabs.antenna"
         minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 18
-        versionName "3.1"
+        targetSdkVersion 30
+        versionCode 32
+        versionName "3.87"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -59,7 +59,7 @@ android {
         release {
             // Enables code shrinking, obfuscation, and optimization for only
             // your project's release build type.
-            minifyEnabled true
+            minifyEnabled false
 
             // Enables resource shrinking, which is performed by the
             // Android Gradle plugin.
@@ -205,4 +205,12 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.10'
+
+
+    // This dependency is downloaded from the Google’s Maven repository.
+    // So, make sure you also include that repository in your project's build.gradle file.
+    implementation 'com.google.android.play:core:1.8.3'
+
+    // For Kotlin users also import the Kotlin extensions library for Play Core:
+    implementation 'com.google.android.play:core-ktx:1.8.1'
 }

@@ -1,47 +1,24 @@
 <resources>
     <string name="app_name">Network Test</string>
 
-    <string name="distance">Dist: </string>
-
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Network Test</string>
     <string name="nav_header_subtitle">shinnystar.labs@gmail.com</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
 
-    <string name="menu_gallery">Gallery</string>
-    <string name="menu_slideshow">Slideshow</string>
-    <string name="hola">hola</string>
-    <string name="timeSamples">Sample time</string>
     <string name="titlepopup">Local drive save settings</string>
-    <string name="ok">OK</string>
     <string name="textSampleTime">Sample time</string>
     <string name="textSampleDistance">Sample distance</string>
-    <string name="menu_home">Home</string>
     <string name="navSettings">Settings</string>
-    <string name="otherSettings">About:</string>
     <string name="minDistSample">10</string>
-    <string name="textDirectory">Sample Source</string>
-    <string name="checkbox_Towers">Save mobile sites coordinates</string>
-    <string name="checkbox_samples">Save mobile signal strength samples</string>
     <string name="pop_up_window_tv_folder">Samples file folder</string>
     <string name="minTimeSample">10</string>
     <string name="pop_up_checkbox_towers">Save site file</string>
     <string name="pop_up_checkbox_samples">Save samples signal strength file</string>
-    <string name="oksavetowers">1</string>
-    <string name="oksavesamples">1</string>
-    <string name="speed_test_button">"Start Speed Test  "</string>
     <string name="upload">Upload</string>
     <string name="download">Download</string>
     <string name="latency">Ping</string>
-    <string name="banner_id" translatable="false">ca-app-pub-8346072505648333~1653829654</string>
-    <string name="rbHTTP" translatable="false">http:8080 web</string>
-    <string name="rbFTP" translatable="false">ftp connection</string>
-    <string name="rb10MB" translatable="false">10 MB file</string>
-    <string name="rb1MB" translatable="false">1MB file</string>
-    <string name="rb100MB" translatable="false">100 MB file</string>
-    <string name="rbBitTorrent" translatable="false">http:6881 BitTorrent</string>
     <string name="navExit">Exit</string>
     <string name="menu_tab1">Network Speed</string>
     <string name="menu_tab2">Network Signal Scanner</string>
@@ -50,8 +27,6 @@
     <string name="Network">Network: </string>
     <string name="Operator">Operator (mcc-mnc): </string>
     <string name="MobileTxt">Mobile Network</string>
-    <string name="Tower">Site </string>
-    <string name="Frequency"> frequency: </string>
     <string name="MobileDetected">No mobile network detected</string>
     <string name="towerFileNotFound">The tower.csv file was not found</string>
     <string name="NotAValidFile">Not a valid file</string>
@@ -59,26 +34,24 @@
     <string name="towerNotFound">site not found</string>
     <string name="FileSavedIn">File saved in </string>
     <string name="TowerCoordinatesNotFound">Site coordinates not found</string>
-    <string name="TestDeviceID" translatable="false">9E4FF26E78ADE9DFD73A3F51A0D208CA</string>
     <string name="Download">Download: </string>
     <string name="Upload">Upload: </string>
-    <string name="distanceSamples">Sample Distance</string>
-    <string name="close_app">Close App</string>
     <string name="distancetxt">"distance: "</string>
     <string name="towertxt">"site: "</string>
     <string name="NotAvailable">Not Available</string>
-    <string name="click_to_start_the_test">Click to start the test</string>
+    <string name="click_to_start_the_test">Click the button to START the test</string>
+    <string name="click_to_abort_the_test">Click to ABORT the test</string>
     <string name="results">Results</string>
     <string name="tvWIFIwithoutSSID">WIFI     No WIFI network detected</string>
-    <string name="BannerIDold" translatable="false">ca-app-pub-8346072505648333/4204789619</string>
-    <string name="BannerID" translatable="false">ca-app-pub-8346072505648333/5715495023</string>
+
     <string name="BannerTest" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+
+    <string name="BannerID" translatable="false">ca-app-pub-8346072505648333/5715495023</string>
     <string name="AddsId" translatable="false">ca-app-pub-8346072505648333~1653829654</string>
     <string name="SpeedTestStarted">Please wait. The test started …</string>
     <string name="SpeedTestStoped">Test aborted!</string>
     <string name="level">coverage level: </string>
     <string name="Contribute">Share anonymous inf.</string>
-    <string name="contribute">Contribute:</string>
     <string name="CheckTheBoxBelow">Please check the box below to contribute and share anonymous information. Thanks!</string>
     <string name="ThanksForChecking">Thanks for sharing anonymous data. Now you can use the settings menu</string>
     <string name="ThankForNotChecking">Data is no longer shared. Enable it to use the options menu</string>
@@ -92,6 +65,9 @@
     <string name="Rate">Rate </string>
     <string name="RemindMeLater">Remind me later</string>
     <string name="NoThanks">No, thanks</string>
+    <string name="menu_tab4">antenasgsm.com</string>
+    <string name="navEmail">Send comments</string>
+    <string name="CopiedToClipboard">Copied to clipboard</string>
 
 
 

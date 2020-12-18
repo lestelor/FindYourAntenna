@@ -6,194 +6,309 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.main.MainActivity">
-
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
-
-<androidx.appcompat.widget.AppCompatTextView
-    android:id="@+id/tvTab1MobileNetworkType"
-    android:text="@string/click_to_start_the_test"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:textColor="@color/cpb_blue"
-    android:layout_gravity="center_horizontal"
-    android:layout_marginTop="10dp" />
-
-
-    <com.github.anastr.speedviewlib.SpeedView
-        android:id="@+id/speedView"
-        android:layout_width="214dp"
-        android:layout_height="199dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="5dp" />
-
-    <TableRow
-        android:id="@+id/hr"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="#f57c00" />
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal"
-        android:baselineAligned="false">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.33"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvSpeedtestDownloadFixed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/download" />
-
-            <TextView
-                android:id="@+id/tvSpeedtestDownload"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textColor="@color/colorPrimary"
-                android:textSize="26sp"
-                android:text="-"/>
-
-            <TextView
-                android:id="@+id/tvSpeedtestDownloadFixed2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-
-                android:text="Mbps" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.33"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvSpeedtestUploadFixed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/upload" />
-
-            <TextView
-                android:id="@+id/tvSpeedtestUpload"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textColor="@color/colorPrimary"
-                android:textSize="26sp"
-                android:text="-"/>
-
-            <TextView
-                android:id="@+id/tvSpeedtestUploadFixed2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Mbps" />
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.33"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvLatencyFixed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-
-                android:text="@string/latency" />
-
-            <TextView
-                android:id="@+id/tvLatency"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textColor="@color/colorPrimary"
-                android:textSize="26sp"
-                android:text="-"/>
-
-            <TextView
-                android:id="@+id/tvLatencyFixed2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="ms" />
-        </LinearLayout>
-
-    </LinearLayout>
-    <TableRow
-        android:id="@+id/hr2"
-        android:layout_marginTop="5dp"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background ="#f57c00" />
-
-    <TextView
-        android:id="@+id/tvResultsFixed"
+    <ProgressBar
+        android:foregroundGravity="top|left"
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/results" />
+        android:visibility="gone" />
 
-    <ListView
-        android:id="@+id/speedList"
-        android:layout_marginTop="5dp"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.97"/>
-
-    <com.google.android.gms.ads.AdView
-
-
-
-        xmlns:ads="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/adViewFragment1"
-        ads:adSize="BANNER"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        ads:adUnitId="@string/BannerID">
-    </com.google.android.gms.ads.AdView>
-
-</LinearLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:translationY="80sp">
+        tools:context=".ui.main.MainActivity">
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <com.github.anastr.speedviewlib.SpeedView
+                android:id="@+id/speedView"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp"
+                app:sv_unit="Mbps"
+                app:sv_withTremble="false"
+                />
+
+            <TableRow
+                android:id="@+id/hr"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="#f57c00" />
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.33"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvSpeedtestDownloadFixed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/download" />
+
+                    <TextView
+                        android:id="@+id/tvSpeedtestDownload"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="26sp"
+                        android:text="-"/>
+
+                    <TextView
+                        android:id="@+id/tvSpeedtestDownloadFixed2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+
+                        android:text="Mbps" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.33"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvSpeedtestUploadFixed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/upload" />
+
+                    <TextView
+                        android:id="@+id/tvSpeedtestUpload"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="26sp"
+                        android:text="-"/>
+
+                    <TextView
+                        android:id="@+id/tvSpeedtestUploadFixed2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="Mbps" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.33"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvLatencyFixed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+
+                        android:text="@string/latency" />
+
+                    <TextView
+                        android:id="@+id/tvLatency"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="26sp"
+                        android:text="-"/>
+
+                    <TextView
+                        android:id="@+id/tvLatencyFixed2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="ms" />
+                </LinearLayout>
+            </LinearLayout>
+            <TableRow
+                android:id="@+id/hr2"
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background ="#f57c00" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+                <TextView
+                    android:id="@+id/tvResultsFixed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/results" />
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/ibTab1CopyToClipboard"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/icon_clipboard_24"/>
+            </LinearLayout>
+
+            <ListView
+                android:id="@+id/speedList"
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.97"/>
+
+            <com.google.android.gms.ads.AdView
+
+
+
+                xmlns:ads="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/adViewFragment1"
+                ads:adSize="BANNER"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                ads:adUnitId="@string/BannerID">
+            </com.google.android.gms.ads.AdView>
+        </LinearLayout>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_tab1_onoff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
-
+            android:layout_marginTop="105dp"
             android:backgroundTint="@color/cpb_white"
+            android:layout_gravity="top|center"            />
+<!--            android:src="@drawable/ic_switch_on_off" -->
 
-            android:src="@drawable/ic_switch_on_off"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tvTab1StartTest"
+            android:text="@string/click_to_start_the_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/cpb_blue"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="4dp" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="25dp"
+            android:layout_marginStart="10sp">
+
+            <ImageView
+                android:id="@+id/ivTab1Type"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="20dp"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1Type"
+                tools:text="WIFI"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1Name"
+                tools:text="Orange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1MCC"
+                tools:text="MCC:mcc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"
+                android:layout_marginTop="18dp"
+                android:textSize="12sp"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1MNC"
+                tools:text="MNC:mnc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"
+                android:textSize="12sp"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1LAC"
+                tools:text="LAC:lac"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"
+                android:textSize="12sp"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1CID"
+                tools:text="CID:cidcidcidcid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"
+                android:textSize="12sp"/>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="200dp"
+            android:orientation="vertical"
+            android:layout_gravity="end"
+            android:layout_marginTop="25dp"
+            android:layout_marginEnd="10sp">
+
+            <ImageView
+                android:id="@+id/ivTab1Level"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="20sp"
+                android:layout_gravity="end"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1Signal"
+                tools:text="Signal (dBm)"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"
+                android:layout_gravity="end"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1Channel"
+                tools:text="Chanel (Int)"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"
+                android:layout_gravity="end"
+                android:layout_marginTop="64dp"
+                android:textSize="12sp"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvTab1Frequency"
+                tools:text="Frequ (MHz)"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cpb_blue"
+                android:layout_gravity="end"
+                android:textSize="12sp" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </RelativeLayout>

@@ -2,36 +2,20 @@
 <resources>
     <string name="app_name">Network Test</string>
 
-    <string name="distance">dist:</string>
-
     <string name="navigation_drawer_open">Obrir menú</string>
     <string name="navigation_drawer_close">Tancar menu</string>
     <string name="nav_header_subtitle">shinnystar.labs@gmail.com</string>
     <string name="nav_header_desc">Capçalera menu</string>
-    <string name="action_settings">Opcions</string>
 
-    <string name="menu_gallery">Galeria</string>
-    <string name="menu_slideshow">Diapositives</string>
-    <string name="hola">hola</string>
-    <string name="timeSamples">Temps entre mostres</string>
-    <string name="distanceSamples">Distància entre mostres</string>
     <string name="titlepopup">Opcions</string>
-    <string name="ok">OK</string>
     <string name="textSampleTime">Temps entre mostres</string>
     <string name="textSampleDistance">Distància entre mostres</string>
     <string name="navSettings">Opcions</string>
-    <string name="otherSettings">Sobre:</string>
     <string name="minDistSample">10</string>
-    <string name="textDirectory">Carpeta mostres</string>
-    <string name="checkbox_Towers">Guarda arxiu emplaçaments mòbils</string>
-    <string name="checkbox_samples">Guarda arxiu mostres de senyal</string>
     <string name="pop_up_window_tv_folder">Samples file folder</string>
     <string name="minTimeSample">10</string>
     <string name="pop_up_checkbox_towers">Guarda arxiu emplaçaments mòbils</string>
     <string name="pop_up_checkbox_samples">Guarda arxiu mostres de senyal</string>
-    <string name="oksavetowers">1</string>
-    <string name="oksavesamples">1</string>
-    <string name="speed_test_button">Comença Speed ​​Test</string>
     <string name="upload">Pujada</string>
     <string name="download">Baixada</string>
     <string name="latency">Ping</string>
@@ -43,8 +27,6 @@
     <string name="Network">Xarxa:</string>
     <string name="Operator">Operador (mcc-mnc):</string>
     <string name="MobileTxt">Xarxa Mòbil</string>
-    <string name="Tower">Emplaçament </string>
-    <string name="Frequency"> freqüència:</string>
     <string name="MobileDetected">Xarxa mòbil no detectada</string>
     <string name="towerFileNotFound">Arxiu towers.csv no trobat</string>
     <string name="NotAValidFile">Arxiu no vàlid</string>
@@ -55,19 +37,18 @@
     <string name="Download">Baixada:</string>
     <string name="Upload">Pujada:</string>
     <string name="nav_header_title">Network Test</string>
-    <string name="menu_home">Enrere</string>
-    <string name="close_app">Tancar App</string>
     <string name="distancetxt">distància:</string>
     <string name="towertxt">emplaçament: </string>
     <string name="NotAvailable">No disponible</string>
-    <string name="click_to_start_the_test">Fes click per començar el test</string>
+    <string name="click_to_start_the_test">Fes click al botó per COMENÇAR el test</string>
+    <string name="click_to_abort_the_test">Fes click per PARAR el test</string>
+
     <string name="results">Resultats</string>
     <string name="tvWIFIwithoutSSID">WIFI     No es detecta cap xarxa WIFI</string>
     <string name="SpeedTestStoped">Test avortat!</string>
     <string name="SpeedTestStarted">Si us plau espera. El test ha començat …</string>
     <string name="level">senyal: </string>
     <string name="Contribute">Compartir mostres</string>
-    <string name="contribute">Contribuïr:</string>
     <string name="CheckTheBoxBelow">Marqueu la casella següent per contribuir i compartir informació anònima. Gràcies!</string>
     <string name="ThanksForChecking">Gràcies per compartir dades anònimes. Ara podeu utilitzar el menú d’opcions</string>
     <string name="ThankForNotChecking">Les dades ja no es comparteixen. Activeu-lo per utilitzar el menú d’opcions</string>
@@ -82,6 +63,9 @@
     <string name="Rate">Dóna 5 estrelles </string>
     <string name="RemindMeLater">Recorde\'m més tard</string>
     <string name="NoThanks">No, gràcies</string>
+    <string name="menu_tab4">antenasgsm.com</string>
+    <string name="navEmail">Enviar comentaris</string>
+    <string name="CopiedToClipboard">Copiat al portapapers</string>
 
 
 

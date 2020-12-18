@@ -8,23 +8,18 @@ import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.util.Log
-import android.view.View
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.FragmentActivity
-import lestelabs.antenna.R
 import java.util.*
 
 
-public object scanWifi {
+object scanWifi {
 
-
-    val arrayList = ArrayList<String>()
     var wifiScanReceiver: BroadcastReceiver? = null
     var devices: MutableList<DeviceWiFi> = mutableListOf()
     var i=0
 
-    fun scanwifi (context: FragmentActivity, wifiManager: WifiManager, callback: (Boolean) -> Unit ) {
+    fun scanwifi (context: FragmentActivity?, wifiManager: WifiManager, callback: (Boolean) -> Unit ) {
 
         var results: List<ScanResult>?
         devices = mutableListOf()
@@ -37,24 +32,25 @@ public object scanWifi {
             override fun onReceive(c: Context, intent: Intent) {
                 i = 1
                 results = wifiManager.scanResults
-                Log.d("cfauli wifi results", (results as MutableList<ScanResult>?)?.size.toString())
+                Log.d("cfauli wifi results", (results as MutableList<ScanResult>).size.toString())
                 //unregisterReceiver(this)
-                for (scanResult in (results as MutableList<ScanResult>?)!!) {
+                for (scanResult in (results as MutableList<ScanResult>)) {
                     if (i == 1) {
                         devices = mutableListOf(DeviceWiFi())
                         devices[0] = DeviceWiFi(
-                            scanResult.SSID, scanResult.BSSID, scanResult.capabilities, scanResult.centerFreq0, scanResult.centerFreq1,
-                            scanResult.frequency, scanResult.channelWidth, scanResult.level, scanResult.operatorFriendlyName.toString()
+                            scanResult.SSID, scanResult.BSSID, scanResult.capabilities,
+                            scanResult.frequency, scanResult.level
                         )
+
                     } else {
                         devices.add(
                             DeviceWiFi(
-                                scanResult.SSID, scanResult.BSSID, scanResult.capabilities, scanResult.centerFreq0, scanResult.centerFreq1,
-                                scanResult.frequency, scanResult.channelWidth, scanResult.level, scanResult.operatorFriendlyName.toString()
+                                scanResult.SSID, scanResult.BSSID, scanResult.capabilities,
+                                scanResult.frequency, scanResult.level
                             )
                         )
                     }
-                    if (i >= (results as MutableList<ScanResult>?)?.size!!) {
+                    if (i >= (results as MutableList<ScanResult>).size) {
                         callback(true)
                         return
                     } else i += 1
@@ -65,7 +61,7 @@ public object scanWifi {
 
         val intentFilter = IntentFilter()
         intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
-        context.registerReceiver(wifiScanReceiver, intentFilter)
+        context?.registerReceiver(wifiScanReceiver, intentFilter)
         wifiManager.startScan()
 
 

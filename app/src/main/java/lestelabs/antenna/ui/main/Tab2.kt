@@ -19,7 +19,9 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.rest.findTower
 import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.*
@@ -57,6 +59,10 @@ class Tab2 : Fragment() {
     private lateinit var wifiManager: WifiManager
 
     private lateinit var telephonyManager:TelephonyManager
+    private lateinit var connectivity: Connectivity
+
+    private val tabName = "Tab2"
+    private var crashlyticsKeyAnt = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,6 +77,8 @@ class Tab2 : Fragment() {
         //val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         //minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
 
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
     }
 
     override fun onStart() {
@@ -89,20 +97,25 @@ class Tab2 : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
         val size = 0
         var results: List<ScanResult?>
         val arrayList: ArrayList<String> = ArrayList()
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+
         //val listView: ListView = view.findViewById<View>((R.id.wifiList)) as ListView
-        wifiManager = requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val wifiScanReceiver: BroadcastReceiver
+        wifiManager = context?.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
         fragmentView= inflater.inflate(R.layout.fragment_tab2, container, false)
+
+        connectivity = Connectivity(fragmentView.context)
         Log.d("cfauli", "OnCreateView Tab2")
         // Adds -------------------------------------------------------------------------------------
         mAdView = fragmentView.findViewById(R.id.adViewFragment2)
-        MobileAds.initialize(requireActivity())
+        MobileAds.initialize(activity)
         val adRequest = AdRequest.Builder().build()
         mAdView.loadAd(adRequest)
         mAdView.adListener = object: AdListener() {
@@ -133,6 +146,9 @@ class Tab2 : Fragment() {
             }
         }
 
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
         // fill the mobile list every mintime secs
         //minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
         startMobileScannerTab2(fragmentView)
@@ -150,10 +166,17 @@ class Tab2 : Fragment() {
         val tvWifi = fragmentView.findViewById<View>(R.id.tv_wifi) as TextView
         tvWifi.text = getString(R.string.tvWIFIwithoutSSID)
 
-        // needed to wait until location is enabled, otherwhise the wifi networks dont appear
-        waitGPS(requireContext())
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        scanWifi.scanwifi(requireActivity(), wifiManager) {
+        // needed to wait until location is enabled, otherwhise the wifi networks dont appear
+        waitGPS(context)
+
+        scanWifi.scanwifi(activity, wifiManager) {
+
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
             tvWifi.text = "WIFI"
             adapter.clear()
 
@@ -270,53 +293,68 @@ class Tab2 : Fragment() {
         val tvLon = view.findViewById<View>(R.id.tv_mobile_lon) as TextView
         val ivIconLevel = view.findViewById<View>(R.id.iv_mobile_signalIcon) as ImageView
         val tvMobile = view.findViewById<View>(R.id.tv_mobile_txt) as TextView
+        val tvIccId = view.findViewById<View>(R.id.tv_iccid) as TextView
 
 
         val pDevice = loadCellInfo(telephonyManager)
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
         findOperatorName(pDevice) {
             it -> tvOperatorName.text= it
         }
 
         tvMobile.text = getString(R.string.MobileTxt)
-        tvLevel.text = pDevice.dbm.toString() + "dBm"
-        if (pDevice.mcc==0) {
+        tvLevel.text = pDevice?.dbm.toString() + "dBm"
+        if (pDevice?.mcc==0) {
             tvOperator.text = getString(R.string.MobileDetected)
-        } else tvOperator.text = getString(R.string.Operator) + pDevice.mcc.toString() + "-" + pDevice.mnc.toString()
-        tvLac.text = "lac: " + pDevice.lac.toString()
-        tvId.text = "id: " + pDevice.cid.toString()
+        } else tvOperator.text = getString(R.string.Operator) + pDevice?.mcc.toString() + "-" + pDevice?.mnc.toString()
+        tvLac.text = "lac: " + pDevice?.lac.toString()
+        tvId.text = "id: " + pDevice?.cid.toString()
         tvNetwork.text = getString(R.string.Network)
-        tvNetworkType.text = pDevice.type + " " + "%.1f".format(calculateFreq(pDevice.type,pDevice.band)) + " MHz"
+        tvNetworkType.text = pDevice?.type + " " + "%.1f".format(calculateFreq(pDevice?.type,pDevice?.band)) + " MHz"
+        tvIccId.text = connectivity.getIccId()
 
-        if (totalCidAnt != pDevice.totalCellId) {
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+        if (totalCidAnt != pDevice?.totalCellId) {
             val openCellIdInterface = retrofitFactory()
             findTower(openCellIdInterface, pDevice)
             { coordenadas ->
-                if (coordenadas.lat!! >0.0) {
-                    tvLat.text = getString(R.string.Tower) + " lat: " + "%.5f".format(coordenadas.lat)
+                if (coordenadas?.lat != null && coordenadas.lat !=-1000.0) {
+                    tvLat.text = "lat: " + "%.5f".format(coordenadas.lat)
                     tvLon.text = "lon: " + "%.5f".format(coordenadas.lon)
                 } else {
                     tvLat.text = getString(R.string.TowerCoordinatesNotFound)
                     tvLon.text = ""
                 }
             }
-            totalCidAnt = pDevice.totalCellId
+            totalCidAnt = pDevice?.totalCellId.toString()
         }
-        val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        thresMobBlack = sharedPreferences.getString("thres_mob_black",Constants.MINMOBILESIGNALBLACK)!!.toInt()
-        thresMobRed = sharedPreferences.getString("thres_mob_red",Constants.MINMOBILESIGNALRED)!!.toInt()
-        thresMobYellow = sharedPreferences.getString("thres_mob_yellow",Constants.MINMOBILESIGNALYELLOW)!!.toInt()
+        val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+
+        thresMobBlack = sharedPreferences?.getString("thres_mob_black", Constants.MINMOBILESIGNALBLACK)?.toInt() ?: Constants.MINMOBILESIGNALBLACK.toInt()
+        thresMobRed = sharedPreferences?.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)?.toInt() ?:  Constants.MINMOBILESIGNALRED.toInt()
+        thresMobYellow = sharedPreferences?.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)?.toInt() ?:  Constants.MINMOBILESIGNALYELLOW.toInt()
         thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
 
-        if (pDevice.dbm!! >= (-1*thresMobYellow)) {
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+    pDevice?.let {
+        if (it.dbm!! >= (-1*thresMobYellow)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_green)
-        } else if (pDevice.dbm!! >= (-1*thresMobRed)) {
+        } else if (pDevice?.dbm!! >= (-1*thresMobRed)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_yellow)
-        } else if (pDevice.dbm!! >= (-1*thresMobBlack)) {
+        } else if (pDevice?.dbm!! >= (-1*thresMobBlack)) {
             ivIconLevel.setImageResource(R.drawable.ic_network_red)
         } else {
             ivIconLevel.setImageResource(R.drawable.ic_network_black)
         }
+    }
+
 
 
     }
@@ -351,7 +389,6 @@ class Tab2 : Fragment() {
             return fragment
         }
     }
-
 
 }
 

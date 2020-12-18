@@ -12,7 +12,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
-import android.os.Environment
 import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.util.Log
@@ -23,11 +22,11 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
-import androidx.navigation.ui.AppBarConfiguration
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
@@ -40,10 +39,10 @@ import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
 import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.crashlytics.Crashlytics
 import lestelabs.antenna.ui.main.menu.PopUpSettings
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
-import java.io.File
 
 interface GetfileState {
     fun getFileState():List<Int>
@@ -52,16 +51,12 @@ interface GetfileState {
 
  class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private var drawerLayout: View? = null
-    private var getFileStateButtonPressed: Int = 0
-    private lateinit var toggle: ActionBarDrawerToggle
-    private var tabSelectedInt: Int = -1
+     private var getFileStateButtonPressed: Int = 0
+     private lateinit var toggle: ActionBarDrawerToggle
+     private var tabSelectedInt: Int = -1
 
      private var mFileList: Array<String>? = null
-     private var mPath: File = File(Environment.DIRECTORY_DOWNLOADS)
      private var mChosenFile: String? = null
-     private val FTYPE = ".txt"
      private val DIALOG_LOAD_FILE = 1000
      var gps_enabled:Boolean = false
      private lateinit var lm:LocationManager
@@ -71,9 +66,12 @@ interface GetfileState {
      private lateinit var firebaseAnalytics: FirebaseAnalytics
 
      private lateinit var telephonyManager: TelephonyManager
-     private var pDevice:DevicePhone = DevicePhone()
+     private var pDevice:DevicePhone? = DevicePhone()
      private lateinit var fusedLocationClient: FusedLocationProviderClient
      private var myLocation:Location? = null
+
+     private val tabName = "MainActivity"
+     private var crashlyticsKeyAnt = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -82,25 +80,57 @@ interface GetfileState {
         setContentView(R.layout.activity_main)
 
         val navigationView: NavigationView = findViewById(R.id.nav_view)
+
+        // In order to show custom items in the navigationview menu
+        navigationView.itemIconTintList = null
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+        // try catch the error
+        //Caused by android.content.res.Resources$NotFoundException
+        //Resource ID #0x7f0700a9 -> ic_settings
+        try {
+            navigationView.menu.getItem(0).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_settings))
+            navigationView.menu.getItem(1).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_email))
+            navigationView.menu.getItem(2).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_speed_dark))
+            navigationView.menu.getItem(3).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_network_dark))
+            navigationView.menu.getItem(4).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_map_dark))
+            navigationView.menu.getItem(5).setIcon(ContextCompat.getDrawable(this, R.drawable.gsmantenas))
+            navigationView.menu.getItem(6).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_contribute))
+            navigationView.menu.getItem(7).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_exit))
+
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+        } catch (e: FileSystemException) {
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+            Log.d("cfauli", "error setting menu images e:", e)
+        } catch (ex: Exception) {
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+            Log.d("cfauli", "error setting menu images ex:", ex)
+        } catch (npe: NullPointerException) {
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+            Log.d("cfauli", "error setting menu images npe:", npe)
+        }
+
         Log.d("cfauli", R.drawable.ic_settings.toString())
+        Log.d("cfauli", R.drawable.ic_email.toString())
         Log.d("cfauli", R.drawable.ic_speed_dark.toString())
         Log.d("cfauli", R.drawable.ic_network_dark.toString())
         Log.d("cfauli", R.drawable.ic_map_dark.toString())
+        Log.d("cfauli", R.drawable.gsmantenas.toString())
         Log.d("cfauli", R.drawable.ic_contribute.toString())
         Log.d("cfauli", R.drawable.ic_exit.toString())
 
-        /*ic_settings
-        ic_speed_dark
-        ic_network_dark
-        ic_map_dark
-        ic_contribute
-        ic_exit*/
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
         //val toolbar = findViewById<Toolbar>(R.id.toolbar)
         val drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout?
         val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
-
-
 
         // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
 
@@ -126,9 +156,29 @@ interface GetfileState {
         /*Cast MenuItem to CheckBox
           CheckBox checkBox= (CheckBox) menuItem.getActionView();
           */
-        checkBox = navigationView.menu.getItem(2).actionView as CheckBox
+        Log.d(
+            "cfauli", "submenu" + "0- " + navigationView.menu.getItem(0).toString()
+                    + "1- " + navigationView.menu.getItem(1).toString()
+                    + "2- " + navigationView.menu.getItem(2).toString()
+                    + "3- " + navigationView.menu.getItem(3).toString()
+                    + "4- " + navigationView.menu.getItem(4).toString()
+                    + "5- " + navigationView.menu.getItem(5).toString()
+                    + "6- " + navigationView.menu.getItem(6).toString()
+                    + "7- " + navigationView.menu.getItem(7).toString()
+        )
+        checkBox = navigationView.menu.getItem(6).actionView as CheckBox
 
-        val sharedPreferences = baseContext.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        //getApplicationContext() offers application context, destroys when close the app
+        //getBaseContext() offers activity context, destroys when Ondestroy
+        // So although this (for Activity) and getBaseContext() both give the activity context, they
+            //(a) do not refer to the same object (this != getBaseContext()) and
+            //(b) calling context through this is slightly less efficient, as the calls go through an extra level of indirection. I doubt it makes any practical difference, though.
+        // context returns a nullable value while requirecontext() returns an exception when null
+        // then, it is more reliant using applicationcontext for sharedprefferences between classes
+        // nevertheless in this case since the activity destroys the app, basecontext and applicationcontexts are the same.
+        //Moreover, this in this case is the same as activity.basecontext
+
+        val sharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
         checkBox.isChecked = pleaseContribute
 
@@ -144,7 +194,7 @@ interface GetfileState {
         })
 
 
-        Log.d("cfauli", "submenu " + navigationView.menu.getItem(2).toString())
+
 
         if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
             (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
@@ -161,12 +211,20 @@ interface GetfileState {
 
         telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
-        if (pDevice.mcc == 214) {
+
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+        if (pDevice?.mcc == 214) {
             tabLayout.addTab(tabLayout.newTab())
 
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
+
+                    // Control point for Crashlitycs
+                    crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
                     myLocation = location
                     tabLayout.tabGravity = TabLayout.GRAVITY_FILL
                     val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
@@ -190,7 +248,7 @@ interface GetfileState {
                     tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
                     tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
 
-                    if (pDevice.mcc == 214) tabLayout.getTabAt(3)?.setIcon(R.drawable.gsmantenas)
+                    if (pDevice?.mcc == 214) tabLayout.getTabAt(3)?.setIcon(R.drawable.gsmantenas)
 
                     tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
                         override fun onTabSelected(tab: TabLayout.Tab) {
@@ -206,6 +264,10 @@ interface GetfileState {
                     })
                 }
         } else {
+            // Control point for Crashlitycs
+            crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+            navigationView.menu.getItem(5).isVisible = false
             // repeat the same since we do not want to wait to location if mcc!=214
             tabLayout.tabGravity = TabLayout.GRAVITY_FILL
             val viewPager = findViewById<View>(R.id.view_pager) as ViewPager
@@ -229,9 +291,10 @@ interface GetfileState {
             tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
             tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
 
-            if (pDevice.mcc == 214) tabLayout.getTabAt(3)?.setIcon(R.drawable.gsmantenas)
+            if (pDevice?.mcc == 214) tabLayout.getTabAt(3)?.setIcon(R.drawable.gsmantenas)
 
             tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
+
                 override fun onTabSelected(tab: TabLayout.Tab) {
                     tabSelectedInt = tab.position
                     viewPager.currentItem = tab.position
@@ -245,11 +308,7 @@ interface GetfileState {
             })
         }
 
-
-
-
-
-
+        //InAppReview.inAppReview(this.baseContext, this)
 
     }
 
@@ -269,12 +328,14 @@ interface GetfileState {
     }
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
-
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
         when (p0.itemId) {
+
             R.id.nav_settings -> {
                 if (checkBox.isChecked) {
                     val intent = Intent(this, PopUpSettings::class.java)
-                    //intent.putExtra("popuptitle", "Error")
+                    //intent.putExtra("popuptitle", this)
                     startActivity(intent)
                     //(drawerLayout as DrawerLayout).closeDrawer(GravityCompat.START)
                 } else {
@@ -283,16 +344,40 @@ interface GetfileState {
                     builder.setMessage(getString(R.string.pleasedonotUncheck))
                     builder.setPositiveButton("OK") { dialog, which ->
                         checkBox.isChecked = true
+                        // actualizar shared
+                        val sharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+                        val editor: SharedPreferences.Editor = sharedPreferences.edit()
+                        editor.putBoolean("please_contribute", true)
+                        editor.apply()
+                        editor.commit()
                         val intent = Intent(this, PopUpSettings::class.java)
                         startActivity(intent)
+
                     }
                     builder.setNegativeButton("Cancel", null)
 
                     val dialog = builder.create()
-                    dialog.show()
+                    //This is most likely happening because you are trying to show a dialog after execution of a background thread,
+                    // while the Activity is being destroyed.
+                    //
+                    //I was seeing this error reported once in a while from some of my apps when the activity calling the dialog
+                    // was finishing for some reason or another when it tried to show a dialog. Here's what solved it for me:
+                    //if (!(context as Activity).isFinishing) {
+                    if (!(this as Activity).isFinishing) {
+                        dialog.show()
+                    }
+
                     Toast.makeText(baseContext, getString(R.string.CheckTheBoxBelow), Toast.LENGTH_LONG).show()
                 }
+            }
+            R.id.nav_email -> {
+                val intent = Intent(Intent.ACTION_SEND)
+                intent.putExtra(Intent.EXTRA_EMAIL, arrayOf("shinnystar.labs@gmail.com"))
+                intent.putExtra(Intent.EXTRA_TEXT, "Comments for cid:" + pDevice?.cid.toString() + "\n")
+                intent.putExtra(Intent.EXTRA_SUBJECT, "Comments Network Test")
 
+                intent.type = "text/plain"
+                startActivity(Intent.createChooser(intent, "Share using:"));
             }
             R.id.nav_tab1 -> {
                 val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
@@ -309,8 +394,13 @@ interface GetfileState {
                 val tab = tabLayout.getTabAt(2)
                 tab!!.select()
             }
+            R.id.nav_tab4 -> {
+                val tabLayout = findViewById<View>(R.id.tabs) as TabLayout
+                val tab = tabLayout.getTabAt(3)
+                tab!!.select()
+            }
             R.id.nav_contribute -> {
-                val sharedPreferences = baseContext.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+                val sharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
                 val editor: SharedPreferences.Editor = sharedPreferences.edit()
                 val isSelected = !checkBox.isChecked
                 checkBox.isChecked = isSelected

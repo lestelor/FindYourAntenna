@@ -1,18 +1,23 @@
 package lestelabs.antenna.ui.main.scanner
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
+import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
+import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 
 
-object Connectivity {
+class Connectivity(context: Context) {
 
-
+    val mContext= context
 
     //@RequiresApi(Build.VERSION_CODES.M)
     fun getWifiParam(context: Context): DeviceWiFi {
@@ -24,33 +29,50 @@ object Connectivity {
         deviceWiFi.level = wifiInfo.rssi
         deviceWiFi.mac = wifiInfo.macAddress
         val freq = wifiInfo.frequency
-        deviceWiFi.centerFreq2 = freq
+        deviceWiFi.centerFreq = freq
 
         return deviceWiFi
     }
 
-    fun getNetworkInfo(context: Context): NetworkInfo? {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    fun getNetworkInfo(): NetworkInfo? {
+        val cm = mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         return cm.activeNetworkInfo
     }
 
 
     //@RequiresApi(Build.VERSION_CODES.M)
-    fun isConnected(context: Context): Boolean {
-        val info = getNetworkInfo(context)
+    fun isConnected(): Boolean {
+        val info = getNetworkInfo()
         return info != null && info.isConnected
     }
 
 
     //@RequiresApi(Build.VERSION_CODES.M)
-    fun isConnectedWifi(context: Context): Boolean {
-        val info = getNetworkInfo(context)
+    fun isConnectedWifi(): Boolean {
+        val info = getNetworkInfo()
         return info != null && info.isConnected && info.type == ConnectivityManager.TYPE_WIFI
     }
 
-    fun isConnectedMobile(context: Context): Boolean {
-        val info = getNetworkInfo(context)
+    fun isConnectedMobile(): Boolean {
+        val info = getNetworkInfo()
         return info != null && info.isConnected && info.type == ConnectivityManager.TYPE_MOBILE
+    }
+
+    fun getIccId():String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            val sm = SubscriptionManager.from(mContext)
+            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                return ""
+            }  else {
+                val sis = sm.activeSubscriptionInfoList
+                val si = sis[0]
+                var iccId = si.iccId
+                if (iccId.length == 20) {
+                    if (iccId[19].isLetter()) iccId = iccId.take(19)
+                }
+                return iccId
+            }
+        } else return ""
     }
 
 /*
