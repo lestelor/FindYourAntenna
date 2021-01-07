@@ -667,22 +667,26 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
             val thresMobYellow = sharedPreferences?.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)?.toInt() ?:  Constants.MINMOBILESIGNALYELLOW.toInt()
             val thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
 
-            pDevice?.let {
-                if (it.dbm!! >= (-1*thresMobYellow)) {
-                    ivLevel.setImageResource(R.drawable.ic_network_green)
-                } else if (pDevice?.dbm!! >= (-1*thresMobRed)) {
-                    ivLevel.setImageResource(R.drawable.ic_network_yellow)
-                } else if (pDevice?.dbm!! >= (-1*thresMobBlack)) {
-                    ivLevel.setImageResource(R.drawable.ic_network_red)
-                } else {
-                    ivLevel.setImageResource(R.drawable.ic_network_black)
+            try {
+                pDevice?.let {
+                    if (it.dbm!! >= (-1 * thresMobYellow)) {
+                        ivLevel.setImageResource(R.drawable.ic_network_green)
+                    } else if (pDevice?.dbm!! >= (-1 * thresMobRed)) {
+                        ivLevel.setImageResource(R.drawable.ic_network_yellow)
+                    } else if (pDevice?.dbm!! >= (-1 * thresMobBlack)) {
+                        ivLevel.setImageResource(R.drawable.ic_network_red)
+                    } else {
+                        ivLevel.setImageResource(R.drawable.ic_network_black)
+                    }
                 }
-            }
 
-            tvSignal.text = pDevice?.dbm.toString() + " dBm"
-            tvChannel.text = "arfcn: " +  pDevice?.band.toString()
-            tvFrequency.text = "freq: " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
-            //tvTab1MobileNetworkType.text = ""
+                tvSignal.text = pDevice?.dbm.toString() + " dBm"
+                tvChannel.text = "arfcn: " + pDevice?.band.toString()
+                tvFrequency.text = "freq: " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
+                //tvTab1MobileNetworkType.text = ""
+            } catch (e:Exception) {
+                Log.d("cfauli", "Tab1 FillNetworkTextView exception")
+            }
 
         } else if (isConnectedWifi())  {
 
@@ -868,7 +872,7 @@ fun saveDocument(context: Context) {
                                 " WIFI " + deviceWifi.ssid + " ch: " + getChannel(deviceWifi.centerFreq) + " " + deviceWifi.level + "dBm"
                             }
                             else {
-                                " " + pDevice?.type + " " + pDevice?.band + "MHz " + pDevice?.dbm.toString() + "dBm"
+                                " " + pDevice?.type + " " + "%.1f".format(pDevice?.freq) + "MHz " + pDevice?.dbm.toString() + "dBm"
                             }
 
 

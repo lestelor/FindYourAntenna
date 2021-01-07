@@ -543,7 +543,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
         mAdView = view?.findViewById(R.id.adViewFragment3)
-        val adView = AdView(context)
+
         MobileAds.initialize(context)
         val adRequest = AdRequest.Builder().build()
 
@@ -1014,7 +1014,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
     }
-    @RequiresApi(Build.VERSION_CODES.N)
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
         if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
@@ -1022,12 +1022,13 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             // Instead, a URI to that document will be contained in the return intent
             // provided to this method as a parameter.
             // Pull the path using resultData.getData().
-            resultData?.data?.also { uri ->
+            resultData?.data?.also {
 
-                val dotsFilePath = resultData.data?.path?.replace("/document/primary:", "/storage/emulated/0/")
-                Log.d("cfauli", "performfilesearch folder " + resultData.data?.path?.replace("/document/primary:", "/storage/emulated/0/"))
-                var nextLine: String? = null
                 try {
+                    val dotsFilePath = resultData.data?.path?.replace("/document/primary:", "/storage/emulated/0/")
+                    Log.d("cfauli", "performfilesearch folder " + resultData.data?.path?.replace("/document/primary:", "/storage/emulated/0/"))
+                    var nextLine: String? = null
+
                     //val filePath = File(getStorageDir())
                     //val csvfile = File(filePath, "samples.csv")
                     val csvfile = File(dotsFilePath)

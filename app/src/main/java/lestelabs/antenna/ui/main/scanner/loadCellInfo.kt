@@ -135,6 +135,7 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone? {
                 Log.d("cfauli", "loadCellInfo Unknown Cell")
                 }
             pDevicePhone.totalCellId = pDevicePhone.mcc.toString() + pDevicePhone.mnc.toString() + pDevicePhone.lac.toString() + pDevicePhone.cid.toString()
+            pDevicePhone.freq = calculateFreq(pDevicePhone.type,pDevicePhone.band)
             }
 
         } catch (npe: NullPointerException) {

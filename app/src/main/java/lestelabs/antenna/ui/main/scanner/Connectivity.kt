@@ -65,12 +65,15 @@ class Connectivity(context: Context) {
                 return ""
             }  else {
                 val sis = sm.activeSubscriptionInfoList
-                val si = sis[0]
-                var iccId = si.iccId
-                if (iccId.length == 20) {
-                    if (iccId[19].isLetter()) iccId = iccId.take(19)
-                }
-                return iccId
+                if (sis != null) {
+                    val si = sis[0]
+                    var iccId = si.iccId
+                    if (iccId.length == 20) {
+                        if (iccId[19].isLetter()) iccId = iccId.take(19)
+                    }
+                    return iccId
+                } else return ""
+
             }
         } else return ""
     }

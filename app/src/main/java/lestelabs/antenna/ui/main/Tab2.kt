@@ -1,6 +1,7 @@
 package lestelabs.antenna.ui.main
 
-import android.content.BroadcastReceiver
+
+import android.app.Activity
 import android.content.Context
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
@@ -19,7 +20,6 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.rest.findTower
@@ -85,12 +85,12 @@ class Tab2 : Fragment() {
         // call the superclass method first
         super.onStart()
 
-        Log.d("cfauli","OnStart Tab2")
+        Log.d("cfauli", "OnStart Tab2")
     }
     override fun onStop() {
         // call the superclass method first
         super.onStop()
-        Log.d("cfauli","OnStop Tab2")
+        Log.d("cfauli", "OnStop Tab2")
     }
 
     override fun onCreateView(
@@ -115,7 +115,7 @@ class Tab2 : Fragment() {
         Log.d("cfauli", "OnCreateView Tab2")
         // Adds -------------------------------------------------------------------------------------
         mAdView = fragmentView.findViewById(R.id.adViewFragment2)
-        MobileAds.initialize(activity)
+        MobileAds.initialize(context)
         val adRequest = AdRequest.Builder().build()
         mAdView.loadAd(adRequest)
         mAdView.adListener = object: AdListener() {
@@ -123,7 +123,7 @@ class Tab2 : Fragment() {
                 // Code to be executed when an ad finishes loading.
             }
 
-            override fun onAdFailedToLoad(errorCode : Int) {
+            override fun onAdFailedToLoad(errorCode: Int) {
                 // Code to be executed when an ad request fails.
             }
 
@@ -224,6 +224,8 @@ class Tab2 : Fragment() {
                         + " must implement OnFragmentInteractionListener"
             )
         }*/
+
+
         try {
             listener = activity as GetfileState
             // listener.showFormula(show?);
@@ -235,13 +237,13 @@ class Tab2 : Fragment() {
     override fun onDetach() {
         super.onDetach()
         listener = null
-        Log.d ("cfauli", "OnDetach TAB2")
+        Log.d("cfauli", "OnDetach TAB2")
     }
 
 
     override fun onResume() {
         super.onResume()
-        Log.d("cfauli","OnResume Tab2 " + firstOnResume)
+        Log.d("cfauli", "OnResume Tab2 " + firstOnResume)
         //val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         //minTime  = sharedPreferences.getInt("num_time_samples",10).toLong() * 1000
 
@@ -263,7 +265,7 @@ class Tab2 : Fragment() {
         return listOf(type)
     }*/
 
-    fun startMobileScannerTab2(view:View) {
+    fun startMobileScannerTab2(view: View) {
         if (!clockTimerHanlerActive) {
             mHandlerTask = object : Runnable {
                 override fun run() {
@@ -281,7 +283,7 @@ class Tab2 : Fragment() {
     fun fillMobileTextView(view: View){
         /// fill the mobile layout --------------------------------------------
         // Lookup view for data population
-        Log.d ("cfauli", "fillMobileTextView")
+        Log.d("cfauli", "fillMobileTextView")
         val tvLevel = view.findViewById<View>(R.id.tv_mobile_level) as TextView
         val tvOperator = view.findViewById<View>(R.id.tv_mobile_operator) as TextView
         val tvOperatorName = view.findViewById<View>(R.id.tv_mobile_operator_name) as TextView
@@ -301,8 +303,7 @@ class Tab2 : Fragment() {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        findOperatorName(pDevice) {
-            it -> tvOperatorName.text= it
+        findOperatorName(pDevice) { it -> tvOperatorName.text= it
         }
 
         tvMobile.text = getString(R.string.MobileTxt)
@@ -313,7 +314,7 @@ class Tab2 : Fragment() {
         tvLac.text = "lac: " + pDevice?.lac.toString()
         tvId.text = "id: " + pDevice?.cid.toString()
         tvNetwork.text = getString(R.string.Network)
-        tvNetworkType.text = pDevice?.type + " " + "%.1f".format(calculateFreq(pDevice?.type,pDevice?.band)) + " MHz"
+        tvNetworkType.text = pDevice?.type + " " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
         tvIccId.text = connectivity.getIccId()
 
         // Control point for Crashlitycs
