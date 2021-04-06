@@ -28,11 +28,14 @@
             <com.github.anastr.speedviewlib.SpeedView
                 android:id="@+id/speedView"
                 android:layout_width="182dp"
-                android:layout_height="183dp"
+                android:layout_height="182dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="30dp"
                 app:sv_unit="Mbps"
-                app:sv_withTremble="false" />
+                app:sv_withTremble="false"
+                android:visibility="invisible"
+                app:sv_speedTextSize="16sp"
+                app:sv_unitTextSize="12sp"/>
 
             <TableRow
                 android:id="@+id/hr"
@@ -170,9 +173,6 @@
                 android:layout_weight="0.97"/>
 
             <com.google.android.gms.ads.AdView
-
-
-
                 xmlns:ads="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/adViewFragment1"
                 ads:adSize="BANNER"
@@ -188,9 +188,10 @@
             android:id="@+id/fab_tab1_onoff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="101dp"
+            android:layout_marginTop="96dp"
             android:backgroundTint="@color/cpb_white"
-            android:layout_gravity="top|center"            />
+            android:layout_gravity="top|center"
+            android:visibility="invisible"/>
 <!--            android:src="@drawable/ic_switch_on_off" -->
 
 

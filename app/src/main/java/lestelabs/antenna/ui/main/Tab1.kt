@@ -107,6 +107,9 @@ class Tab1 : Fragment() {
     private val tabName = "Tab1"
     private var crashlyticsKeyAnt = ""
 
+    private var maxDown: Float? = null
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -172,20 +175,23 @@ class Tab1 : Fragment() {
         ivButton.setImageResource(R.drawable.ic_switch_on_off)
         speedometer = fragmentView.findViewById<SpeedView>(R.id.speedView)
 
+
         ibCopyToClipboard = fragmentView.findViewById<ImageButton>(R.id.ibTab1CopyToClipboard) as ImageButton
         ibCopyToClipboard.setOnClickListener { copyToClipboardOnClickListener() }
         //val fab: ImageView = fragmentView.findViewById(R.id.btSpeedTest)
         db = FirebaseFirestore.getInstance()
 
-
         fusedLocationClient = fragmentView.context.let { LocationServices.getFusedLocationProviderClient(it) }
-
-
 
         // get files from firestore
 
         getFromFirestore("SpeedTest", "SpeedTestFiles", "downLoadFile") {
             val downLoadFile = it ?: Constants.SPEEDTESTDOWNLOAD[2]
+            // Check nmax download first to set the max limit -> 2x -------
+            /*getMaxDownload(downLoadFile) {maxDownload ->
+                setSpeedometerparametter(maxDownload)
+            }*/
+
             getFromFirestore("SpeedTest", "SpeedTestFiles", "upLoadFile") {
                 var upLoadFile = it ?: Constants.SPEEDTESTUPLOAD[0]
                 if (upLoadFile.contains("ftp")){
@@ -198,8 +204,17 @@ class Tab1 : Fragment() {
                     Log.d("cfauli", "speedtTest up file " + upLoadFile)
                     Log.d("cfauli", "speedtTest octet " + fileSizeOctet)
 
+                    var policy  = StrictMode.ThreadPolicy.Builder().permitAll().build()
+                    StrictMode.setThreadPolicy(policy)
+
+                    getMaxDownload(downLoadFile,1000) {
+                        lifecycleScope.launch {initSpeedometer(it)}
+                    }
+
+
                     startMobileScannerTab1(fragmentView)
                     speedometerSetOnClickListener(downLoadFile, upLoadFile, fileSizeOctet)
+
                 }
             }
         }
@@ -219,8 +234,6 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
     var listOfSpeedTest = fillSpeedList(false, "", "", "", "")
     adapter.addAll(listOfSpeedTest)
     adapter.notifyDataSetChanged()
-    // speedometer parametters
-    setSpeedometerparametter(50.0f)
 
 
 
@@ -230,8 +243,9 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
 
     var buttonColor: Boolean
 
-    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-    StrictMode.setThreadPolicy(policy)
+
+
+
 
     ivButton.setOnClickListener    {
 
@@ -264,6 +278,9 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
             tvLatency.text = "-"
             testTimeStart = System.currentTimeMillis() % 1000000
             speedTestRunningStep = 1
+
+
+
 
             // Here we choose the file to dowload fron Object Constants
             speedTestSocket.startDownloadRepeat(downLoadFile,
@@ -307,7 +324,7 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
                                         speedTestSocket.clearListeners()
                                         speedTestSocket.closeSocket()
 
-                                        if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
+                                        //if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
                                         if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
 
                                         listUpload = "%.1f".format(internetSpeedUpload)
@@ -396,7 +413,7 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
 
                                         internetSpeedUpload = report.transferRateBit.toFloat() / 1000000.0f
 
-                                        if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
+                                        //if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
                                         if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
                                         internetSpeedUploadAnt = internetSpeedUpload
                                         Log.d("cfauli speedtest upload", internetSpeedUpload.toString() + " " + internetSpeedDownload.toString())
@@ -1073,11 +1090,20 @@ fun saveDocument(context: Context) {
 
     }
 
-    fun setSpeedometerparametter(maxSpeed:Float) {
+    suspend fun initSpeedometer(maxSpeed:Float?) {
+        var finalMaxSpeed: Float? = null
+
+        if (maxSpeed !=null)  {
+            finalMaxSpeed = maxSpeed
+        } else {
+            finalMaxSpeed = 50.0f
+        }
+
         speedometer.speedTo(0.0f)
         speedometer.unit = "Mbps"
         speedometer.minSpeed = 0.0f
-        speedometer.maxSpeed = maxSpeed
+        speedometer.maxSpeed = finalMaxSpeed
+        Log.d("cfauli", "setspeedometer maxspeed " + maxSpeed)
         val ratio = 1f / (speedometer.maxSpeed / 100)
         // Avoid spurious tick moving when speedtest already finished!!
         speedometer.withTremble = false
@@ -1088,6 +1114,33 @@ fun saveDocument(context: Context) {
         speedometer.sections[1].endOffset = (ratio) * 0.1f
         speedometer.sections[2].color = Color.GREEN
         speedometer.sections[2].startOffset = (ratio) * 0.1f
+
+        speedometer.visibility = View.VISIBLE
+        ivButton.visibility = View.VISIBLE
     }
+
+
+
+    fun getMaxDownload(downLoadFile: String, time:Int, callback: (Float?) -> Unit) {
+
+        var maxDownloadSpeed: Float
+        Log.d("cfauli", "tab1 maxdownspeed downloadFile " + downLoadFile)
+
+        speedTestSocket.startDownloadRepeat(downLoadFile,
+            time, time/2.toInt(), object : IRepeatListener {
+                override fun onCompletion(report: SpeedTestReport) {
+                    Log.d("cfauli", "tab1 maxdownspeed oncompletion report " + report.transferRateBit)
+                    maxDownloadSpeed = report.transferRateBit.toFloat() / 1000000.0f
+                    Log.d("cfauli", "tab1 maxdownspeed " + maxDownloadSpeed)
+                    callback(((maxDownloadSpeed/10).toInt()+1)*20.toFloat())
+                }
+
+                override fun onReport(report: SpeedTestReport?) {
+                    Log.d("cfauli", "tab1 maxdownspeed onReport report " + report?.transferRateBit)
+                    //TODO("Not yet implemented")
+                }
+            })
+    }
+
 }
 
