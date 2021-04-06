@@ -169,8 +169,7 @@ class Tab2 : Fragment() {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        // needed to wait until location is enabled, otherwhise the wifi networks dont appear
-        waitGPS(context)
+
 
         scanWifi.scanwifi(activity, wifiManager) {
 
@@ -180,7 +179,8 @@ class Tab2 : Fragment() {
             tvWifi.text = "WIFI"
             adapter.clear()
 
-            val showedWiFiList = scanWifi.devices.sortedByDescending { it.level }
+            val showedWiFiList: MutableList<DeviceWiFi> = scanWifi.devices.sortedByDescending { it.level }.toMutableList()
+            showedWiFiList.removeIf { device:DeviceWiFi -> device.ssid?.length == 0 }
             Log.d("cfauli size", showedWiFiList.size.toString())
             /*for (i in showedWiFiList.indices) {
                 Log.d("cfauli item", showedWiFiList[i].ssid + showedWiFiList[i].level)
@@ -280,19 +280,18 @@ class Tab2 : Fragment() {
     }
 
 
-    fun fillMobileTextView(view: View){
+    fun fillMobileTextView(view: View) {
+    try {
         /// fill the mobile layout --------------------------------------------
         // Lookup view for data population
         Log.d("cfauli", "fillMobileTextView")
         val tvLevel = view.findViewById<View>(R.id.tv_mobile_level) as TextView
         val tvOperator = view.findViewById<View>(R.id.tv_mobile_operator) as TextView
         val tvOperatorName = view.findViewById<View>(R.id.tv_mobile_operator_name) as TextView
-        val tvLac = view.findViewById<View>(R.id.tv_mobile_lac) as TextView
-        val tvId = view.findViewById<View>(R.id.tv_mobile_id) as TextView
         val tvNetwork = view.findViewById<View>(R.id.tv_mobile_network) as TextView
         val tvNetworkType = view.findViewById<View>(R.id.tv_mobile_networkType) as TextView
-        val tvLat = view.findViewById<View>(R.id.tv_mobile_lat) as TextView
-        val tvLon = view.findViewById<View>(R.id.tv_mobile_lon) as TextView
+        val tvFreq = view.findViewById<View>(R.id.tv_mobile_freq) as TextView
+        val tvFreqNum = view.findViewById<View>(R.id.tv_mobile_freq_num) as TextView
         val ivIconLevel = view.findViewById<View>(R.id.iv_mobile_signalIcon) as ImageView
         val tvMobile = view.findViewById<View>(R.id.tv_mobile_txt) as TextView
         val tvIccId = view.findViewById<View>(R.id.tv_iccid) as TextView
@@ -303,28 +302,31 @@ class Tab2 : Fragment() {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        findOperatorName(pDevice) { it -> tvOperatorName.text= it
+        findOperatorName(pDevice) { it ->
+            tvOperatorName.text = it
         }
 
         tvMobile.text = getString(R.string.MobileTxt)
         tvLevel.text = pDevice?.dbm.toString() + "dBm"
-        if (pDevice?.mcc==0) {
+        if (pDevice?.mcc == 0) {
             tvOperator.text = getString(R.string.MobileDetected)
         } else tvOperator.text = getString(R.string.Operator) + pDevice?.mcc.toString() + "-" + pDevice?.mnc.toString()
-        tvLac.text = "lac: " + pDevice?.lac.toString()
-        tvId.text = "id: " + pDevice?.cid.toString()
+
         tvNetwork.text = getString(R.string.Network)
-        tvNetworkType.text = pDevice?.type + " " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
+        tvNetworkType.text = pDevice?.type + " freq: " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
+        tvFreq.text = getString(R.string.Frequency)
+        tvFreqNum.text = "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
+
         tvIccId.text = connectivity.getIccId()
 
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        if (totalCidAnt != pDevice?.totalCellId) {
+        /*if (totalCidAnt != pDevice?.totalCellId) {
             val openCellIdInterface = retrofitFactory()
             findTower(openCellIdInterface, pDevice)
             { coordenadas ->
-                if (coordenadas?.lat != null && coordenadas.lat !=-1000.0) {
+                if (coordenadas?.lat != null && coordenadas.lat != -1000.0) {
                     tvLat.text = "lat: " + "%.5f".format(coordenadas.lat)
                     tvLon.text = "lon: " + "%.5f".format(coordenadas.lon)
                 } else {
@@ -333,30 +335,31 @@ class Tab2 : Fragment() {
                 }
             }
             totalCidAnt = pDevice?.totalCellId.toString()
-        }
+        }*/
         val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
 
         thresMobBlack = sharedPreferences?.getString("thres_mob_black", Constants.MINMOBILESIGNALBLACK)?.toInt() ?: Constants.MINMOBILESIGNALBLACK.toInt()
-        thresMobRed = sharedPreferences?.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)?.toInt() ?:  Constants.MINMOBILESIGNALRED.toInt()
-        thresMobYellow = sharedPreferences?.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)?.toInt() ?:  Constants.MINMOBILESIGNALYELLOW.toInt()
+        thresMobRed = sharedPreferences?.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)?.toInt() ?: Constants.MINMOBILESIGNALRED.toInt()
+        thresMobYellow = sharedPreferences?.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)?.toInt() ?: Constants.MINMOBILESIGNALYELLOW.toInt()
         thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
 
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-    pDevice?.let {
-        if (it.dbm!! >= (-1*thresMobYellow)) {
-            ivIconLevel.setImageResource(R.drawable.ic_network_green)
-        } else if (pDevice?.dbm!! >= (-1*thresMobRed)) {
-            ivIconLevel.setImageResource(R.drawable.ic_network_yellow)
-        } else if (pDevice?.dbm!! >= (-1*thresMobBlack)) {
-            ivIconLevel.setImageResource(R.drawable.ic_network_red)
-        } else {
-            ivIconLevel.setImageResource(R.drawable.ic_network_black)
+        pDevice?.let {
+            if (it.dbm!! >= (-1 * thresMobYellow)) {
+                ivIconLevel.setImageResource(R.drawable.ic_network_green)
+            } else if (pDevice?.dbm!! >= (-1 * thresMobRed)) {
+                ivIconLevel.setImageResource(R.drawable.ic_network_yellow)
+            } else if (pDevice?.dbm!! >= (-1 * thresMobBlack)) {
+                ivIconLevel.setImageResource(R.drawable.ic_network_red)
+            } else {
+                ivIconLevel.setImageResource(R.drawable.ic_network_black)
+            }
         }
+    } catch (e:Exception) {
+
     }
-
-
 
     }
 

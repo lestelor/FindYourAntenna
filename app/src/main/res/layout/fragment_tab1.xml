@@ -27,13 +27,12 @@
 
             <com.github.anastr.speedviewlib.SpeedView
                 android:id="@+id/speedView"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
+                android:layout_width="182dp"
+                android:layout_height="183dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="30dp"
                 app:sv_unit="Mbps"
-                app:sv_withTremble="false"
-                />
+                app:sv_withTremble="false" />
 
             <TableRow
                 android:id="@+id/hr"
@@ -189,7 +188,7 @@
             android:id="@+id/fab_tab1_onoff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="105dp"
+            android:layout_marginTop="101dp"
             android:backgroundTint="@color/cpb_white"
             android:layout_gravity="top|center"            />
 <!--            android:src="@drawable/ic_switch_on_off" -->
@@ -215,7 +214,7 @@
                 android:id="@+id/ivTab1Type"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_marginTop="20dp"/>
+                android:layout_marginTop="16dp"/>
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/tvTab1Type"
@@ -237,7 +236,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/cpb_blue"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="14dp"
                 android:textSize="12sp"/>
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -278,7 +277,7 @@
                 android:id="@+id/ivTab1Level"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_marginTop="20sp"
+                android:layout_marginTop="16sp"
                 android:layout_gravity="end"/>
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -296,7 +295,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/cpb_blue"
                 android:layout_gravity="end"
-                android:layout_marginTop="64dp"
+                android:layout_marginTop="60dp"
                 android:textSize="12sp"/>
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/tvTab1Frequency"

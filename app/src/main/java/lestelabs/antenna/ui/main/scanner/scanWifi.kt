@@ -53,7 +53,8 @@ object scanWifi {
                     if (i >= (results as MutableList<ScanResult>).size) {
                         callback(true)
                         return
-                    } else i += 1
+                    } else   i+= 1
+
 
                 }
             }

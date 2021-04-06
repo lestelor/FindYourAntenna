@@ -6,6 +6,8 @@ import android.os.Build
 import android.telephony.*
 import android.util.Log
 import androidx.annotation.RequiresApi
+import lestelabs.antenna.ui.main.checkAllPermission
+import java.lang.Error
 
 
 /**
@@ -138,8 +140,8 @@ fun loadCellInfo(tm: TelephonyManager): DevicePhone? {
             pDevicePhone.freq = calculateFreq(pDevicePhone.type,pDevicePhone.band)
             }
 
-        } catch (npe: NullPointerException) {
-            Log.d("cfauli", "loadCellInfo: Unable to obtain cell signal information: ", npe)
+        } catch (e: Error) {
+            Log.d("cfauli", "loadCellInfo: Unable to obtain cell signal information: ", e)
         }
 
 

@@ -68,7 +68,9 @@
     <string name="menu_tab4">antenasgsm.com</string>
     <string name="navEmail">Send comments</string>
     <string name="CopiedToClipboard">Copied to clipboard</string>
-
+    <string name="Frequency">Frequency:</string>
+    <string name="downloadtv">" Download: "</string>
+    <string name="Uploadtv">" Mbps Upload: "</string>
 
 
 </resources>

@@ -64,6 +64,9 @@
     <string name="menu_tab4">antenasgsm.com</string>
     <string name="navEmail">Enviar comentarios</string>
     <string name="CopiedToClipboard">Copiado al portapapeles</string>
+    <string name="Frequency">Frecuencia:</string>
+    <string name="downloadtv">" Bajada: "</string>
+    <string name="Uploadtv">" Mbps Subida: "</string>
 
 
 </resources>

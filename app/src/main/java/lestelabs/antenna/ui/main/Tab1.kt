@@ -36,6 +36,7 @@ import kotlinx.android.synthetic.main.fragment_tab1.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.scanner.*
 import java.io.IOException
@@ -219,19 +220,9 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
     adapter.addAll(listOfSpeedTest)
     adapter.notifyDataSetChanged()
     // speedometer parametters
-    speedometer.speedTo(0.0f)
-    speedometer.unit = "Mbps"
-    speedometer.minSpeed = 0.0f
-    speedometer.maxSpeed = 120.0f
-    // Avoid spurious tick moving when speedtest already finished!!
-    speedometer.withTremble = false
-    speedometer.sections[0].color = Color.RED
-    speedometer.sections[0].endOffset = (1f / 1.2f) * 0.1f
-    speedometer.sections[1].color = Color.YELLOW
-    speedometer.sections[1].startOffset = (1f / 1.2f) * 0.1f
-    speedometer.sections[1].endOffset = (1f / 1.2f) * 0.2f
-    speedometer.sections[2].color = Color.GREEN
-    speedometer.sections[2].startOffset = (1f / 1.2f) * 0.2f
+    setSpeedometerparametter(50.0f)
+
+
 
     /*speedTestSocket.downloadSetupTime = 1000
     speedTestSocket.uploadSetupTime = 1000
@@ -285,7 +276,7 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
                         testTimeStart = System.currentTimeMillis() % 1000000
                         speedTestRunningStep = 2
                         internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
-                        listDownload = "%.2f".format(internetSpeedDownload)
+                        listDownload = "%.1f".format(internetSpeedDownload)
                         activity?.runOnUiThread(Runnable {
                             // Control point for Crashlitycs
                             crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
@@ -319,7 +310,7 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
                                         if (internetSpeedUpload > internetSpeedDownload + 5.0f) internetSpeedUpload = internetSpeedDownload + 5.0f
                                         if (internetSpeedUpload == 0.0f) internetSpeedUpload = internetSpeedUploadAnt
 
-                                        listUpload = "%.2f".format(internetSpeedUpload)
+                                        listUpload = "%.1f".format(internetSpeedUpload)
                                         activity?.runOnUiThread(Runnable {
 
                                             // Control point for Crashlitycs
@@ -350,28 +341,6 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
 
                                                 tvTab1StartTest.text = getString(R.string.click_to_start_the_test)
 
-                                                /*
-                                                var numRater = 0
-                                                mHandlerRater = object : Runnable {
-                                                    override fun run() {
-                                                        when (numRater) {
-                                                            0 -> {
-                                                                mHandler.postDelayed(this, 10000)
-                                                                numRater += 1
-                                                            }
-                                                            1 -> {
-                                                                AppRater.app_launched((requireContext()))
-                                                                mHandler.removeCallbacks(this)
-                                                                numRater += 1
-                                                            }
-                                                            else -> {}
-                                                        }
-
-
-                                                    }
-                                                }
-
-                                                mHandlerRater.run()*/
 
                                                 progressBar.visibility = View.GONE
 
@@ -381,10 +350,14 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
                                                     // Control point for Crashlitycs
                                                     crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-                                                    Handler(Looper.getMainLooper()).postDelayed({
+                                                    /*Handler(Looper.getMainLooper()).postDelayed({
                                                         context?.let { it1 -> activity?.let { it2 -> AppRater.app_launched(it2, it1) } } //Do something after x ms
                                                         //InAppReview.inAppReview(requireActivity(),manager)
-                                                    }, 5000)
+                                                    }, 7000)*/
+
+                                                    Handler(Looper.getMainLooper()).postDelayed({
+                                                        ctx?.let { it1 -> InAppReview.inAppReview(it1,requireActivity()) }
+                                                    }, 7000)
                                                 }
                                                 //Log.d("cfauli", "AppRater " + listDownload + listUpload + listLatency)
 
@@ -636,12 +609,13 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
 
 
         if (firstOnResume)   telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
         pDevice = loadCellInfo(telephonyManager)
         deviceWifi = context?.let { connectivity.getWifiParam(it) } ?: DeviceWiFi()
 
         if (isConnectedMobile()) {
             //listNetwork = pDevice?.type + " " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + "MHz " + pDevice?.dbm + "dBm id: " + pDevice?.mcc + "-" + pDevice?.mnc + "-" + pDevice?.lac + "-" + pDevice?.cid
-            tvType.text = pDevice?.type ?:""
+            tvType.text = pDevice?.type ?: ""
             when (pDevice?.type) {
                 "2G" -> ivType.setImageResource(R.drawable.icon_2g_48)
                 "3G" -> ivType.setImageResource(R.drawable.icon_3g_48)
@@ -650,21 +624,22 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
             }
 
             lifecycleScope.launch(Dispatchers.IO) {
-                findOperatorName(pDevice) { it -> tvName.text= it
+                findOperatorName(pDevice) { it ->
+                    tvName.text = it
                 }
             }
 
             tvName.text = ""
-            tvMCC.text = "MCC: " + pDevice?.mcc?: ""
-            tvMNC.text = "MNC: " + pDevice?.mnc?: ""
-            tvLAC.text = "MNC: " + pDevice?.lac?: ""
-            tvCID.text = "CID: " + pDevice?.cid?: ""
+            tvMCC.text = "MCC: " + pDevice?.mcc ?: ""
+            tvMNC.text = "MNC: " + pDevice?.mnc ?: ""
+            tvLAC.text = "LAC: " + pDevice?.lac ?: ""
+            tvCID.text = "CID: " + pDevice?.cid ?: ""
 
             val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
 
             val thresMobBlack = sharedPreferences?.getString("thres_mob_black", Constants.MINMOBILESIGNALBLACK)?.toInt() ?: Constants.MINMOBILESIGNALBLACK.toInt()
-            val thresMobRed = sharedPreferences?.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)?.toInt() ?:  Constants.MINMOBILESIGNALRED.toInt()
-            val thresMobYellow = sharedPreferences?.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)?.toInt() ?:  Constants.MINMOBILESIGNALYELLOW.toInt()
+            val thresMobRed = sharedPreferences?.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)?.toInt() ?: Constants.MINMOBILESIGNALRED.toInt()
+            val thresMobYellow = sharedPreferences?.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)?.toInt() ?: Constants.MINMOBILESIGNALYELLOW.toInt()
             val thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
 
             try {
@@ -684,11 +659,11 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
                 tvChannel.text = "arfcn: " + pDevice?.band.toString()
                 tvFrequency.text = "freq: " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
                 //tvTab1MobileNetworkType.text = ""
-            } catch (e:Exception) {
+            } catch (e: Exception) {
                 Log.d("cfauli", "Tab1 FillNetworkTextView exception")
             }
 
-        } else if (isConnectedWifi())  {
+        } else if (isConnectedWifi()) {
 
             Log.d("cfauli deviceWifi ", deviceWifi.toString())
             val freq = deviceWifi.centerFreq
@@ -711,7 +686,7 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
             val thresWifiGreen = Constants.MINWIFISIGNALGREEN
 
 
-            if (deviceWifi.level!! >= -1*thresWifiYellow.toInt()) {
+            if (deviceWifi.level!! >= -1 * thresWifiYellow.toInt()) {
                 ivLevel.setImageResource(R.drawable.ic_network_green)
             } else if (deviceWifi.level!! >= -1 * thresWifiRed.toInt()) {
                 ivLevel.setImageResource(R.drawable.ic_network_yellow)
@@ -725,7 +700,6 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
             tvChannel.text = "ch:" + channel
             tvFrequency.text = "freq: " + freq + " MHz"
         }
-
         saveSamplesFirebase()
     }
 
@@ -854,13 +828,17 @@ fun saveDocument(context: Context) {
         val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         val listOfSpeedTest: ArrayList<SpeedTest> = arrayListOf()
 
+        var textDate: String
+        var textNetwork: String
+        var textSpeedUp: String
+        var textSpeedDown: String
+        var textLatency: String
+
+
         if (sharedPreferences !=null) {
 
             val editor: SharedPreferences.Editor = sharedPreferences.edit()
             var numSpeedTest = sharedPreferences.getInt("num_speed_test", 0)
-            var textDate: String
-            var textNetwork: String
-            var textSpeed: String
 
 
             if (new) {
@@ -882,9 +860,11 @@ fun saveDocument(context: Context) {
                 editor.putInt("num_speed_test", numSpeedTest)
                 editor.apply()
 
-                val textDate = "speed_test_date" + numSpeedTest
-                val textNetwork = "speed_test_network" + numSpeedTest
-                val textSpeed = "speed_test_speed" + numSpeedTest
+                textDate = "speed_test_date" + numSpeedTest
+                textNetwork = "speed_test_network" + numSpeedTest
+                textSpeedUp = "speed_test_speedUp" + numSpeedTest
+                textSpeedDown = "speed_test_speedDown" + numSpeedTest
+                textLatency = "speed_test_latency" + numSpeedTest
 
                 editor.putString(textDate, day)
                 editor.apply()
@@ -892,21 +872,31 @@ fun saveDocument(context: Context) {
                 editor.putString(textNetwork, network)
                 editor.apply()
 
-                editor.putString(textSpeed, getString(R.string.Download) + download + "Mbps " + getString(R.string.Upload) + upload + "Mbps " + "ping: " + ping + "ms")
+                editor.putString(textSpeedUp, upload)
                 editor.apply()
+
+                editor.putString(textSpeedDown, download)
+                editor.apply()
+
+                editor.putString(textLatency, ping)
+                editor.apply()
+
                 editor.commit()
 
             }
 
-
             if (numSpeedTest >= 1) {
                 for (i in 1..numSpeedTest) {
                     textNetwork = "speed_test_network" + i
-                    textSpeed = "speed_test_speed" + i
+                    textSpeedUp = "speed_test_speedUp" + i
+                    textSpeedDown = "speed_test_speedDown" + i
+                    textLatency = "speed_test_latency" + i
                     textDate = "speed_test_date" + i
 
                     Log.d("cfauli", "textNetwork " + textNetwork)
-                    listOfSpeedTest.add(0, SpeedTest(sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textSpeed, "")))
+
+
+                    listOfSpeedTest.add(0, SpeedTest(sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeedUp, ""), sharedPreferences.getString(textSpeedDown, ""), sharedPreferences.getString(textLatency, "")))
                 }
             }
             // Control point for Crashlitycs
@@ -1055,7 +1045,7 @@ fun saveDocument(context: Context) {
             val listSpeedTest = fillSpeedList(false, "", "", "", "")
             var text = ""
             for (list in listSpeedTest) {
-                text = text + " " + list.date + " " + list.speed + "\n"
+                text = text + " " + list.date + " " + list.network + " Down: " + list.speedDown + " Mbps Up: " + list.speedUp + " Mbps Ping: " + list.latency + " ms" + "\n"
             }
             val clip: ClipData = ClipData.newPlainText("Network Test", text)
             clipboard?.setPrimaryClip(clip)
@@ -1081,6 +1071,23 @@ fun saveDocument(context: Context) {
             }
 
 
+    }
+
+    fun setSpeedometerparametter(maxSpeed:Float) {
+        speedometer.speedTo(0.0f)
+        speedometer.unit = "Mbps"
+        speedometer.minSpeed = 0.0f
+        speedometer.maxSpeed = maxSpeed
+        val ratio = 1f / (speedometer.maxSpeed / 100)
+        // Avoid spurious tick moving when speedtest already finished!!
+        speedometer.withTremble = false
+        speedometer.sections[0].color = Color.RED
+        speedometer.sections[0].endOffset = (ratio) * 0.03f
+        speedometer.sections[1].color = Color.YELLOW
+        speedometer.sections[1].startOffset = (ratio) * 0.03f
+        speedometer.sections[1].endOffset = (ratio) * 0.1f
+        speedometer.sections[2].color = Color.GREEN
+        speedometer.sections[2].startOffset = (ratio) * 0.1f
     }
 }
 

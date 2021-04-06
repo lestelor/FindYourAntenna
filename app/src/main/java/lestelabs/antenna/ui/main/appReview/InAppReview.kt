@@ -21,13 +21,13 @@ object InAppReview {
 
     fun inAppReview(context: Context, activity:Activity) {
 
-        //val manager = ReviewManagerFactory.create(context)
-        val manager = FakeReviewManager(context)
+        val manager = ReviewManagerFactory.create(context)
+        //val manager = FakeReviewManager(context)
         val request = manager.requestReviewFlow()
-        request.addOnCompleteListener { request ->
-            if (request.isSuccessful) {
+        request.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
                 // We got the ReviewInfo object
-                val reviewInfo = request.result
+                val reviewInfo = task.result
                 Log.d("cfauli", "inAppReview reviewinfo " + reviewInfo)
 
                 val flow = manager.launchReviewFlow(activity, reviewInfo)
@@ -39,7 +39,7 @@ object InAppReview {
                 }
             } else {
                 // There was some problem, continue regardless of the result.
-                Log.d("cfauli", "inAppReview problem")
+                Log.d("cfauli", "inAppReview problem" + task.getException())
             }
         }
     }

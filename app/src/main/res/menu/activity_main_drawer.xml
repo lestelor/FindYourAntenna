@@ -9,12 +9,6 @@
     <item
 
         android:checkable="false"
-        android:id="@+id/nav_settings"
-        android:title="@string/navSettings" />
-
-    <item
-
-        android:checkable="false"
         android:id="@+id/nav_email"
         android:title="@string/navEmail" />
 
@@ -35,10 +29,6 @@
         <item
             android:checkable="false"
             android:id="@+id/nav_tab3"
-            android:title="@string/menu_tab3" />
-        <item
-            android:checkable="false"
-            android:id="@+id/nav_tab4"
             android:title="@string/menu_tab4" />
     </group>
     <!-- </menu>

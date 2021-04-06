@@ -1,6 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent">
 
 
     <LinearLayout
@@ -15,24 +15,65 @@
             android:id="@+id/tvF1Date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Date"
+            android:layout_marginLeft="3sp"
+            android:text=" Date"
             android:textSize="12sp"
             android:textStyle="bold" />
 
-<!--        <TextView
-            android:id="@+id/tvF1Network"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Network" />-->
-
-        <TextView
-            android:id="@+id/tvF1Speed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Speed"
-            android:textStyle="normal" />
-
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/downloadtv"
+                android:textStyle="normal"
+                android:textSize="12sp"/>
+            <TextView
+                android:id="@+id/tvF1SpeedDown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="down"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textColor="@color/cpb_blue" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/Uploadtv"
+                android:textStyle="normal"
+                android:textSize="12sp"/>
+            <TextView
+                android:id="@+id/tvF1SpeedUp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="up"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textColor="@color/cpb_blue"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" Mbps Ping: "
+                android:textStyle="normal"
+                android:textSize="12sp"/>
+            <TextView
+                android:id="@+id/tvF1Ping"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ping"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textColor="@color/cpb_blue"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" ms"
+                android:textStyle="normal"
+                android:textSize="12sp" />
+        </LinearLayout>
     </LinearLayout>
 
-    </LinearLayout>
+</LinearLayout>
 
