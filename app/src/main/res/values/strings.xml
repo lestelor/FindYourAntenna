@@ -39,8 +39,8 @@
     <string name="distancetxt">"distance: "</string>
     <string name="towertxt">"site: "</string>
     <string name="NotAvailable">Not Available</string>
-    <string name="click_to_start_the_test">Click the button to START the test</string>
-    <string name="click_to_abort_the_test">Click to ABORT the test</string>
+    <string name="click_to_start_the_test">Click to START</string>
+    <string name="click_to_abort_the_test">Click to ABORT</string>
     <string name="results">Results</string>
     <string name="tvWIFIwithoutSSID">WIFI     No WIFI network detected</string>
 
@@ -71,6 +71,7 @@
     <string name="Frequency">Frequency:</string>
     <string name="downloadtv">" Download: "</string>
     <string name="Uploadtv">" Mbps Upload: "</string>
+    <string name="checking_network">Checking network ...</string>
 
 
 </resources>

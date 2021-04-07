@@ -47,8 +47,8 @@ android {
         applicationId "lestelabs.antenna"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 37
-        versionName "4.1"
+        versionCode 39
+        versionName "4.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -213,4 +213,7 @@ dependencies {
 
     // For Kotlin users also import the Kotlin extensions library for Play Core:
     implementation 'com.google.android.play:core-ktx:1.8.1'
+
+    // For the animated gif
+    implementation 'com.github.bumptech.glide:glide:4.0.0'
 }

@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.Movie
 import android.location.Location
 import android.os.*
 import android.telephony.TelephonyManager
@@ -22,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.github.anastr.speedviewlib.SpeedView
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -107,9 +109,6 @@ class Tab1 : Fragment() {
     private val tabName = "Tab1"
     private var crashlyticsKeyAnt = ""
 
-    private var maxDown: Float? = null
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -175,6 +174,9 @@ class Tab1 : Fragment() {
         ivButton.setImageResource(R.drawable.ic_switch_on_off)
         speedometer = fragmentView.findViewById<SpeedView>(R.id.speedView)
 
+        val imageView = fragmentView.findViewById(R.id.Tab1ImageView) as ImageView
+        //val imageViewTarget = Glide GlideDrawableImageViewTarget(imageView)
+        Glide.with(context).load(R.drawable.waiting).into(imageView)
 
         ibCopyToClipboard = fragmentView.findViewById<ImageButton>(R.id.ibTab1CopyToClipboard) as ImageButton
         ibCopyToClipboard.setOnClickListener { copyToClipboardOnClickListener() }
@@ -207,10 +209,13 @@ class Tab1 : Fragment() {
                     var policy  = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
 
-                    getMaxDownload(downLoadFile,1000) {
-                        lifecycleScope.launch {initSpeedometer(it)}
+                    getMaxDownload(downLoadFile, 2000) {
+                        lifecycleScope.launch {
+                            initSpeedometer(it)
+                            Tab1LinearLayout.visibility = View.INVISIBLE
+                            Tab1RelativeLayout.visibility = View.VISIBLE
+                        }
                     }
-
 
                     startMobileScannerTab1(fragmentView)
                     speedometerSetOnClickListener(downLoadFile, upLoadFile, fileSizeOctet)
@@ -373,7 +378,7 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
                                                     }, 7000)*/
 
                                                     Handler(Looper.getMainLooper()).postDelayed({
-                                                        ctx?.let { it1 -> InAppReview.inAppReview(it1,requireActivity()) }
+                                                        ctx?.let { it1 -> InAppReview.inAppReview(it1, requireActivity()) }
                                                     }, 7000)
                                                 }
                                                 //Log.d("cfauli", "AppRater " + listDownload + listUpload + listLatency)
@@ -913,7 +918,14 @@ fun saveDocument(context: Context) {
                     Log.d("cfauli", "textNetwork " + textNetwork)
 
 
-                    listOfSpeedTest.add(0, SpeedTest(sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeedUp, ""), sharedPreferences.getString(textSpeedDown, ""), sharedPreferences.getString(textLatency, "")))
+                    listOfSpeedTest.add(
+                        0, SpeedTest(
+                            sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeedUp, ""), sharedPreferences.getString(
+                                textSpeedDown,
+                                ""
+                            ), sharedPreferences.getString(textLatency, "")
+                        )
+                    )
                 }
             }
             // Control point for Crashlitycs
@@ -1090,7 +1102,7 @@ fun saveDocument(context: Context) {
 
     }
 
-    suspend fun initSpeedometer(maxSpeed:Float?) {
+    suspend fun initSpeedometer(maxSpeed: Float?) {
         var finalMaxSpeed: Float? = null
 
         if (maxSpeed !=null)  {
@@ -1115,24 +1127,32 @@ fun saveDocument(context: Context) {
         speedometer.sections[2].color = Color.GREEN
         speedometer.sections[2].startOffset = (ratio) * 0.1f
 
-        speedometer.visibility = View.VISIBLE
-        ivButton.visibility = View.VISIBLE
+        //speedometer.visibility = View.VISIBLE
+        //ivButton.visibility = View.VISIBLE
+        //tvTab1StartTest.visibility = View.VISIBLE
+
+
+
     }
 
 
 
-    fun getMaxDownload(downLoadFile: String, time:Int, callback: (Float?) -> Unit) {
+    fun getMaxDownload(downLoadFile: String, time: Int, callback: (Float?) -> Unit) {
 
         var maxDownloadSpeed: Float
+        val testTimeFinish = System.currentTimeMillis() % 1000000 + time*1.2
+        var allOk = false
+
         Log.d("cfauli", "tab1 maxdownspeed downloadFile " + downLoadFile)
 
         speedTestSocket.startDownloadRepeat(downLoadFile,
-            time, time/2.toInt(), object : IRepeatListener {
+            time, time / 2.toInt(), object : IRepeatListener {
                 override fun onCompletion(report: SpeedTestReport) {
                     Log.d("cfauli", "tab1 maxdownspeed oncompletion report " + report.transferRateBit)
                     maxDownloadSpeed = report.transferRateBit.toFloat() / 1000000.0f
                     Log.d("cfauli", "tab1 maxdownspeed " + maxDownloadSpeed)
-                    callback(((maxDownloadSpeed/10).toInt()+1)*20.toFloat())
+                    allOk = true
+                    callback(((maxDownloadSpeed / 10).toInt() + 1) * 20.toFloat())
                 }
 
                 override fun onReport(report: SpeedTestReport?) {
@@ -1140,6 +1160,17 @@ fun saveDocument(context: Context) {
                     //TODO("Not yet implemented")
                 }
             })
+        var testTimeCurrent = System.currentTimeMillis() % 1000000
+        while (testTimeCurrent<testTimeFinish) {
+            Log.d("cfauli", "tab1 maxdownspeed testTimeCurrent testTimeFinish " + testTimeCurrent + " " + testTimeFinish)
+            Thread.sleep(time / 2.toLong())
+            testTimeCurrent = System.currentTimeMillis() % 1000000
+        }
+        if (allOk == false) {
+            speedTestSocket.clearListeners()
+            speedTestSocket.forceStopTask()
+            callback(30.0f)
+        }
     }
 
 }

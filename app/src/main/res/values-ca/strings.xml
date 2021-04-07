@@ -69,6 +69,7 @@
     <string name="Frequency">Freqüència:</string>
     <string name="downloadtv">" Baixada: "</string>
     <string name="Uploadtv">" Mbps Pujada: "</string>
+    <string name="checking_network">Comprovant la xarxa ...</string>
 
 
 </resources>

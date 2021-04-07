@@ -6,6 +6,36 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/Tab1LinearLayout"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/Tab1ImageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF"
+            android:src="@drawable/waiting" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:layout_marginBottom="100sp"
+            android:text="@string/checking_network"/>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true"
+        android:id="@+id/Tab1RelativeLayout"
+        android:visibility="invisible">
+
     <ProgressBar
         android:foregroundGravity="top|left"
         android:id="@+id/progressBar"
@@ -33,7 +63,6 @@
                 android:layout_marginTop="30dp"
                 app:sv_unit="Mbps"
                 app:sv_withTremble="false"
-                android:visibility="invisible"
                 app:sv_speedTextSize="16sp"
                 app:sv_unitTextSize="12sp"/>
 
@@ -190,8 +219,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="96dp"
             android:backgroundTint="@color/cpb_white"
-            android:layout_gravity="top|center"
-            android:visibility="invisible"/>
+            android:layout_gravity="top|center" />
 <!--            android:src="@drawable/ic_switch_on_off" -->
 
 
@@ -311,4 +339,5 @@
 
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</RelativeLayout>
 </RelativeLayout>
