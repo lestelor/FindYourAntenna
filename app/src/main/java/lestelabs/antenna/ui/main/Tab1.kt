@@ -38,6 +38,7 @@ import kotlinx.android.synthetic.main.fragment_tab1.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.FirestoreDB.getFromFirestore
 import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.scanner.*
@@ -300,6 +301,7 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
                         internetSpeedDownload = report.transferRateBit.toFloat() / 1000000.0f
                         listDownload = "%.1f".format(internetSpeedDownload)
                         activity?.runOnUiThread(Runnable {
+                        //lifecycleScope.launch() {
                             // Control point for Crashlitycs
                             crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
@@ -313,6 +315,9 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
                             // Start upload test (once the download test finishes)---------------------------------------------------------
 
                             speedTestSocket.clearListeners()
+                            speedTestSocket.forceStopTask()
+                            Thread.sleep(1000)
+
                             speedTestSocket.startUploadRepeat(upLoadFile,
                                 10000, 1000, fileSizeOctet, object : IRepeatListener {
 
@@ -334,6 +339,7 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
 
                                         listUpload = "%.1f".format(internetSpeedUpload)
                                         activity?.runOnUiThread(Runnable {
+                                        //lifecycleScope.launch(Dispatchers.IO) {
 
                                             // Control point for Crashlitycs
                                             crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
@@ -1081,26 +1087,7 @@ fun saveDocument(context: Context) {
             Toast.makeText(context, getString(R.string.CopiedToClipboard), Toast.LENGTH_SHORT).show()
     }
 
-    fun getFromFirestore(collection: String, document: String, field: String, callback: (String?) -> Unit) {
-        val db = FirebaseFirestore.getInstance()
-        var output:String? = null
 
-
-        db.collection(collection).document(document)
-            .get()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    output = task.result?.data!![field].toString()
-                    Log.d("cfauli", "SpeedTest output " + output)
-                    callback(output)
-                } else {
-                    Log.d("cfauli", "SpeedTest Error getting Firebase SpeedTestFiles ", task.exception)
-                    callback(output)
-                }
-            }
-
-
-    }
 
     suspend fun initSpeedometer(maxSpeed: Float?) {
         var finalMaxSpeed: Float? = null

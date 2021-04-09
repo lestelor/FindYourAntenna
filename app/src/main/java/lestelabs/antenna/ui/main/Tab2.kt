@@ -313,7 +313,7 @@ class Tab2 : Fragment() {
         } else tvOperator.text = getString(R.string.Operator) + pDevice?.mcc.toString() + "-" + pDevice?.mnc.toString()
 
         tvNetwork.text = getString(R.string.Network)
-        tvNetworkType.text = pDevice?.type + " freq: " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
+        tvNetworkType.text = pDevice?.type
         tvFreq.text = getString(R.string.Frequency)
         tvFreqNum.text = "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
 

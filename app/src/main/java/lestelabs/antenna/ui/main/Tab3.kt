@@ -1,22 +1,20 @@
 package lestelabs.antenna.ui.main
 
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.CookieSyncManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.fragment.app.Fragment
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
@@ -45,6 +43,7 @@ class Tab3 : Fragment() {
         super.onCreate(savedInstanceState)
     }
 
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -52,6 +51,7 @@ class Tab3 : Fragment() {
 
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
         // Inflate the layout for this fragment
+
 
 
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -64,6 +64,45 @@ class Tab3 : Fragment() {
             webview.getSettings().setJavaScriptEnabled(true)
             webview.settings.domStorageEnabled = true
             webview.loadUrl(url.toString())
+
+            /*webview.setOnTouchListener { v, event ->
+                Log.d("cfauli", "Tab3 webview onTouchListener x=${event.x};y=${event.y}")
+                false
+            }*/
+
+            webview.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    webview.post {
+                        webview.let { vw ->
+                            Log.d("cfauli", "Tab3 webview onTouchListener width ${vw.width} height ${vw.height}")
+                            //simulateTouchEvent(it, it.width / 2f, it.height / 2f)
+
+                            FirestoreDB.getFromFirestore("SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "x1") { x1 ->
+                                x1?.let {
+                                    FirestoreDB.getFromFirestore("SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "y1") { y1 ->
+                                        y1?.let {
+                                            simulateTouchEvent(vw, vw.width * x1.toFloat(), vw.height * y1.toFloat()) // 0.77 = 1425/1840
+                                        }
+                                    }
+                                }
+                            }
+
+                            FirestoreDB.getFromFirestore("SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "x2") { x2 ->
+                                x2?.let {
+                                    FirestoreDB.getFromFirestore("SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "y2") { y2 ->
+                                        y2?.let {
+                                            simulateTouchEvent(vw, vw.width * x2.toFloat(), vw.height * y2.toFloat()) // 0.26 = 484/1840
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+                    }
+                }
+            }
 
             Log.d("cfauli", "Tab3 " + url)
             val cm = CookieManager.getInstance()
@@ -93,6 +132,24 @@ class Tab3 : Fragment() {
         }
 
     }
+}
+
+
+
+private fun simulateTouchEvent(view: View, x: Float, y: Float) {
+    val downTime = SystemClock.uptimeMillis()
+    val eventTime = SystemClock.uptimeMillis() + 100
+    val metaState = 0
+    val motionEvent = MotionEvent.obtain(
+        downTime, eventTime,
+        MotionEvent.ACTION_DOWN, x, y, metaState
+    )
+    view.dispatchTouchEvent(motionEvent)
+    val upEvent = MotionEvent.obtain(
+        downTime + 1000, eventTime + 1000,
+        MotionEvent.ACTION_UP, x, y, metaState
+    )
+    view.dispatchTouchEvent(upEvent)
 }
 
 

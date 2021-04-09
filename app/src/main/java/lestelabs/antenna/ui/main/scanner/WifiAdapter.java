@@ -24,6 +24,7 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
         super(context, 0, wiFis);
     }
 
+
     @NotNull
     @Override
     public View getView(int position, View convertView, @NotNull ViewGroup parent) {
@@ -56,7 +57,7 @@ public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
         tvSsid.setText(deviceWiFi.getSsid());
         tvLevel.setText(deviceWiFi.getLevel().toString() + " dBm");
         tvMac.setText("mac: " + deviceWiFi.getMac().toString());
-        tvSec.setText(deviceWiFi.getSecurity().toString());
+        tvSec.setText(getContext().getString(R.string.Security) + deviceWiFi.getSecurity().toString());
         tvChannel.setText(R.string.channel);
         Integer freq = deviceWiFi.getCenterFreq();
         tvFreq.setText(freq.toString() + " MHz");

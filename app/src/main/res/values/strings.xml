@@ -72,6 +72,7 @@
     <string name="downloadtv">" Download: "</string>
     <string name="Uploadtv">" Mbps Upload: "</string>
     <string name="checking_network">Checking network ...</string>
+    <string name="Security">"security :"</string>
 
 
 </resources>

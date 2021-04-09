@@ -68,6 +68,7 @@
     <string name="downloadtv">" Bajada: "</string>
     <string name="Uploadtv">" Mbps Subida: "</string>
     <string name="checking_network">Comprobando red ...</string>
+    <string name="Security">"seguiridad: "</string>
 
 
 </resources>

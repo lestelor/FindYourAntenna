@@ -201,7 +201,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="0.97"/>
 
-            <com.google.android.gms.ads.AdView
+<!--            <com.google.android.gms.ads.AdView
                 xmlns:ads="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/adViewFragment1"
                 ads:adSize="BANNER"
@@ -210,7 +210,7 @@
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
                 ads:adUnitId="@string/BannerID">
-            </com.google.android.gms.ads.AdView>
+            </com.google.android.gms.ads.AdView>-->
         </LinearLayout>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
