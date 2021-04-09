@@ -65,10 +65,10 @@ class Tab3 : Fragment() {
             webview.settings.domStorageEnabled = true
             webview.loadUrl(url.toString())
 
-            /*webview.setOnTouchListener { v, event ->
+            webview.setOnTouchListener { v, event ->
                 Log.d("cfauli", "Tab3 webview onTouchListener x=${event.x};y=${event.y}")
                 false
-            }*/
+            }
 
             webview.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -76,30 +76,9 @@ class Tab3 : Fragment() {
                     webview.post {
                         webview.let { vw ->
                             Log.d("cfauli", "Tab3 webview onTouchListener width ${vw.width} height ${vw.height}")
-                            //simulateTouchEvent(it, it.width / 2f, it.height / 2f)
-
-                            FirestoreDB.getFromFirestore("SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "x1") { x1 ->
-                                x1?.let {
-                                    FirestoreDB.getFromFirestore("SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "y1") { y1 ->
-                                        y1?.let {
-                                            simulateTouchEvent(vw, vw.width * x1.toFloat(), vw.height * y1.toFloat()) // 0.77 = 1425/1840
-                                        }
-                                    }
-                                }
-                            }
-
-                            FirestoreDB.getFromFirestore("SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "x2") { x2 ->
-                                x2?.let {
-                                    FirestoreDB.getFromFirestore("SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "y2") { y2 ->
-                                        y2?.let {
-                                            simulateTouchEvent(vw, vw.width * x2.toFloat(), vw.height * y2.toFloat()) // 0.26 = 484/1840
-                                        }
-                                    }
-                                }
-                            }
+                            touchScreen(vw, "SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "x1", pDevice?.mcc.toString() + "y1")
+                            touchScreen(vw, "SpeedTest", "SpeedTestFiles", pDevice?.mcc.toString() + "x2", pDevice?.mcc.toString() + "y2")
                         }
-
-
                     }
                 }
             }
@@ -152,6 +131,18 @@ private fun simulateTouchEvent(view: View, x: Float, y: Float) {
     view.dispatchTouchEvent(upEvent)
 }
 
+fun touchScreen(vw:View, collection:String,document:String, fileidx:String, fileidy:String){
+    FirestoreDB.getFromFirestore(collection, document, fileidx) { x1 ->
+        x1?.let {
+            FirestoreDB.getFromFirestore(collection,document, fileidy) { y1 ->
+                y1?.let {
+                    simulateTouchEvent(vw, vw.width * x1.toFloat(), vw.height * y1.toFloat()) // 0.77 = 1425/1840
+                }
+            }
+        }
+    }
+
+}
 
 
 // fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
