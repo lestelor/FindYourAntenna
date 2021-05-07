@@ -216,8 +216,8 @@ interface GetfileState {
         tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
 
         if (pDevice?.mcc == 214) {
-            tabLayout.getTabAt(2)?.setIcon(R.drawable.gsmantenas)
-            navigationView.menu.getItem(3).setIcon(ContextCompat.getDrawable(this, R.drawable.gsmantenas))
+            tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
+            navigationView.menu.getItem(3).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_map_dark))
         } else {
             navigationView.menu.getItem(3).isVisible = false
         }
