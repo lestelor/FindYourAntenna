@@ -52,8 +52,7 @@ class Tab3 : Fragment() {
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
         // Inflate the layout for this fragment
 
-
-
+        
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         val pDevice = loadCellInfo(telephonyManager)
         findUrl(requireActivity() as MainActivity, pDevice) { url: String ->
@@ -65,10 +64,12 @@ class Tab3 : Fragment() {
             webview.settings.domStorageEnabled = true
             webview.loadUrl(url.toString())
 
-            webview.setOnTouchListener { v, event ->
+
+            // only to check where you press in the screen to extract the ratio to be put in Firestore
+            /*webview.setOnTouchListener { v, event ->
                 Log.d("cfauli", "Tab3 webview onTouchListener x=${event.x};y=${event.y}")
                 false
-            }
+            }*/
 
             webview.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -143,6 +144,7 @@ fun touchScreen(vw:View, collection:String,document:String, fileidx:String, file
     }
 
 }
+
 
 
 // fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
