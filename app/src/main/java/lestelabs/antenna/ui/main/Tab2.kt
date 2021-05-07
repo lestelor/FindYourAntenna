@@ -37,8 +37,6 @@ import lestelabs.antenna.ui.main.scanner.*
  */
 class Tab2 : Fragment() {
     // TODO: Rename and change types of parameters
-    private var mParam1: String? = null
-    private var mParam2: String? = null
     //private var mListener: Tab2.OnFragmentInteractionListener? = null
     lateinit var mAdView : AdView
     private var firstOnResume = true
@@ -69,10 +67,7 @@ class Tab2 : Fragment() {
 
         super.onCreate(savedInstanceState)
         Log.d("cfauli", "OnCreate Tab2")
-        if (arguments != null) {
-            mParam1 = requireArguments().getString(ARG_PARAM1)
-            mParam2 = requireArguments().getString(ARG_PARAM2)
-        }
+
         //set a fixed mintime in order no refresh the mobile ifo every xx sec - set in the constant section
         //val sharedPreferences = requireActivity().getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
         //minTime  = sharedPreferences.getInt("num_time_samples",getString(R.string.minTimeSample).toInt()).toLong() * 1000
@@ -346,25 +341,6 @@ class Tab2 : Fragment() {
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
         private const val ARG_PARAM1 = "param1"
         private const val ARG_PARAM2 = "param2"
-
-
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment Tab2.
-         */
-        // TODO: Rename and change types and number of parameters
-        fun newInstance(param1: String?, param2: String?): Tab2 {
-            val fragment = Tab2()
-            val args = Bundle()
-            args.putString(ARG_PARAM1, param1)
-            args.putString(ARG_PARAM2, param2)
-            fragment.arguments = args
-            return fragment
-        }
     }
 
 }

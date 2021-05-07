@@ -32,7 +32,6 @@ import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
 import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
@@ -197,6 +196,16 @@ interface GetfileState {
         Log.d("cfauli", "MainApplication waiting permissions ok 0 ")
         telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
+
+        // send arguments to fragments
+        Log.d("cfauli", "Activity send arguments " + pDevice?.mcc)
+        val bundle = Bundle()
+        pDevice?.mcc?.let { bundle.putInt("param1", it) }
+        pDevice?.mnc?.let { bundle.putInt("param2", it) }
+        val fragobj = Tab3()
+        fragobj.arguments = bundle
+
+
 
         tabLayout.addTab(tabLayout.newTab())
         tabLayout.addTab(tabLayout.newTab())
