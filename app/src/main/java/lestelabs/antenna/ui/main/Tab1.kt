@@ -88,7 +88,7 @@ class Tab1 : Fragment() {
     private lateinit var mHandlerTask: Runnable
     private lateinit var mHandlerRater: Runnable
     private var firstOnResume = true
-    private var minTime: Long = 10000
+    private var minTime: Long = 30000
 
     private lateinit var tvDownload: TextView
     private lateinit var tvUpload: TextView
@@ -728,45 +728,9 @@ fun speedometerSetOnClickListener(downLoadFile: String, upLoadFile: String, file
             tvChannel.text = "ch:" + channel
             tvFrequency.text = "freq: " + freq + " MHz"
         }
-        saveSamplesFirebase()
+        this.context?.let { saveDocument(it) }
     }
 
-    fun saveSamplesFirebase() {
-
-        // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-
-        // if duration > x seg then
-        val a = timeAnt
-        val b = System.currentTimeMillis() % 1000000
-
-        var duration:Long
-        if (b <= a) {
-            duration = 1000000 - a + b
-        } else {
-            duration = b - a
-        }
-
-        var minDuration:Long  = 0
-        db.collection("SampleDuration").document("kEMpdsQpBLnFf0wKJ951")
-            .get()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-
-                    minDuration = task.result?.data!!["time"].toString().toLong()
-                    Log.d("cfauli document", "minDuration " + duration + " " + minDuration)
-                    if (duration > minDuration) {
-                        timeAnt = b
-                        this.context?.let { saveDocument(it) }
-                    }
-                } else {
-                    this.context?.let { saveDocument(it) }
-                    Log.w("Error", "Error getting Firebase minDuration", task.exception)
-                }
-            }
-
-
-    }
 
 fun saveDocument(context: Context) {
     // Control point for Crashlitycs

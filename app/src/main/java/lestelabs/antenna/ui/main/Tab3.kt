@@ -24,16 +24,16 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.data.Site
 import lestelabs.antenna.ui.main.data.SitesInteractor
-import lestelabs.antenna.ui.main.MyApplication.Companion.internetOn
 import lestelabs.antenna.ui.main.MyApplication.Companion.sitesInteractor
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
-import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import java.io.File
 
@@ -74,7 +74,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var fusedLocationClient: FusedLocationProviderClient? = null
     private lateinit var telephonyManager:TelephonyManager
     private  var pDevice:DevicePhone? = null
-    private val openCellIdInterface = retrofitFactory()
     private var listTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
     private var locationAnt: Location? = null
     private lateinit var locationOk: Location
@@ -123,12 +122,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             mcc = this.arguments?.getInt(ARG_PARAM1)
             mnc = this.arguments?.getInt(ARG_PARAM2)
         } else Log.d(TAG, "arguments off")
-
-
-        // get sites -> pendiente sacar dialogo si algo falla
-        mcc?.let { mnc?.let { it1 -> getSites(it, it1) } }
-
-        getSites(214,3)
 
     }
     override fun onStart() {
@@ -227,38 +220,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     )
                 }
             }
-
+        getSites(214,3)
     }
 
-
-
-
-    fun selectOperatorIcon(mcc: Int, net: Int): Array<Any?> {
-        var icon: Int? =null
-        var operator =""
-
-        when (mcc) {
-            214 -> when (net) {
-                1 -> {
-                    operator = "Vodafone"
-                    icon = R.drawable.ic_vodafone
-                }
-                3 -> {
-                    operator = "Orange"
-                    icon = R.drawable.ic_orange
-                }
-                4 -> {
-                    operator = "Mas Movil"
-                }
-                7 -> {
-                    operator = "Movistar"
-                    icon = R.drawable.ic_movistar
-                }
-            }
-
-            }
-            return arrayOf(operator, icon)
-        }
 
     fun arrayNetworks(mcc: Int):Array<String> {
         var list: Array<String> = emptyArray()
@@ -307,6 +271,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     // Get Books and Update UI
     private fun getSites(mcc: Int, mnc: Int) {
+        // Find operator
+        val operador = "Orange"
+        val iconOperatorSelected = selectOperatorIcon(mcc, mnc)
+
         // First load whatever is stored locally
 //       loadSitesFromLocalDb()
         // Check if Internet is available
@@ -315,29 +283,34 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 Log.d(TAG, "internet on")
                 val sites: MutableList<Site> = mutableListOf()
                 // Internet connection is available, get remote data
-                db.collection("sites")
-                    // Subscribe to remote book changes
-                    .whereEqualTo("operador", "Orange")
+                db.collection("sites").document("sites").collection(operador)
                     .get()
                     .addOnSuccessListener { documents ->
                         for (document in documents) {
                             val site:Site = Site()
-                            site.uid = document.data["uid"].toString()
-                            site.codigo = document.data["codigo"].toString()
-                            site.operador = document.data["operador"].toString()
-                            site.lat = document.data["lat"].toString()
-                            site.long = document.data["long"].toString()
-                            site.frecuencias = document.data["frecuencias"].toString()
+
+                            site.codigo = document.id
+                            site.operador = operador
+                            site.lat = document.data["lat"].toString()?:"0.0"
+                            site.long = document.data["long"].toString()?: "0.0"
                             sites.add(site)
+
+                            site.lat?.let {it1 -> site.long?.let { it2 ->
+                                mMap.addMarker(
+                                    MarkerOptions()
+                                        .position(LatLng(it1.replace(",",".").toDouble(), it2.replace(",",".").toDouble()))
+                                        .title(document.id + "-" + it1 + "-" + it2)
+                                        .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected[1] as Int))
+                                )
+                            }}
+
                         }
-                        Log.d(TAG, "sites guardados " + sites.count())
+                       Log.d(TAG, "sites guardados " + sites.count())
                     }
                     .addOnFailureListener { exception ->
                         Log.e(TAG, "Error getting documents: ", exception)
                     }
-
-
-            //}
+                //}
         //}
     }
 
@@ -362,6 +335,37 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         AsyncTask.execute {
             sitesInteractor.saveSites(books)
         }
+    }
+
+    fun selectOperatorIcon(mcc: Int, net: Int): Array<Any?> {
+        var icon: Int? =null
+        var operator =""
+
+        when (mcc) {
+            214 -> when (net) {
+                1 -> {
+                    operator = "Vodafone"
+                    icon = R.drawable.ic_vodafone
+                }
+                3 -> {
+                    operator = "Orange"
+                    icon = R.drawable.ic_orange
+                }
+                4 -> {
+                    operator = "MasMovil"
+                }
+                7 -> {
+                    operator = "Telefonica"
+                    icon = R.drawable.ic_movistar
+                }
+                else -> {
+                    operator = "Otros"
+                    icon = R.drawable.circle_dot_black_icon
+                }
+            }
+
+        }
+        return arrayOf(operator, icon)
     }
 
 

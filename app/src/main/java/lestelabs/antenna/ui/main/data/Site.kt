@@ -9,11 +9,8 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "Site")
 data class Site(
-    @PrimaryKey var uid: String = "",
-    var codigo: String? = null,
+    @PrimaryKey var codigo: String = "",
     var operador: String? = null,
-    var direccion: String? = null,
-    var frecuencias: String? = null,
     var lat: String? = null,
     var long: String? = null
 )

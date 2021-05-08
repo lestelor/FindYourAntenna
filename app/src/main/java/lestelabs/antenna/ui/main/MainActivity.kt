@@ -241,11 +241,14 @@ interface GetfileState {
         // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
         // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
 
-        if (pDevice?.mcc == 214) {
-            viewPager.offscreenPageLimit = 3
-        } else {
-            viewPager.offscreenPageLimit = 2
-        }
+//        if (pDevice?.mcc == 214) {
+//            viewPager.offscreenPageLimit = 3
+//        } else {
+//            viewPager.offscreenPageLimit = 2
+//        }
+
+        // always 2 since we do not want to wait foe sites to be downloaded
+        viewPager.offscreenPageLimit = 2
 
         // Control point for Crashlitycs
         crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
