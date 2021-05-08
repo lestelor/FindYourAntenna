@@ -4,11 +4,9 @@ package lestelabs.antenna.ui.main
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
-import android.location.LocationManager
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
-import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -29,14 +27,14 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.android.synthetic.main.fragment_tab1.*
+import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.data.Site
-import lestelabs.antenna.ui.main.data.SitesInteractor
 import lestelabs.antenna.ui.main.MyApplication.Companion.sitesInteractor
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
+import lestelabs.antenna.ui.main.data.Site
+import lestelabs.antenna.ui.main.data.SitesInteractor
 import lestelabs.antenna.ui.main.scanner.DevicePhone
-import java.io.File
-
 
 
 /*
@@ -52,62 +50,25 @@ import java.io.File
 open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
+
     private var mcc: Int? = null
     private var mnc: Int? = null
-    //private var mListener: Tab3.OnFragmentInteractionListener? = null
-    private var location:Location? = null
+
     private var mAdView : AdView? = null
-    private var gpsActive = false
-    private var firstOnResume = true
-    private var listener: GetfileState? = null
-
-
-    // As indicated in android developers https://developers.google.com/maps/documentation/android-sdk/start
-    // Previously it is necessary to get the google API key from the Google Cloud Platform Console
-    // (Maps SDK for Android) and store them in the manifest
-    // The app build gradle is sync with the maps library
 
     private lateinit var mMap: GoogleMap
     private var mMapInitialized: Boolean = false
     private lateinit var fragmentView: View
     private lateinit var mapFragment: SupportMapFragment
     private var fusedLocationClient: FusedLocationProviderClient? = null
-    private lateinit var telephonyManager:TelephonyManager
     private  var pDevice:DevicePhone? = null
-    private var listTowersFound:MutableList<DevicePhone> = mutableListOf(DevicePhone())
-    private var locationAnt: Location? = null
-    private lateinit var locationOk: Location
-    private lateinit var locationManager: LocationManager
-    private var towerinListInt: Int = -1
-    private var minDist: Float?=null
-    private var minTime:Long?=null
-    private var okSaveTowers:Boolean? = null
-    private var okSaveSamples: Boolean? = null
-    private var previousTower: DevicePhone? = DevicePhone()
-    private var isFileSamplesOpened: Boolean = false
-    private var isFileTowersCreated: Boolean = false
-    private var fabSaveClicked = false
-
-    private val fileTowers = "towers.csv"
-    private var sampleFile: String? = null
-    private var storageDir: String?=null
-    private  var towersFilePath: File? = null
-    private  var storageDirTowers: File? = null
-    private  var sampleFilePath: File? = null
-    private  var storageDirFile: File? = null
-
-
-    private var distance:Double=0.0
-    private var distanceAnt:Double = 100000.0
-
     private var networkList: Array<String> = arrayOf("")
     private var checkedItems = booleanArrayOf(false)
-
     private val tabName = "Tab3"
     private var crashlyticsKeyAnt = ""
-
     val db = FirebaseFirestore.getInstance()
     private var sitesListener: ListenerRegistration? = null
+    private var listener: GetfileState? = null
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -118,11 +79,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        if (arguments!=null) {
-            mcc = this.arguments?.getInt(ARG_PARAM1)
-            mnc = this.arguments?.getInt(ARG_PARAM2)
-        } else Log.d(TAG, "arguments off")
-
+        mcc = listener?.getFileState()?.get(2)
+        mnc = listener?.getFileState()?.get(3)
     }
     override fun onStart() {
         // call the superclass method first
@@ -155,21 +113,15 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // prevent window from going to sleep
         fragmentView.keepScreenOn = true
 
-
-
-
-
+        // Initialize ads
         mAdView = view?.findViewById(R.id.adViewFragment3)
         MobileAds.initialize(context)
         val adRequest = AdRequest.Builder().build()
         mAdView?.loadAd(adRequest)
 
-        // retrieve mcc and mnc from activity
-
         //initialitze maps
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
         mapFragment.getMapAsync(this)
-
 
         return fragmentView
 
@@ -179,6 +131,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         Log.d("cfauli", "OnAtach Tab3")
+        try {
+            listener = activity as GetfileState
+            // listener.showFormula(show?);
+        } catch (castException: ClassCastException) {
+            /** The activity does not implement the listener.  */
+        }
     }
 
     override fun onDetach() {
@@ -199,9 +157,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-
         mMap = googleMap
         mMapInitialized = true
         mMap.isMyLocationEnabled = true
@@ -213,14 +168,17 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     mMap.animateCamera(
                         CameraUpdateFactory.newLatLngZoom(
                             LatLng(
-                                location?.latitude,
-                                location?.longitude
-                            ), 12f
+                                location.latitude,
+                                location.longitude
+                            ), 16f
                         )
                     )
                 }
             }
-        getSites(214,3)
+
+        // Display sites
+        Log.d(TAG,"listener " + mcc + " " + mnc)
+        mcc?.let { mnc?.let { it1 -> getSites(it, it1) } }
     }
 
 
@@ -262,15 +220,14 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     companion object {
-        // TODO: Rename parameter arguments, choose names that match
-        // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-        private const val ARG_PARAM1 = "param1"
-        private const val ARG_PARAM2 = "param2"
         private const val TAG = "Tab3"
     }
 
     // Get Books and Update UI
     private fun getSites(mcc: Int, mnc: Int) {
+        // start progress bar
+        progressBarTab3.visibility = View.VISIBLE
+        Tab3tvCargando.text = getString(R.string.Loading)
         // Find operator
         val operador = "Orange"
         val iconOperatorSelected = selectOperatorIcon(mcc, mnc)
@@ -286,6 +243,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 db.collection("sites").document("sites").collection(operador)
                     .get()
                     .addOnSuccessListener { documents ->
+                        progressBarTab3.visibility = View.GONE
+                        Tab3tvCargando.text = ""
                         for (document in documents) {
                             val site:Site = Site()
 

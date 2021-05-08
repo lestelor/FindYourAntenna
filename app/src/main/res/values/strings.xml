@@ -73,6 +73,7 @@
     <string name="Uploadtv">" Mbps Upload: "</string>
     <string name="checking_network">Checking network ...</string>
     <string name="Security">"security :"</string>
+    <string name="Loading">Loading sites ...</string>
 
 
 </resources>

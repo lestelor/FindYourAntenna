@@ -71,6 +71,7 @@
     <string name="Uploadtv">" Mbps Pujada: "</string>
     <string name="checking_network">Comprovant la xarxa ...</string>
     <string name="Security">"seguretat: "</string>
+    <string name="Loading">Carregant emplaçaments ...</string>
 
 
 </resources>

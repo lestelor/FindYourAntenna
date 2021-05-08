@@ -11,6 +11,8 @@
         android:layout_height="match_parent"
         tools:context=".ui.main.MainActivity">
 
+
+
         <LinearLayout
             android:id="@+id/mapScreen"
             android:orientation="vertical"
@@ -34,7 +36,7 @@
             <com.google.android.gms.ads.AdView
                 xmlns:ads="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/adViewFragment3"
-                ads:adSize="BANNER"
+                ads:adSize="LARGE_BANNER"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 ads:adUnitId="@string/BannerID">
@@ -46,8 +48,28 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:translationY="80sp"/>
+            android:layout_height="match_parent">
+<!--            android:translationY="80sp" -->
+
+            <ProgressBar
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:foregroundGravity="top|left"
+                android:id="@+id/progressBarTab3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:layout_marginTop="10dp"
+                android:textColor="@color/colorPrimary"
+                android:id="@+id/Tab3tvCargando"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toRightOf="@id/progressBarTab3"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

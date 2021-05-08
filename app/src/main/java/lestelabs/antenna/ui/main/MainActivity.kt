@@ -75,11 +75,12 @@ interface GetfileState {
 
         val navigationView: NavigationView = findViewById(R.id.nav_view)
 
+        Log.d("cfauli", "MainApplication waiting permissions ok 0 ")
+        telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        pDevice = loadCellInfo(telephonyManager)
+
         // In order to show custom items in the navigationview menu
         navigationView.itemIconTintList = null
-
-
-
 
         // Control point for Crashlitycs
         crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
@@ -193,17 +194,11 @@ interface GetfileState {
         // needed to wait until location is enabled, otherwhise the wifi networks dont appear
         waitGPS(this)
 
-        Log.d("cfauli", "MainApplication waiting permissions ok 0 ")
-        telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        pDevice = loadCellInfo(telephonyManager)
 
-        // send arguments to fragments
-        Log.d("cfauli", "Activity send arguments " + pDevice?.mcc)
-        val bundle = Bundle()
-        pDevice?.mcc?.let { bundle.putInt("param1", it) }
-        pDevice?.mnc?.let { bundle.putInt("param2", it) }
-        val fragobj = Tab3()
-        fragobj.arguments = bundle
+
+
+
+
 
 
 
@@ -247,8 +242,8 @@ interface GetfileState {
 //            viewPager.offscreenPageLimit = 2
 //        }
 
-        // always 2 since we do not want to wait foe sites to be downloaded
-        viewPager.offscreenPageLimit = 2
+        // always 1 since we do not want to wait foe sites to be downloaded. If tab2 pressed then change to 2
+        viewPager.offscreenPageLimit = 1
 
         // Control point for Crashlitycs
         crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
@@ -258,6 +253,7 @@ interface GetfileState {
 
             override fun onTabSelected(tab: TabLayout.Tab) {
                 tabSelectedInt = tab.position
+                if (tab.position==2) viewPager.offscreenPageLimit = 2
                 viewPager.currentItem = tab.position
                 tab.select()
 
@@ -340,9 +336,15 @@ interface GetfileState {
     }
 
     override fun getFileState():List<Int> {
-        val outputListener: MutableList<Int> = mutableListOf(0, 0)
+        val outputListener: MutableList<Int> = mutableListOf(0, 0, 0, 0)
         outputListener[0] = getFileStateButtonPressed
         outputListener[1] = tabSelectedInt
+        pDevice?.mcc?.let{
+            outputListener[2] = it
+        }
+        pDevice?.mnc?.let{
+            outputListener[3] = it
+        }
         return outputListener
     }
 
@@ -416,11 +418,7 @@ interface GetfileState {
              } catch (ex: Exception) {
              }*/
          }
-
-
-
-
-
      }
+
  }
 
