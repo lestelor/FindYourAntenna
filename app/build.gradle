@@ -45,7 +45,7 @@ android {
 
     defaultConfig {
         applicationId "lestelabs.antenna"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 30
         versionCode 40
         versionName "4.4"

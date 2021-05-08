@@ -34,6 +34,7 @@ class MyApplication : Application() {
     fun hasInternetConnection(): Boolean? {
         // Check Internet Check connection
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        return cm?.isDefaultNetworkActive
+        val activeNetwork = cm?.activeNetwork
+        return (activeNetwork != null)
     }
 }

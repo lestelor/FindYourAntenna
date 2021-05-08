@@ -4,7 +4,7 @@ package lestelabs.antenna.ui.main.data
 class SitesInteractor(private val siteDao: SiteDao) {
 
     // Get All Books from DAO
-    fun getAllSites(): List<Site> {
+    fun getAllSites(): MutableList<Site> {
         return siteDao.getAllSites()
     }
 

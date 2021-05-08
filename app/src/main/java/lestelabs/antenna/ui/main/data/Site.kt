@@ -11,6 +11,6 @@ import androidx.room.PrimaryKey
 data class Site(
     @PrimaryKey var codigo: String = "",
     var operador: String? = null,
-    var lat: String? = null,
-    var long: String? = null
+    var lat: Double? = null,
+    var long: Double? = null
 )

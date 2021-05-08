@@ -75,10 +75,6 @@ interface GetfileState {
 
         val navigationView: NavigationView = findViewById(R.id.nav_view)
 
-        Log.d("cfauli", "MainApplication waiting permissions ok 0 ")
-        telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        pDevice = loadCellInfo(telephonyManager)
-
         // In order to show custom items in the navigationview menu
         navigationView.itemIconTintList = null
 
@@ -193,7 +189,9 @@ interface GetfileState {
         checkAllPermission(this) {}
         // needed to wait until location is enabled, otherwhise the wifi networks dont appear
         waitGPS(this)
-
+        Log.d("cfauli", "MainApplication waiting permissions ok 0 ")
+        telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        pDevice = loadCellInfo(telephonyManager)
 
 
 

@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdRequest
@@ -24,16 +25,18 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import kotlinx.android.synthetic.main.fragment_tab1.*
 import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.MyApplication.Companion.internetOn
 import lestelabs.antenna.ui.main.MyApplication.Companion.sitesInteractor
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.data.Site
 import lestelabs.antenna.ui.main.data.SitesInteractor
+import lestelabs.antenna.ui.main.map.MyInfoWindowAdapter
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 
 
@@ -110,6 +113,10 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         Log.d("cfauli", "OnCreateView Tab3")
         // Inflate the layout for this fragment
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
+
+
+
+
         // prevent window from going to sleep
         fragmentView.keepScreenOn = true
 
@@ -158,6 +165,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
         mMap = googleMap
+        // personalized map label -> custominfowindow.xml
+        mMap.setInfoWindowAdapter(MyInfoWindowAdapter(this.mapFragment))
+        //mMap.setOnInfoWindowClickListener(this);
+        // Set a listener for marker click.
+        //googleMap.setOnMarkerClickListener(this)
         mMapInitialized = true
         mMap.isMyLocationEnabled = true
 
@@ -177,7 +189,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             }
 
         // Display sites
-        Log.d(TAG,"listener " + mcc + " " + mnc)
+        Log.d(TAG,"listener Tab " + mcc + " " + mnc)
         mcc?.let { mnc?.let { it1 -> getSites(it, it1) } }
     }
 
@@ -228,71 +240,83 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // start progress bar
         progressBarTab3.visibility = View.VISIBLE
         Tab3tvCargando.text = getString(R.string.Loading)
+        var localLoadSuccess = false
         // Find operator
         val operador = "Orange"
-        val iconOperatorSelected = selectOperatorIcon(mcc, mnc)
+        var sites: MutableList<Site> = mutableListOf()
 
         // First load whatever is stored locally
-//       loadSitesFromLocalDb()
-        // Check if Internet is available
-        //internetOn?.let {
-            //if (internetOn as Boolean) {
-                Log.d(TAG, "internet on")
-                val sites: MutableList<Site> = mutableListOf()
+        loadSitesFromLocalDb(mcc,mnc) {
+            sites = it
+            Log.d(TAG, "finish loading local db #sites " + sites.count())
+            // check internet connection
+            if (internetOn as Boolean && sites.count()==0) {
+                Log.d(TAG, "load firestore sites")
                 // Internet connection is available, get remote data
                 db.collection("sites").document("sites").collection(operador)
                     .get()
                     .addOnSuccessListener { documents ->
-                        progressBarTab3.visibility = View.GONE
                         Tab3tvCargando.text = ""
                         for (document in documents) {
                             val site:Site = Site()
-
                             site.codigo = document.id
                             site.operador = operador
-                            site.lat = document.data["lat"].toString()?:"0.0"
-                            site.long = document.data["long"].toString()?: "0.0"
+                            site.lat = document.data["lat"].toString().replace(",",".").toDouble()?:0.0
+                            site.long = document.data["long"].toString().replace(",",".").toDouble()?:0.0
                             sites.add(site)
-
-                            site.lat?.let {it1 -> site.long?.let { it2 ->
-                                mMap.addMarker(
-                                    MarkerOptions()
-                                        .position(LatLng(it1.replace(",",".").toDouble(), it2.replace(",",".").toDouble()))
-                                        .title(document.id + "-" + it1 + "-" + it2)
-                                        .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected[1] as Int))
-                                )
-                            }}
-
                         }
-                       Log.d(TAG, "sites guardados " + sites.count())
+                        saveSitesToLocalDatabase(sites)
+                        Log.d(TAG, "sites guardados " + sites.count())
                     }
                     .addOnFailureListener { exception ->
                         Log.e(TAG, "Error getting documents: ", exception)
                     }
-                //}
-        //}
+            }
+            printSites(sites,mcc,mnc)
+        }
     }
 
     // Load Books from Room
-    private fun loadSitesFromLocalDb() {
+    private fun loadSitesFromLocalDb(mcc:Int,mnc:Int,callback: (MutableList<Site>) -> Unit) {
         val sitesInteractor: SitesInteractor = sitesInteractor
         // Run in Background, accessing the local database is a memory-expensive operation
         AsyncTask.execute {
             // Get Books
             val sites = sitesInteractor.getAllSites()
-            // Update Adapter on the UI Thread
-            activity?.runOnUiThread {
-                //adapter.setBooks(books)
+
+            Log.d(TAG, "sites local dB " + sites.count())
+            if (sites.count()>1) callback(sites)
+            else callback(mutableListOf())
+        }
+    }
+
+    private fun printSites(sites:MutableList<Site>, mcc:Int, mnc:Int) {
+        activity?.runOnUiThread {
+            progressBarTab3.visibility = View.GONE
+            val iconOperatorSelected = selectOperatorIcon(mcc, mnc)
+            Log.d(TAG, "Printing #sites " + sites.count())
+            for (i in 1..sites.count()-1) {
+                sites[i].lat?.let { lat ->
+                    sites[i].long?.let { long ->
+                        mMap.addMarker(
+                            MarkerOptions()
+                                .position(LatLng(lat, long))
+                                .title(sites[i].codigo)
+                                .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected[1] as Int))
+                        )
+                    }
+                }
             }
         }
     }
 
+
     // Save Books to Local Storage
-    private fun saveBooksToLocalDatabase(books: List<Site>) {
+    private fun saveSitesToLocalDatabase(sites: List<Site>) {
         val sitesInteractor: SitesInteractor = sitesInteractor
         // Run in Background; accessing the local database is a memory-expensive operation
         AsyncTask.execute {
-            sitesInteractor.saveSites(books)
+            sitesInteractor.saveSites(sites)
         }
     }
 
@@ -333,6 +357,28 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         sitesListener?.remove()
         super.onDestroy()
     }
+
+//    override fun onMarkerClick(marker: Marker?): Boolean {
+//        // Retrieve the data from the marker.
+//        val clickCount = marker?.tag as? Int
+//
+//        // Check if a click count was set, then display the click count.
+//        clickCount?.let {
+//            val newClickCount = it + 1
+//            marker.tag = newClickCount
+//            Log.d(TAG, "${marker.title} has been clicked $newClickCount times.")
+//        }
+//
+//        // Return false to indicate that we have not consumed the event and that we wish
+//        // for the default behavior to occur (which is for the camera to move such that the
+//        // marker is centered and for the marker's info window to open, if it has one).
+//        return false
+//    }
+//
+//    override fun onInfoWindowClick(p0: Marker?) {
+//        Toast.makeText(this.context,"The Nasik Caves, or sometimes Pandavleni Caves, are a group of 23 caves carved between the 1st century BCE and the 3rd century CE, though additional sculptures were added up to about the 6th century, reflecting changes in Buddhist devotional practices mainly.",Toast.LENGTH_LONG).show()
+//        Log.d(TAG, "marker info")
+//    }
 }
     
 
