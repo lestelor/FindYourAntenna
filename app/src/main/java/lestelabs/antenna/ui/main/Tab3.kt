@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdRequest
@@ -25,7 +24,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -202,16 +200,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         return list
     }
 
-    fun getRadios(): MutableList<String> {
-        var salida: MutableList<String> = mutableListOf("")
-        for (i in 4..6) {
-            if (checkedItems[i]) {
-                salida.add(networkList!![i])
-            }
-        }
-        return salida
-    }
-
     fun getNetworks(): MutableList<String> {
         var salida: MutableList<String> = mutableListOf("")
         for (i in 0..3) {
@@ -240,9 +228,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // start progress bar
         progressBarTab3.visibility = View.VISIBLE
         Tab3tvCargando.text = getString(R.string.Loading)
-        var localLoadSuccess = false
         // Find operator
-        val operador = "Orange"
+        val operador:String = getOperatorInfo(mcc,mnc)[0] as String
         var sites: MutableList<Site> = mutableListOf()
 
         // First load whatever is stored locally
@@ -251,7 +238,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             Log.d(TAG, "finish loading local db #sites " + sites.count())
             // check internet connection
             if (internetOn as Boolean && sites.count()==0) {
-                Log.d(TAG, "load firestore sites")
+                Log.d(TAG, "load firestore sites operador " + operador)
                 // Internet connection is available, get remote data
                 db.collection("sites").document("sites").collection(operador)
                     .get()
@@ -261,18 +248,24 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                             val site:Site = Site()
                             site.codigo = document.id
                             site.operador = operador
-                            site.lat = document.data["lat"].toString().replace(",",".").toDouble()?:0.0
-                            site.long = document.data["long"].toString().replace(",",".").toDouble()?:0.0
+                            site.lon = document.data["long"].toString().replace(",",".")
+                            site.lat = document.data["lat"].toString().replace(",",".")
+                            site.direccion = document.data["direccion"].toString()
+                            site.frecuencias = document.data["frecuencias"].toString()
                             sites.add(site)
                         }
-                        saveSitesToLocalDatabase(sites)
+                        val sitesArray: Array<Site> = sites.toTypedArray()
+                        saveSitesToLocalDatabase(sitesArray)
+                        printSites(sites,mcc,mnc)
                         Log.d(TAG, "sites guardados " + sites.count())
                     }
                     .addOnFailureListener { exception ->
                         Log.e(TAG, "Error getting documents: ", exception)
                     }
+            } else if (sites.count()>0) {
+                printSites(sites,mcc,mnc)
             }
-            printSites(sites,mcc,mnc)
+
         }
     }
 
@@ -293,15 +286,17 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private fun printSites(sites:MutableList<Site>, mcc:Int, mnc:Int) {
         activity?.runOnUiThread {
             progressBarTab3.visibility = View.GONE
-            val iconOperatorSelected = selectOperatorIcon(mcc, mnc)
-            Log.d(TAG, "Printing #sites " + sites.count())
+            Tab3tvCargando.text = ""
+            val iconOperatorSelected = getOperatorInfo(mcc, mnc)
+            Log.d(TAG, "Printing #sites " + sites.count() + " site " + sites[1])
             for (i in 1..sites.count()-1) {
-                sites[i].lat?.let { lat ->
-                    sites[i].long?.let { long ->
+                sites[i].lat?.let { it1 ->
+                    sites[i].lon?.let { it2 ->
                         mMap.addMarker(
                             MarkerOptions()
-                                .position(LatLng(lat, long))
+                                .position(LatLng(it1.toDouble(), it2.toDouble()))
                                 .title(sites[i].codigo)
+                                .snippet(sites[i].direccion.toString() + "#" + sites[i].frecuencias.toString())
                                 .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected[1] as Int))
                         )
                     }
@@ -312,16 +307,16 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
     // Save Books to Local Storage
-    private fun saveSitesToLocalDatabase(sites: List<Site>) {
+    private fun saveSitesToLocalDatabase(sites: Array<Site>) {
         val sitesInteractor: SitesInteractor = sitesInteractor
         // Run in Background; accessing the local database is a memory-expensive operation
         AsyncTask.execute {
-            sitesInteractor.saveSites(sites)
+            sitesInteractor.saveSites(*sites)
         }
     }
 
-    fun selectOperatorIcon(mcc: Int, net: Int): Array<Any?> {
-        var icon: Int? =null
+    fun getOperatorInfo(mcc: Int, net: Int): Array<Any?> {
+        var icon: Int? = null
         var operator =""
 
         when (mcc) {

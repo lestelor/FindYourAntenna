@@ -14,8 +14,13 @@ class SitesInteractor(private val siteDao: SiteDao) {
     }
 
     // Save List of Books
-    fun saveSites(sites: List<Site>) {
-        sites.forEach { saveSite(it) }
+    fun saveSites(vararg sites: Site) {
+//        var i=0
+//        sites.forEach {
+//            Log.d("Sitesinteractor", "saved " + i)
+//            i++
+//            saveSite(it) }
+        siteDao.saveSites(*sites)
     }
 
     // Get Book by id

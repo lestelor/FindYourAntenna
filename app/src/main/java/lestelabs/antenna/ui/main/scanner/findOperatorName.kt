@@ -7,6 +7,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_tab3.*
 import kotlinx.coroutines.launch
 
+
+
 fun findOperatorName(pDevice:DevicePhone?, callback: (String) -> Unit) {
     val db = FirebaseFirestore.getInstance()
     val celltower = db.collection("mccmnc")

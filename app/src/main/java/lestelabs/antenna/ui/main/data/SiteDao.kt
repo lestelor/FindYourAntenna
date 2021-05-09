@@ -22,4 +22,7 @@ interface SiteDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun saveSite(site: Site): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun saveSites(vararg site: Site)
 }
