@@ -29,8 +29,8 @@ class SitesInteractor(private val siteDao: SiteDao) {
     }
 
     // Get Book by id
-    fun getSiteByOperador(id: String): Site? {
-        return siteDao.getSiteByCodigo(id)
+    fun getSiteByOperador(id: String): Array<Site>? {
+        return siteDao.getSiteByOperador(id)
     }
 
 }

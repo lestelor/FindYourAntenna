@@ -32,6 +32,7 @@ import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.MyApplication.Companion.internetOn
 import lestelabs.antenna.ui.main.MyApplication.Companion.sitesInteractor
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
+import lestelabs.antenna.ui.main.data.Operators
 import lestelabs.antenna.ui.main.data.Site
 import lestelabs.antenna.ui.main.data.SitesInteractor
 import lestelabs.antenna.ui.main.map.MyInfoWindowAdapter
@@ -188,7 +189,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         // Display sites
         Log.d(TAG,"listener Tab " + mcc + " " + mnc)
-        mcc?.let { mnc?.let { it1 -> getSites(it, it1) } }
+        val mcclocal = mcc
+        val mnclocal = mnc
+        if (mcclocal !=null && mnclocal !=null) {
+            val operador:String = Operators.getOperatorByMnc(mnclocal)
+            getSites(operador)
+        }
     }
 
 
@@ -224,16 +230,16 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     // Get Books and Update UI
-    private fun getSites(mcc: Int, mnc: Int) {
+    private fun getSites(operador: String) {
         // start progress bar
         progressBarTab3.visibility = View.VISIBLE
         Tab3tvCargando.text = getString(R.string.Loading)
         // Find operator
-        val operador:String = getOperatorInfo(mcc,mnc)[0] as String
-        var sites: MutableList<Site> = mutableListOf()
+
+        var sites: Array<Site> = arrayOf()
 
         // First load whatever is stored locally
-        loadSitesFromLocalDb(mcc,mnc) {
+        loadSitesFromLocalDb(operador) {
             sites = it
             Log.d(TAG, "finish loading local db #sites " + sites.count())
             // check internet connection
@@ -243,6 +249,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 db.collection("sites").document("sites").collection(operador)
                     .get()
                     .addOnSuccessListener { documents ->
+                        val tempList = mutableListOf<Site>()
                         Tab3tvCargando.text = ""
                         for (document in documents) {
                             val site:Site = Site()
@@ -252,43 +259,45 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                             site.lat = document.data["lat"].toString().replace(",",".")
                             site.direccion = document.data["direccion"].toString()
                             site.frecuencias = document.data["frecuencias"].toString()
-                            sites.add(site)
+                            tempList.add(site)
                         }
-                        val sitesArray: Array<Site> = sites.toTypedArray()
-                        saveSitesToLocalDatabase(sitesArray)
-                        printSites(sites,mcc,mnc)
+                        Log.d(TAG, "Found #sites in firestore " + tempList.size)
+                        sites = tempList.toTypedArray()
+                        saveSitesToLocalDatabase(sites)
+                        printSites(sites,operador)
                         Log.d(TAG, "sites guardados " + sites.count())
                     }
                     .addOnFailureListener { exception ->
                         Log.e(TAG, "Error getting documents: ", exception)
                     }
             } else if (sites.count()>0) {
-                printSites(sites,mcc,mnc)
+                printSites(sites,operador)
             }
 
         }
     }
 
     // Load Books from Room
-    private fun loadSitesFromLocalDb(mcc:Int,mnc:Int,callback: (MutableList<Site>) -> Unit) {
+    private fun loadSitesFromLocalDb(operador:String,callback: (Array<Site>) -> Unit) {
         val sitesInteractor: SitesInteractor = sitesInteractor
         // Run in Background, accessing the local database is a memory-expensive operation
         AsyncTask.execute {
             // Get Books
-            val sites = sitesInteractor.getAllSites()
+            val sites: Array<Site>? = sitesInteractor.getSiteByOperador(operador)
 
-            Log.d(TAG, "sites local dB " + sites.count())
-            if (sites.count()>1) callback(sites)
-            else callback(mutableListOf())
+            Log.d(TAG, "sites local dB " + sites?.count())
+            if (sites !=null) {
+                callback(sites)
+            } else callback(arrayOf())
         }
     }
 
-    private fun printSites(sites:MutableList<Site>, mcc:Int, mnc:Int) {
+    private fun printSites(sites:Array<Site>, operador: String) {
         activity?.runOnUiThread {
             progressBarTab3.visibility = View.GONE
             Tab3tvCargando.text = ""
-            val iconOperatorSelected = getOperatorInfo(mcc, mnc)
-            Log.d(TAG, "Printing #sites " + sites.count() + " site " + sites[1])
+            val iconOperatorSelected = Operators.getIconoByOperator(operador)
+            Log.d(TAG, "Printing #sites " + sites.size + " site " + sites[1])
             for (i in 1..sites.count()-1) {
                 sites[i].lat?.let { it1 ->
                     sites[i].lon?.let { it2 ->
@@ -297,7 +306,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                                 .position(LatLng(it1.toDouble(), it2.toDouble()))
                                 .title(sites[i].codigo)
                                 .snippet(sites[i].direccion.toString() + "#" + sites[i].frecuencias.toString())
-                                .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected[1] as Int))
+                                .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected))
                         )
                     }
                 }
@@ -315,12 +324,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
     }
 
-    fun getOperatorInfo(mcc: Int, net: Int): Array<Any?> {
+    fun getOperatorInfo(mcc: Int, mnc: Int): Array<Any?> {
         var icon: Int? = null
         var operator =""
 
         when (mcc) {
-            214 -> when (net) {
+            214 -> when (mnc) {
                 1 -> {
                     operator = "Vodafone"
                     icon = R.drawable.ic_vodafone
@@ -331,6 +340,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 }
                 4 -> {
                     operator = "MasMovil"
+                    icon = R.drawable.circle_dot_yellow_icon
                 }
                 7 -> {
                     operator = "Telefonica"

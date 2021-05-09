@@ -17,8 +17,8 @@ interface SiteDao {
     @Query("SELECT * FROM Site WHERE codigo LIKE :codigoSite LIMIT 1")
     fun getSiteByCodigo(codigoSite: String): Site?
 
-    @Query("SELECT * FROM Site WHERE operador LIKE :operadorSite LIMIT 1")
-    fun getSiteByOperador(operadorSite: String): Site?
+    @Query("SELECT * FROM Site WHERE operador LIKE :operadorSite")
+    fun getSiteByOperador(operadorSite: String): Array<Site>?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun saveSite(site: Site): Long
