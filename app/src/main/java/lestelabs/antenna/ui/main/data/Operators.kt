@@ -8,9 +8,9 @@ object Operators {
     val pairList: Array<Operator> = arrayOf(
         Operator(1,"Vodafone", R.drawable.ic_vodafone),
         Operator(3,"Orange", R.drawable.ic_orange),
-        Operator(4,"MasMovil", R.drawable.ic_vodafone),
-        Operator(7,"Telefonica", R.drawable.ic_vodafone),
-        Operator(0,"Otros", R.drawable.ic_vodafone)
+        Operator(4,"MasMovil", R.drawable.circle_dot_yellow_icon),
+        Operator(7,"Telefonica", R.drawable.ic_movistar),
+        Operator(0,"Otros", R.drawable.circle_dot_red_icon)
     )
 
     fun getOperatorByMnc (mnc:Int):String {

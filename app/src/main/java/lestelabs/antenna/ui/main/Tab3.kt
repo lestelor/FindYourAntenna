@@ -3,6 +3,7 @@ package lestelabs.antenna.ui.main
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Build
@@ -11,6 +12,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdRequest
@@ -25,6 +28,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.android.synthetic.main.fragment_tab3.*
@@ -52,18 +56,17 @@ import lestelabs.antenna.ui.main.scanner.DevicePhone
 open class Tab3 : Fragment() , OnMapReadyCallback {
 
 
-
     private var mcc: Int? = null
     private var mnc: Int? = null
 
-    private var mAdView : AdView? = null
+    private var mAdView: AdView? = null
 
     private lateinit var mMap: GoogleMap
     private var mMapInitialized: Boolean = false
     private lateinit var fragmentView: View
     private lateinit var mapFragment: SupportMapFragment
     private var fusedLocationClient: FusedLocationProviderClient? = null
-    private  var pDevice:DevicePhone? = null
+    private var pDevice: DevicePhone? = null
     private var networkList: Array<String> = arrayOf("")
     private var checkedItems = booleanArrayOf(false)
     private val tabName = "Tab3"
@@ -72,6 +75,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var sitesListener: ListenerRegistration? = null
     private var listener: GetfileState? = null
 
+    private var operadorAnt: String = ""
+
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,30 +84,13 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         Log.d("cfauli", "OnCreate Tab3")
         // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+        crashlyticsKeyAnt =
+            controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
         mcc = listener?.getFileState()?.get(2)
         mnc = listener?.getFileState()?.get(3)
-    }
-    override fun onStart() {
-        // call the superclass method first
-        super.onStart()
-        Log.d("cfauli", "OnStart Tab3")
-    }
 
-    override fun onStop() {
-        // call the superclass method first
-        super.onStop()
-        Log.d("cfauli", "OnStop Tab3")
     }
-
-
-    // Called at the end of the active lifetime.
-    override fun onPause() {
-        super.onPause()
-        Log.d("cfauli", "OnPause Tab3")
-    }
-
 
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreateView(
@@ -112,10 +100,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         Log.d("cfauli", "OnCreateView Tab3")
         // Inflate the layout for this fragment
         fragmentView = inflater.inflate(R.layout.fragment_tab3, container, false)
-
-
-
-
         // prevent window from going to sleep
         fragmentView.keepScreenOn = true
 
@@ -129,39 +113,18 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
         mapFragment.getMapAsync(this)
 
+        // Operator buttons click listeners
+        setButtonOnclickListeners(fragmentView)
+
         return fragmentView
 
     }
 
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        Log.d("cfauli", "OnAtach Tab3")
-        try {
-            listener = activity as GetfileState
-            // listener.showFormula(show?);
-        } catch (castException: ClassCastException) {
-            /** The activity does not implement the listener.  */
-        }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        Log.d("cfauli", "OnDetach Tab3")
-    }
-
-
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("cfauli", "OnResume tab3")
-    }
-
-
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+        crashlyticsKeyAnt =
+            controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
         mMap = googleMap
         // personalized map label -> custominfowindow.xml
@@ -175,7 +138,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         fusedLocationClient = context?.let { LocationServices.getFusedLocationProviderClient(it) }
         fusedLocationClient?.lastLocation
             ?.addOnSuccessListener { location: Location? ->
-                if (location !=null) {
+                if (location != null) {
                     mMap.animateCamera(
                         CameraUpdateFactory.newLatLngZoom(
                             LatLng(
@@ -188,46 +151,17 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             }
 
         // Display sites
-        Log.d(TAG,"listener Tab " + mcc + " " + mnc)
+        Log.d(TAG, "listener Tab " + mcc + " " + mnc)
         val mcclocal = mcc
         val mnclocal = mnc
-        if (mcclocal !=null && mnclocal !=null) {
-            val operador:String = Operators.getOperatorByMnc(mnclocal)
+        if (mcclocal != null && mnclocal != null) {
+            val operador: String = Operators.getOperatorByMnc(mnclocal)
+            operadorAnt = operador
+            changeButtonsBackgroudColor(operador)
             getSites(operador)
         }
     }
 
-
-    fun arrayNetworks(mcc: Int):Array<String> {
-        var list: Array<String> = emptyArray()
-        when (mcc) {
-            214 -> list = arrayOf("Movistar", "Orange", "Vodafone", "Mas Movil", "GSM", "UMTS", "LTE")
-        }
-        return list
-    }
-
-    fun getNetworks(): MutableList<String> {
-        var salida: MutableList<String> = mutableListOf("")
-        for (i in 0..3) {
-            if (checkedItems[i]) {
-                when (pDevice?.mcc) {
-                    214 -> {
-                        when (networkList?.get(i)) {
-                            "Movistar" -> salida.add(7.toString())
-                            "Vodafone" -> salida.add(1.toString())
-                            "Orange" -> salida.add(3.toString())
-                            "Yoigo" -> salida.add(4.toString())
-                        }
-                    }
-                }
-        }
-        }
-        return salida
-    }
-
-    companion object {
-        private const val TAG = "Tab3"
-    }
 
     // Get Books and Update UI
     private fun getSites(operador: String) {
@@ -235,50 +169,57 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         progressBarTab3.visibility = View.VISIBLE
         Tab3tvCargando.text = getString(R.string.Loading)
         // Find operator
-
-        var sites: Array<Site> = arrayOf()
-
         // First load whatever is stored locally
         loadSitesFromLocalDb(operador) {
+            var sites : Array<Site> = arrayOf()
             sites = it
             Log.d(TAG, "finish loading local db #sites " + sites.count())
             // check internet connection
-            if (internetOn as Boolean && sites.count()==0) {
-                Log.d(TAG, "load firestore sites operador " + operador)
-                // Internet connection is available, get remote data
-                db.collection("sites").document("sites").collection(operador)
-                    .get()
-                    .addOnSuccessListener { documents ->
-                        val tempList = mutableListOf<Site>()
-                        Tab3tvCargando.text = ""
-                        for (document in documents) {
-                            val site:Site = Site()
-                            site.codigo = document.id
-                            site.operador = operador
-                            site.lon = document.data["long"].toString().replace(",",".")
-                            site.lat = document.data["lat"].toString().replace(",",".")
-                            site.direccion = document.data["direccion"].toString()
-                            site.frecuencias = document.data["frecuencias"].toString()
-                            tempList.add(site)
-                        }
-                        Log.d(TAG, "Found #sites in firestore " + tempList.size)
-                        sites = tempList.toTypedArray()
-                        saveSitesToLocalDatabase(sites)
-                        printSites(sites,operador)
-                        Log.d(TAG, "sites guardados " + sites.count())
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.e(TAG, "Error getting documents: ", exception)
-                    }
-            } else if (sites.count()>0) {
-                printSites(sites,operador)
+            if (internetOn as Boolean)  {
+                if (sites.count() == 0) {
+                    loadSitesFromFirestore(operador)
+                } else {
+                    printSites(sites, operador)
+                }
+            } else {
+                progressBarTab3.visibility = View.GONE
+                Toast.makeText(this.context, "Sin conexión a internet", Toast.LENGTH_LONG).show()
             }
-
         }
     }
 
+    private fun loadSitesFromFirestore(operador: String) {
+        Log.d(TAG, "load firestore sites operador " + operador)
+        var sites : Array<Site> = arrayOf()
+        // Internet connection is available, get remote data
+        db.collection("sites").document("sites").collection(operador)
+            .get()
+            .addOnSuccessListener { documents ->
+                val tempList = mutableListOf<Site>()
+                Tab3tvCargando.text = ""
+                for (document in documents) {
+                    val site: Site = Site()
+                    site.codigo = document.id
+                    site.operador = operador
+                    site.lon = document.data["long"].toString().replace(",", ".")
+                    site.lat = document.data["lat"].toString().replace(",", ".")
+                    site.direccion = document.data["direccion"].toString()
+                    site.frecuencias = document.data["frecuencias"].toString()
+                    tempList.add(site)
+                }
+                Log.d(TAG, "Found #sites in firestore " + tempList.size)
+                sites = tempList.toTypedArray()
+                saveSitesToLocalDatabase(sites)
+                printSites(sites, operador)
+                Log.d(TAG, "sites guardados " + sites.count())
+            }
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Error getting documents: ", exception)
+            }
+    }
+
     // Load Books from Room
-    private fun loadSitesFromLocalDb(operador:String,callback: (Array<Site>) -> Unit) {
+    private fun loadSitesFromLocalDb(operador: String, callback: (Array<Site>) -> Unit) {
         val sitesInteractor: SitesInteractor = sitesInteractor
         // Run in Background, accessing the local database is a memory-expensive operation
         AsyncTask.execute {
@@ -286,19 +227,19 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             val sites: Array<Site>? = sitesInteractor.getSiteByOperador(operador)
 
             Log.d(TAG, "sites local dB " + sites?.count())
-            if (sites !=null) {
+            if (sites != null) {
                 callback(sites)
             } else callback(arrayOf())
         }
     }
 
-    private fun printSites(sites:Array<Site>, operador: String) {
+    private fun printSites(sites: Array<Site>, operador: String) {
         activity?.runOnUiThread {
             progressBarTab3.visibility = View.GONE
             Tab3tvCargando.text = ""
             val iconOperatorSelected = Operators.getIconoByOperator(operador)
             Log.d(TAG, "Printing #sites " + sites.size + " site " + sites[1])
-            for (i in 1..sites.count()-1) {
+            for (i in 1..sites.count() - 1) {
                 sites[i].lat?.let { it1 ->
                     sites[i].lon?.let { it2 ->
                         mMap.addMarker(
@@ -324,105 +265,91 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
     }
 
-    fun getOperatorInfo(mcc: Int, mnc: Int): Array<Any?> {
-        var icon: Int? = null
-        var operator =""
 
-        when (mcc) {
-            214 -> when (mnc) {
-                1 -> {
-                    operator = "Vodafone"
-                    icon = R.drawable.ic_vodafone
-                }
-                3 -> {
-                    operator = "Orange"
-                    icon = R.drawable.ic_orange
-                }
-                4 -> {
-                    operator = "MasMovil"
-                    icon = R.drawable.circle_dot_yellow_icon
-                }
-                7 -> {
-                    operator = "Telefonica"
-                    icon = R.drawable.ic_movistar
-                }
-                else -> {
-                    operator = "Otros"
-                    icon = R.drawable.circle_dot_black_icon
-                }
-            }
+    private fun changeButtonsBackgroudColor(operador: String) {
+        Tab3fbMovistar.backgroundTintList =  ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
+        Tab3fbOrange.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
+        Tab3fbVodafone.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
+        Tab3fbMasMovil.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
+        Tab3fbOmv.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
 
+        when(operador) {
+            "Telefonica" -> Tab3fbMovistar.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
+            "Orange" -> Tab3fbOrange.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
+            "Vodafone" -> Tab3fbVodafone.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
+            "MasMovil" -> Tab3fbMasMovil.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
+            "OMV" -> Tab3fbOmv.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
         }
-        return arrayOf(operator, icon)
+    }
+
+    fun setButtonOnclickListeners(fragmentView: View) {
+        val fabMovistar: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbMovistar) as FloatingActionButton
+        val fabOrange: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbOrange) as FloatingActionButton
+        val fabVodafone: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbVodafone) as FloatingActionButton
+        val fabMasMovil: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbMasMovil) as FloatingActionButton
+        val fabOMV: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbOmv) as FloatingActionButton
+
+        fabMovistar.setOnClickListener { fabOnClick("Telefonica") }
+        fabOrange.setOnClickListener { fabOnClick("Orange") }
+        fabVodafone.setOnClickListener { fabOnClick("Vodafone") }
+        fabMasMovil.setOnClickListener { fabOnClick("MasMovil") }
+        fabOMV.setOnClickListener { fabOnClick("OMV") }
     }
 
 
+    fun fabOnClick(operador:String) {
+        if (operador!=operadorAnt) {
+            changeButtonsBackgroudColor(operador)
+            mMap.clear()
+            getSites(operador)
+            operadorAnt = operador
+        }
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        Log.d("cfauli", "OnAtach Tab3")
+        try {
+            listener = activity as GetfileState
+            // listener.showFormula(show?);
+        } catch (castException: ClassCastException) {
+            /** The activity does not implement the listener.  */
+        }
+    }
+    // OnCreate
+    // OnCreateView
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("cfauli", "OnStart Tab3")
+    }
+    override fun onResume() {
+        super.onResume()
+        Log.d("cfauli", "OnResume tab3")
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        Log.d("cfauli", "OnDetach Tab3")
+    }
+
+    override fun onStop() {
+        // call the superclass method first
+        super.onStop()
+        Log.d("cfauli", "OnStop Tab3")
+    }
+    override fun onPause() {
+        super.onPause()
+        Log.d("cfauli", "OnPause Tab3")
+    }
     override fun onDestroy() {
         // IMPORTANT! Remove Firestore Change Listener to prevent memory leaks
         sitesListener?.remove()
         super.onDestroy()
     }
 
-//    override fun onMarkerClick(marker: Marker?): Boolean {
-//        // Retrieve the data from the marker.
-//        val clickCount = marker?.tag as? Int
-//
-//        // Check if a click count was set, then display the click count.
-//        clickCount?.let {
-//            val newClickCount = it + 1
-//            marker.tag = newClickCount
-//            Log.d(TAG, "${marker.title} has been clicked $newClickCount times.")
-//        }
-//
-//        // Return false to indicate that we have not consumed the event and that we wish
-//        // for the default behavior to occur (which is for the camera to move such that the
-//        // marker is centered and for the marker's info window to open, if it has one).
-//        return false
-//    }
-//
-//    override fun onInfoWindowClick(p0: Marker?) {
-//        Toast.makeText(this.context,"The Nasik Caves, or sometimes Pandavleni Caves, are a group of 23 caves carved between the 1st century BCE and the 3rd century CE, though additional sculptures were added up to about the 6th century, reflecting changes in Buddhist devotional practices mainly.",Toast.LENGTH_LONG).show()
-//        Log.d(TAG, "marker info")
-//    }
+    companion object {
+        private const val TAG = "Tab3"
+    }
+
 }
-    
-
-
-//celltower.whereEqualTo("radio", radio).whereEqualTo("net", net)
-//.whereGreaterThan("lat", wgsMin.latitude.toString())
-//.whereLessThan("lat", wgsMax.latitude.toString())
-//
-////.whereGreaterThan("lon",wgsMin.longitude.toString())
-////.whereLessThan("lon",wgsMax.longitude.toString())
-//.get()
-//.addOnSuccessListener { documents ->
-//    indeterminateBar.visibility = View.GONE
-//    for (document in documents) {
-//        val latDocument: Double = document.data["lat"].toString().toDouble()
-//        val lonDocument: Double = document.data["lon"].toString().toDouble()
-//        if (lonDocument < wgsMax.longitude && lonDocument > wgsMin.longitude) {
-//            val iconOperatorSelected = selectOperatorIcon(document.data["mcc"].toString().toInt(), document.data["net"].toString().toInt())
-//            //Log.d("cfauli", "document firestore" + document.data["lat"].toString() + " " + document.data["lon"].toString().toDouble())
-//            if (iconOperatorSelected[1] !== null) {
-//                mMap.addMarker(
-//                    MarkerOptions()
-//                        .position(LatLng(latDocument, lonDocument))
-//                        .title(document.data["mcc"].toString() + "-" + document.data["net"].toString() + "-" + document.data["area"].toString() + "-" + document.data["cell"].toString())
-//                        .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected[1] as Int))
-//                )
-//            } else {
-//                mMap.addMarker(
-//                    MarkerOptions()
-//                        .position(LatLng(latDocument, lonDocument))
-//                        .title(document.data["mcc"].toString() + "-" + document.data["net"].toString() + "-" + document.data["area"].toString() + "-" + document.data["cell"].toString())
-//                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
-//                )
-//            }
-//
-//        }
-//    }
-//}
-//.addOnFailureListener { exception ->
-//    indeterminateBar.visibility = View.GONE
-//    Log.w("cfauli", "Error getting documents: ", exception)
-//}
