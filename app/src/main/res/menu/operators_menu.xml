@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+        <item
+            android:id="@+id/opheaderTelefonica"
+            android:icon="@drawable/ic_email"
+            android:title="Telefónica" />
+        <item
+            android:id="@+id/opheaderOrange"
+            android:title="Orange" />
+        <item
+            android:id="@+id/opheaderVodafone"
+            android:title="Vodafone" />
+        <item
+            android:id="@+id/opheaderMasMovil"
+            android:title="MasMóvil" />
+
+        <item
+            android:id="@+id/opheaderOMV"
+            android:title="OMV" />
+
+
+</menu>

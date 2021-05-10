@@ -9,12 +9,14 @@ import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.view.menu.MenuPopupHelper
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
+import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
@@ -41,6 +43,7 @@ import lestelabs.antenna.ui.main.data.Site
 import lestelabs.antenna.ui.main.data.SitesInteractor
 import lestelabs.antenna.ui.main.map.MyInfoWindowAdapter
 import lestelabs.antenna.ui.main.scanner.DevicePhone
+import java.lang.reflect.Method
 
 
 /*
@@ -104,7 +107,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         fragmentView.keepScreenOn = true
 
         // Initialize ads
-        mAdView = view?.findViewById(R.id.adViewFragment3)
+        mAdView = fragmentView.findViewById(R.id.adViewFragment3)
         MobileAds.initialize(context)
         val adRequest = AdRequest.Builder().build()
         mAdView?.loadAd(adRequest)
@@ -113,12 +116,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
         mapFragment.getMapAsync(this)
 
-        // Operator buttons click listeners
-        setButtonOnclickListeners(fragmentView)
+        // Set operator popup menu settings
+        context?.let { setOperatorPopupMenu(it, fragmentView) }
 
         return fragmentView
-
     }
+
 
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
@@ -157,7 +160,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         if (mcclocal != null && mnclocal != null) {
             val operador: String = Operators.getOperatorByMnc(mnclocal)
             operadorAnt = operador
-            changeButtonsBackgroudColor(operador)
             getSites(operador)
         }
     }
@@ -266,40 +268,84 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
 
-    private fun changeButtonsBackgroudColor(operador: String) {
-        Tab3fbMovistar.backgroundTintList =  ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
-        Tab3fbOrange.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
-        Tab3fbVodafone.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
-        Tab3fbMasMovil.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
-        Tab3fbOmv.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.cpb_grey))
+//    fun setButtonOnclickListeners(fragmentView: View) {
+//        val fabMovistar: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbMovistar) as FloatingActionButton
+//        val fabOrange: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbOrange) as FloatingActionButton
+//        val fabVodafone: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbVodafone) as FloatingActionButton
+//        val fabMasMovil: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbMasMovil) as FloatingActionButton
+//        val fabOMV: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbOmv) as FloatingActionButton
+//
+//        fabMovistar.setOnClickListener { fabOnClick("Telefonica") }
+//        fabOrange.setOnClickListener { fabOnClick("Orange") }
+//        fabVodafone.setOnClickListener { fabOnClick("Vodafone") }
+//        fabMasMovil.setOnClickListener { fabOnClick("MasMovil") }
+//        fabOMV.setOnClickListener { fabOnClick("OMV") }
+//    }
 
-        when(operador) {
-            "Telefonica" -> Tab3fbMovistar.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
-            "Orange" -> Tab3fbOrange.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
-            "Vodafone" -> Tab3fbVodafone.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
-            "MasMovil" -> Tab3fbMasMovil.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
-            "OMV" -> Tab3fbOmv.backgroundTintList = ColorStateList.valueOf(resources.getColor(R.color.colorPrimary))
+    private fun setOperatorPopupMenu(context:Context, fragmentView: View) {
+        val menuOperators: Button = fragmentView.findViewById(R.id.Tab3OperatorButton) as Button
+        menuOperators.setOnClickListener {
+            val popup =  PopupMenu(context, menuOperators)
+            popup.inflate(R.menu.operators_menu)
+            popup.menu.getItem(0).icon = ContextCompat.getDrawable(context, R.drawable.ic_movistar)
+            popup.menu.getItem(1).icon = ContextCompat.getDrawable(context, R.drawable.ic_orange)
+            popup.menu.getItem(2).icon = ContextCompat.getDrawable(context, R.drawable.ic_vodafone)
+            popup.menu.getItem(3).icon = ContextCompat.getDrawable(context, R.drawable.ic_masmovil)
+            popup.menu.getItem(4).icon = ContextCompat.getDrawable(context, R.drawable.ic_omv_green)
+            popup.setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener { item: MenuItem? ->
+                when (item!!.itemId) {
+                    R.id.opheaderTelefonica -> {
+                        menuOperatorOnClick("Telefonica")
+                    }
+                    R.id.opheaderOrange -> {
+                        menuOperatorOnClick("Orange")
+                    }
+                    R.id.opheaderVodafone -> {
+                        menuOperatorOnClick("Vodafone")
+                    }
+                    R.id.opheaderMasMovil -> {
+                        menuOperatorOnClick("MasMovil")
+                    }
+                    R.id.opheaderOMV -> {
+                        menuOperatorOnClick("OMV")
+                    }
+                }
+
+                true
+            })
+
+
+            // show icons on popup menu
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                popup.setForceShowIcon(true)
+//            }else{
+                try {
+                    val fields = popup.javaClass.declaredFields
+                    for (field in fields) {
+                        if ("mPopup" == field.name) {
+                            field.isAccessible = true
+                            val menuPopupHelper = field[popup]
+                            val classPopupHelper =
+                                Class.forName(menuPopupHelper.javaClass.name)
+                            val setForceIcons: Method = classPopupHelper.getMethod(
+                                "setForceShowIcon",
+                                Boolean::class.javaPrimitiveType
+                            )
+                            setForceIcons.invoke(menuPopupHelper, true)
+                            break
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            //}
+            popup.show()
         }
     }
 
-    fun setButtonOnclickListeners(fragmentView: View) {
-        val fabMovistar: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbMovistar) as FloatingActionButton
-        val fabOrange: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbOrange) as FloatingActionButton
-        val fabVodafone: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbVodafone) as FloatingActionButton
-        val fabMasMovil: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbMasMovil) as FloatingActionButton
-        val fabOMV: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbOmv) as FloatingActionButton
 
-        fabMovistar.setOnClickListener { fabOnClick("Telefonica") }
-        fabOrange.setOnClickListener { fabOnClick("Orange") }
-        fabVodafone.setOnClickListener { fabOnClick("Vodafone") }
-        fabMasMovil.setOnClickListener { fabOnClick("MasMovil") }
-        fabOMV.setOnClickListener { fabOnClick("OMV") }
-    }
-
-
-    fun fabOnClick(operador:String) {
+    fun menuOperatorOnClick(operador:String) {
         if (operador!=operadorAnt) {
-            changeButtonsBackgroudColor(operador)
             mMap.clear()
             getSites(operador)
             operadorAnt = operador

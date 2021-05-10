@@ -45,6 +45,8 @@
             <ProgressBar
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
                 android:foregroundGravity="top|left"
                 android:id="@+id/progressBarTab3"
                 android:layout_width="wrap_content"
@@ -52,13 +54,16 @@
                 android:visibility="gone" />
 
             <TextView
-                android:layout_marginTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/progressBarTab3"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
                 android:textColor="@color/colorPrimary"
                 android:id="@+id/Tab3tvCargando"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintLeft_toRightOf="@id/progressBarTab3"
-                app:layout_constraintTop_toTopOf="parent"/>
+                android:layout_marginTop="5dp"/>
 
 <!--            <androidx.appcompat.widget.LinearLayoutCompat-->
 <!--                android:layout_width="wrap_content"-->
@@ -68,72 +73,34 @@
 <!--                android:layout_marginStart="10dp"-->
 <!--                app:layout_constraintTop_toTopOf="parent"-->
 <!--                app:layout_constraintLeft_toLeftOf="parent">-->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="250dp"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:layout_marginStart="15dp"
+                android:background="@drawable/my_custom_layout">
+                <Button
+                    android:backgroundTint="@color/colorPrimary"
+                    android:id="@+id/Tab3OperatorButton"
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/ic_arrow_down"
+                    android:drawableTint="@color/colorPrimary">
+                </Button>
+                <EditText
+                    android:text="ej: Albacete 800 MHz"
+                    android:textColor="@color/grey"
+                    android:layout_width="190dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="@color/cpb_white"/>
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/Tab3fbMovistar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/cpb_white"
-                    android:src="@drawable/ic_movistar"
-                    app:fabCustomSize="40dp"
-                    android:layout_marginTop="50dp"
-                    android:layout_marginStart="10dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-                </com.google.android.material.floatingactionbutton.FloatingActionButton>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/Tab3fbOrange"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/cpb_white"
-                    android:src="@drawable/ic_orange"
-                    app:fabCustomSize="40dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginStart="10dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/Tab3fbMovistar" >
-                </com.google.android.material.floatingactionbutton.FloatingActionButton>
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/Tab3fbVodafone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/cpb_white"
-                    android:src="@drawable/ic_vodafone"
-                    app:fabCustomSize="40dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginStart="10dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/Tab3fbOrange">
-                </com.google.android.material.floatingactionbutton.FloatingActionButton>
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/Tab3fbMasMovil"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/cpb_white"
-                    android:src="@drawable/circle_dot_yellow_icon"
-                    app:fabCustomSize="40dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginStart="10dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/Tab3fbVodafone">
-                </com.google.android.material.floatingactionbutton.FloatingActionButton>
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/Tab3fbOmv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/cpb_white"
-                    android:src="@drawable/circle_dot_red_icon"
-                    app:fabCustomSize="40dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginStart="10dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/Tab3fbMasMovil">
-                </com.google.android.material.floatingactionbutton.FloatingActionButton>
-<!--            </androidx.appcompat.widget.LinearLayoutCompat>-->
+            <!--            </androidx.appcompat.widget.LinearLayoutCompat>-->
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 
