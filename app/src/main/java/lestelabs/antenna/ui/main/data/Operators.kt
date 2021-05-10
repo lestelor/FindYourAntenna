@@ -1,5 +1,6 @@
 package lestelabs.antenna.ui.main.data
 
+import android.util.Log
 import lestelabs.antenna.R
 
 object Operators {
@@ -10,8 +11,10 @@ object Operators {
         Operator(3,"Orange", R.drawable.ic_orange),
         Operator(4,"MasMovil", R.drawable.circle_dot_yellow_icon),
         Operator(7,"Telefonica", R.drawable.ic_movistar),
-        Operator(0,"Otros", R.drawable.circle_dot_red_icon)
+        Operator(0,"OMV", R.drawable.ic_omv_green)
     )
+
+    val mvnos: Array<String> = arrayOf("Euskaltel","Aire","Cota","Laurentino", "Tele Caravaca", "TeleAst" )
 
     fun getOperatorByMnc (mnc:Int):String {
         val find = pairList.first { it.mnc==mnc}
@@ -19,7 +22,10 @@ object Operators {
     }
 
     fun getIconoByOperator (operator:String): Int {
-        val find = pairList.first { it.description==operator}
+        var find:Operator? = null
+        find = pairList.firstOrNull { it.description == operator }
+        if (find==null) find = pairList.first { it.description == "OMV" }
+
         return find.icono
     }
 }

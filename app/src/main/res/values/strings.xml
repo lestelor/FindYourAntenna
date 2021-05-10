@@ -25,7 +25,7 @@
     <string name="menu_tab3">Cell Site Location</string>
     <string name="channel">channel: </string>
     <string name="Network">Network: </string>
-    <string name="Operator">Operator (mcc-mnc): </string>
+    <string name="Operator">MCC-MNC: </string>
     <string name="MobileTxt">Mobile Network</string>
     <string name="MobileDetected">No mobile network detected</string>
     <string name="towerFileNotFound">The tower.csv file was not found</string>

@@ -24,7 +24,7 @@
     <string name="menu_tab3">Mapa de emplazamientos móviles</string>
     <string name="channel">canal: </string>
     <string name="Network">Red: </string>
-    <string name="Operator">Operador (mcc-mnc): </string>
+    <string name="Operator">MCC-MNC: </string>
     <string name="MobileTxt">Red Móvil</string>
     <string name="MobileDetected">Red móvil no detectada</string>
     <string name="towerFileNotFound">Archivo towers.csv no encontrado</string>

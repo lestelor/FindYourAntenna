@@ -3,20 +3,20 @@ package lestelabs.antenna.ui.main
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.ColorStateList
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.view.menu.MenuPopupHelper
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
-import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
@@ -30,7 +30,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.android.synthetic.main.fragment_tab3.*
@@ -209,7 +208,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     site.frecuencias = document.data["frecuencias"].toString()
                     tempList.add(site)
                 }
-                Log.d(TAG, "Found #sites in firestore " + tempList.size)
+                Log.d(TAG, "Found #sites in firestore for " + operador+ " " + tempList.size)
                 sites = tempList.toTypedArray()
                 saveSitesToLocalDatabase(sites)
                 printSites(sites, operador)
@@ -228,7 +227,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             // Get Books
             val sites: Array<Site>? = sitesInteractor.getSiteByOperador(operador)
 
-            Log.d(TAG, "sites local dB " + sites?.count())
+            Log.d(TAG, "found #sites in local dB for" + operador + " " + sites?.count())
             if (sites != null) {
                 callback(sites)
             } else callback(arrayOf())
@@ -240,7 +239,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             progressBarTab3.visibility = View.GONE
             Tab3tvCargando.text = ""
             val iconOperatorSelected = Operators.getIconoByOperator(operador)
-            Log.d(TAG, "Printing #sites " + sites.size + " site " + sites[1])
+            Log.d(TAG, "Printing #sites " + sites.size + " site " + sites[0])
             for (i in 1..sites.count() - 1) {
                 sites[i].lat?.let { it1 ->
                     sites[i].lon?.let { it2 ->
@@ -347,7 +346,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     fun menuOperatorOnClick(operador:String) {
         if (operador!=operadorAnt) {
             mMap.clear()
-            getSites(operador)
+            when(operador) {
+                "OMV" -> for(i in 0..Operators.mvnos.size-1) {
+                    getSites(Operators.mvnos[i])
+                }
+                else -> getSites(operador)
+            }
             operadorAnt = operador
         }
     }

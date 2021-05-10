@@ -25,7 +25,7 @@
     <string name="menu_tab3">Mapa de emplaçaments mòbils</string>
     <string name="channel">canal:</string>
     <string name="Network">Xarxa:</string>
-    <string name="Operator">Operador (mcc-mnc):</string>
+    <string name="Operator">MCC-MNC:</string>
     <string name="MobileTxt">Xarxa Mòbil</string>
     <string name="MobileDetected">Xarxa mòbil no detectada</string>
     <string name="towerFileNotFound">Arxiu towers.csv no trobat</string>
