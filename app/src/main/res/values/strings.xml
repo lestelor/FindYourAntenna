@@ -7,65 +7,35 @@
     <string name="nav_header_subtitle">shinnystar.labs@gmail.com</string>
     <string name="nav_header_desc">Navigation header</string>
 
-    <string name="titlepopup">Local drive save settings</string>
-    <string name="textSampleTime">Sample time</string>
-    <string name="textSampleDistance">Sample distance</string>
-    <string name="navSettings">Settings</string>
-    <string name="minDistSample">10</string>
-    <string name="pop_up_window_tv_folder">Samples file folder</string>
-    <string name="minTimeSample">10</string>
-    <string name="pop_up_checkbox_towers">Save site file</string>
-    <string name="pop_up_checkbox_samples">Save samples signal strength file</string>
     <string name="upload">Upload</string>
     <string name="download">Download</string>
     <string name="latency">Ping</string>
     <string name="navExit">Exit</string>
     <string name="menu_tab1">Network Speed</string>
     <string name="menu_tab2">Network Signal Scanner</string>
-    <string name="menu_tab3">Cell Site Location</string>
     <string name="channel">channel: </string>
     <string name="Network">Network: </string>
     <string name="Operator">MCC-MNC: </string>
     <string name="MobileTxt">Mobile Network</string>
     <string name="MobileDetected">No mobile network detected</string>
-    <string name="towerFileNotFound">The tower.csv file was not found</string>
-    <string name="NotAValidFile">Not a valid file</string>
-    <string name="waitingGPS">waiting GPS &#8230;</string>
-    <string name="towerNotFound">site not found</string>
-    <string name="FileSavedIn">File saved in </string>
-    <string name="TowerCoordinatesNotFound">Site coordinates not found</string>
-    <string name="Download">Download: </string>
-    <string name="Upload">Upload: </string>
-    <string name="distancetxt">"distance: "</string>
-    <string name="towertxt">"site: "</string>
-    <string name="NotAvailable">Not Available</string>
     <string name="click_to_start_the_test">Click to START</string>
     <string name="click_to_abort_the_test">Click to ABORT</string>
     <string name="results">Results</string>
     <string name="tvWIFIwithoutSSID">WIFI     No WIFI network detected</string>
 
-    <string name="BannerTest" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
-
     <string name="BannerID" translatable="false">ca-app-pub-8346072505648333/5715495023</string>
     <string name="AddsId" translatable="false">ca-app-pub-8346072505648333~1653829654</string>
     <string name="SpeedTestStarted">Please wait. The test started …</string>
     <string name="SpeedTestStoped">Test aborted!</string>
-    <string name="level">coverage level: </string>
     <string name="Contribute">Share anonymous inf.</string>
-    <string name="CheckTheBoxBelow">Please check the box below to contribute and share anonymous information. Thanks!</string>
     <string name="ThanksForChecking">Thanks for sharing anonymous data. Now you can use the settings menu</string>
     <string name="ThankForNotChecking">Data is no longer shared. Enable it to use the options menu</string>
-    <string name="DownloadOpenCell">Download sites from Opencell.org</string>
-    <string name="DialogSamplesTitle">Save Samples and Towers?</string>
-    <string name="DialogSamplesMessage">Samples will be found in local external drive: </string>
-    <string name="pleasedonotUncheck">Please contribute with anonymized information on signal strength</string>
-    <string name="pleasedonotUncheckTitle">Share anonymous information?</string>
     <string name="IfYouEnjoy">If you enjoy using </string>
     <string name="ThaksForSupport">, please take a moment to rate it.\n\nThanks for your support!</string>
     <string name="Rate">Rate </string>
     <string name="RemindMeLater">Remind me later</string>
     <string name="NoThanks">No, thanks</string>
-    <string name="menu_tab4">antenasgsm.com</string>
+    <string name="menu_tab4">Site Map</string>
     <string name="navEmail">Send comments</string>
     <string name="CopiedToClipboard">Copied to clipboard</string>
     <string name="Frequency">Frequency:</string>
