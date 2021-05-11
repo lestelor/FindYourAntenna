@@ -3,16 +3,23 @@ package lestelabs.antenna.ui.main
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.PopupMenu
@@ -41,8 +48,8 @@ import lestelabs.antenna.ui.main.data.Operators
 import lestelabs.antenna.ui.main.data.Site
 import lestelabs.antenna.ui.main.data.SitesInteractor
 import lestelabs.antenna.ui.main.map.MyInfoWindowAdapter
-import lestelabs.antenna.ui.main.scanner.DevicePhone
 import java.lang.reflect.Method
+import java.util.*
 
 
 /*
@@ -60,24 +67,19 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
     private var mcc: Int? = null
     private var mnc: Int? = null
-
     private var mAdView: AdView? = null
-
     private lateinit var mMap: GoogleMap
     private var mMapInitialized: Boolean = false
     private lateinit var fragmentView: View
     private lateinit var mapFragment: SupportMapFragment
     private var fusedLocationClient: FusedLocationProviderClient? = null
-    private var pDevice: DevicePhone? = null
-    private var networkList: Array<String> = arrayOf("")
-    private var checkedItems = booleanArrayOf(false)
     private val tabName = "Tab3"
     private var crashlyticsKeyAnt = ""
     val db = FirebaseFirestore.getInstance()
     private var sitesListener: ListenerRegistration? = null
     private var listener: GetfileState? = null
-
     private var operadorAnt: String = ""
+    private var sitesAnt: Array<Site> = arrayOf()
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -91,6 +93,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         mcc = listener?.getFileState()?.get(2)
         mnc = listener?.getFileState()?.get(3)
+
 
     }
 
@@ -117,6 +120,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         // Set operator popup menu settings
         context?.let { setOperatorPopupMenu(it, fragmentView) }
+        editTextSearchOnclickListener(fragmentView)
+        backButtonOnclickListener(fragmentView)
 
         return fragmentView
     }
@@ -174,6 +179,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         loadSitesFromLocalDb(operador) {
             var sites : Array<Site> = arrayOf()
             sites = it
+            sitesAnt = sites
             Log.d(TAG, "finish loading local db #sites " + sites.count())
             // check internet connection
             if (internetOn as Boolean)  {
@@ -210,6 +216,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 }
                 Log.d(TAG, "Found #sites in firestore for " + operador+ " " + tempList.size)
                 sites = tempList.toTypedArray()
+                sitesAnt = sites
                 saveSitesToLocalDatabase(sites)
                 printSites(sites, operador)
                 Log.d(TAG, "sites guardados " + sites.count())
@@ -247,7 +254,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                             MarkerOptions()
                                 .position(LatLng(it1.toDouble(), it2.toDouble()))
                                 .title(sites[i].codigo)
-                                .snippet(sites[i].direccion.toString() + "#" + sites[i].frecuencias.toString())
+                                .snippet(sites[i].direccion.toString() + "#" + sites[i].frecuencias.toString() + "#" + sites[i].operador)
                                 .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected))
                         )
                     }
@@ -265,21 +272,6 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             sitesInteractor.saveSites(*sites)
         }
     }
-
-
-//    fun setButtonOnclickListeners(fragmentView: View) {
-//        val fabMovistar: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbMovistar) as FloatingActionButton
-//        val fabOrange: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbOrange) as FloatingActionButton
-//        val fabVodafone: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbVodafone) as FloatingActionButton
-//        val fabMasMovil: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbMasMovil) as FloatingActionButton
-//        val fabOMV: FloatingActionButton = fragmentView.findViewById<View>(R.id.Tab3fbOmv) as FloatingActionButton
-//
-//        fabMovistar.setOnClickListener { fabOnClick("Telefonica") }
-//        fabOrange.setOnClickListener { fabOnClick("Orange") }
-//        fabVodafone.setOnClickListener { fabOnClick("Vodafone") }
-//        fabMasMovil.setOnClickListener { fabOnClick("MasMovil") }
-//        fabOMV.setOnClickListener { fabOnClick("OMV") }
-//    }
 
     private fun setOperatorPopupMenu(context:Context, fragmentView: View) {
         val menuOperators: Button = fragmentView.findViewById(R.id.Tab3OperatorButton) as Button
@@ -354,6 +346,56 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             }
             operadorAnt = operador
         }
+    }
+    fun backButtonOnclickListener(fragmentView: View) {
+        val backButton: Button = fragmentView.findViewById(R.id.Tab3BackButton) as Button
+        backButton.setOnClickListener {
+            getSites(operadorAnt)
+        }
+    }
+
+    fun editTextSearchOnclickListener(fragmentView: View) {
+        val editText: EditText = fragmentView.findViewById(R.id.Tab3etSearch) as EditText
+
+        editText.setOnClickListener {
+            editText.text.clear()
+            editText.setTextColor(resources.getColor(R.color.black))
+        }
+
+
+        editText.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+            val procesado = false
+            val sitesAntSize = sitesAnt.size
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                // Mostrar mensaje
+                val listToSearch: List<String> = v.text.toString().split(" ")
+                Log.d(TAG, "sites listtosearch " + listToSearch)
+                var sitesFiltered: Array<Site> = arrayOf()
+
+                for (i in 0..listToSearch.size-1) {
+                    sitesFiltered = sitesAnt.filter{ it.codigo == listToSearch[i].toUpperCase(Locale.ROOT)}.toTypedArray()
+                    Log.d(TAG, "sites search #sitesfound cod " + sitesFiltered.size)
+                    if (sitesFiltered.size>0) sitesAnt = sitesFiltered
+                }
+                for (i in 0..listToSearch.size-1) {
+                    sitesFiltered = sitesAnt.filter{ it.direccion.contains(listToSearch[i].toUpperCase(Locale.ROOT))}.toTypedArray()
+                    Log.d(TAG, "sites search #sitesfound dir  " + sitesFiltered.size)
+                    if (sitesFiltered.size>0) sitesAnt = sitesFiltered
+                }
+                for (i in 0..listToSearch.size-1) {
+                    sitesFiltered = sitesAnt.filter{ it.frecuencias.contains(listToSearch[i].toUpperCase())}.toTypedArray()
+                    Log.d(TAG, "sites search #sitesfound frec  " + sitesFiltered.size)
+                    if (sitesFiltered.size>0) sitesAnt = sitesFiltered
+                }
+                if (sitesAnt.size<sitesAntSize) {
+                    mMap.clear()
+                    printSites(sitesAnt, operadorAnt)
+                    // zoom to the selected sites
+                } else Toast.makeText(context, "Sin coincidencias", Toast.LENGTH_LONG).show()
+
+            }
+            procesado
+        })
     }
 
     override fun onAttach(context: Context) {

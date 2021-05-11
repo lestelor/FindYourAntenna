@@ -25,7 +25,7 @@ class MyInfoWindowAdapter(private val context: Fragment) : InfoWindowAdapter {
         val textViewSubTitle3 = view.findViewById<View>(R.id.text_subTitle3) as TextView
 
         val parts = marker.snippet.split("#")
-        textViewTitle.text = marker.title
+        textViewTitle.text = parts[2] + " " + marker.title
         textViewSubTitle1.text = "lat:" + marker.position.latitude.toString() + " lon:" + marker.position.longitude.toString()
         textViewSubTitle2.text = parts[0]
         textViewSubTitle3.text = "frecuencias: " + parts[1]

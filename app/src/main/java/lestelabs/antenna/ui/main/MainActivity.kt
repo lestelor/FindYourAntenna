@@ -112,7 +112,7 @@ interface GetfileState {
         Log.d("cfauli", R.drawable.ic_speed_dark.toString())
         Log.d("cfauli", R.drawable.ic_network_dark.toString())
         Log.d("cfauli", R.drawable.ic_map_dark.toString())
-        Log.d("cfauli", R.drawable.gsmantenas.toString())
+        //Log.d("cfauli", R.drawable.gsmantenas.toString())
         Log.d("cfauli", R.drawable.ic_contribute.toString())
         Log.d("cfauli", R.drawable.ic_exit.toString())
 

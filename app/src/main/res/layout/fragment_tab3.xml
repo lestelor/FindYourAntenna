@@ -73,30 +73,41 @@
 <!--                app:layout_constraintTop_toTopOf="parent"-->
 <!--                app:layout_constraintLeft_toLeftOf="parent">-->
             <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="250dp"
+                android:layout_width="280dp"
                 android:layout_height="40dp"
                 android:orientation="horizontal"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="11dp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 android:layout_marginStart="15dp"
-                android:background="@drawable/my_custom_layout">
+                android:background="@drawable/my_custom_layout"
+                android:clickable="false">
                 <Button
                     android:backgroundTint="@color/colorPrimary"
                     android:id="@+id/Tab3OperatorButton"
-                    android:layout_width="50dp"
+                    android:layout_width="40dp"
                     android:layout_height="match_parent"
                     android:background="@drawable/ic_arrow_down"
                     android:drawableTint="@color/colorPrimary">
                 </Button>
                 <EditText
-                    android:text="ej: Albacete 800 MHz"
+                    android:id="@+id/Tab3etSearch"
+                    android:text="ej: Salou 800 MHz"
                     android:textColor="@color/grey"
-                    android:layout_width="190dp"
+                    android:layout_width="200dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center_vertical"
-                    android:background="@color/cpb_white"/>
-
+                    android:background="@color/cpb_white"
+                    android:singleLine="true"
+                    android:imeOptions="actionSearch"/>
+                <Button
+                    android:backgroundTint="@color/colorPrimary"
+                    android:id="@+id/Tab3BackButton"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/ic_back_button"
+                    android:drawableTint="@color/colorPrimary">
+                </Button>
             </androidx.appcompat.widget.LinearLayoutCompat>
 
             <!--            </androidx.appcompat.widget.LinearLayoutCompat>-->
