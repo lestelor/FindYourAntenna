@@ -35,6 +35,7 @@ import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
+
 import lestelabs.antenna.ui.main.scanner.waitGPS
 
 interface GetfileState {

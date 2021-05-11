@@ -8,8 +8,6 @@ import android.location.Location
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -22,8 +20,10 @@ import android.widget.EditText
 import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
@@ -34,9 +34,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.android.synthetic.main.fragment_tab3.*
@@ -80,6 +78,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var listener: GetfileState? = null
     private var operadorAnt: String = ""
     private var sitesAnt: Array<Site> = arrayOf()
+    var markerTotal:MutableList<Marker?> = mutableListOf()
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -118,10 +117,11 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
         mapFragment.getMapAsync(this)
 
-        // Set operator popup menu settings
+        // Set menu settings
         context?.let { setOperatorPopupMenu(it, fragmentView) }
         editTextSearchOnclickListener(fragmentView)
         backButtonOnclickListener(fragmentView)
+        initLayoutSearch(fragmentView)
 
         return fragmentView
     }
@@ -134,6 +134,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
         mMap = googleMap
+
         // personalized map label -> custominfowindow.xml
         mMap.setInfoWindowAdapter(MyInfoWindowAdapter(this.mapFragment))
         //mMap.setOnInfoWindowClickListener(this);
@@ -242,25 +243,60 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     }
 
     private fun printSites(sites: Array<Site>, operador: String) {
+        var marker: Marker? = null
+
         activity?.runOnUiThread {
-            progressBarTab3.visibility = View.GONE
             Tab3tvCargando.text = ""
             val iconOperatorSelected = Operators.getIconoByOperator(operador)
             Log.d(TAG, "Printing #sites " + sites.size + " site " + sites[0])
-            for (i in 1..sites.count() - 1) {
+            for (i in 0..sites.count() - 1) {
                 sites[i].lat?.let { it1 ->
                     sites[i].lon?.let { it2 ->
-                        mMap.addMarker(
+                        marker = mMap.addMarker(
                             MarkerOptions()
                                 .position(LatLng(it1.toDouble(), it2.toDouble()))
                                 .title(sites[i].codigo)
                                 .snippet(sites[i].direccion.toString() + "#" + sites[i].frecuencias.toString() + "#" + sites[i].operador)
                                 .icon(BitmapDescriptorFactory.fromResource(iconOperatorSelected))
                         )
+                        markerTotal.add(marker)
                     }
                 }
             }
+            progressBarTab3.visibility = View.GONE
         }
+    }
+
+    fun zoomToBounds() {
+        var bounds:LatLngBounds? = null
+        if (markerTotal.size > 1) {
+            val long:Array<Double> = arrayOf(0.0,0.0)
+            val lat:Array<Double> = arrayOf(0.0,0.0)
+            val long1: Double = markerTotal[0]?.position?.longitude as Double
+            val long2: Double = markerTotal[1]?.position?.longitude as Double
+            if (long1<long2) {
+                long[0] = long1
+                long[1] = long2
+            }   else {
+                long[1] = long1
+                long[0] = long2
+            }
+            val lat1: Double = markerTotal[0]?.position?.latitude as Double
+            val lat2: Double = markerTotal[1]?.position?.latitude as Double
+            if (lat1<lat2) {
+                lat[0] = lat1
+                lat[1] = lat2
+            }   else {
+                lat[1] = lat1
+                lat[0] = lat2
+            }
+            bounds = LatLngBounds(LatLng(lat[0],long[0]), LatLng(lat[1],long[1]))
+            for (i in 2..markerTotal.size-1) {
+                bounds = bounds?.including(markerTotal[i]?.position)
+            }
+            Log.d(TAG, "sites bounds 0 " + bounds.toString())
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 10))
+        } else mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerTotal[0]?.position, 16f))
     }
 
 
@@ -334,68 +370,100 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
     }
 
-
     fun menuOperatorOnClick(operador:String) {
         if (operador!=operadorAnt) {
-            mMap.clear()
-            when(operador) {
-                "OMV" -> for(i in 0..Operators.mvnos.size-1) {
-                    getSites(Operators.mvnos[i])
-                }
-                else -> getSites(operador)
-            }
-            operadorAnt = operador
+            changeOperator(operador)
         }
     }
+
+    fun changeOperator(operador: String) {
+        mMap.clear()
+        markerTotal = mutableListOf()
+        when(operador) {
+            "OMV" -> for(i in 0..Operators.mvnos.size-1) {
+                getSites(Operators.mvnos[i])
+            }
+            else -> getSites(operador)
+        }
+        operadorAnt = operador
+    }
+
     fun backButtonOnclickListener(fragmentView: View) {
         val backButton: Button = fragmentView.findViewById(R.id.Tab3BackButton) as Button
         backButton.setOnClickListener {
-            getSites(operadorAnt)
+            changeOperator(operadorAnt)
         }
+    }
+
+    fun initLayoutSearch(fragmentView: View) {
+        val editText: EditText = fragmentView.findViewById(R.id.Tab3etSearch) as EditText
+        val barraFiltro: LinearLayoutCompat = fragmentView.findViewById(R.id.Tab3LinearLayoutSearch) as LinearLayoutCompat
+        barraFiltro.setOnClickListener(View.OnClickListener() {
+            Log.d(TAG, "click layout")
+            editText.requestFocus()
+            editText.isFocusableInTouchMode = true
+            //hideKeyboard(editText, false)
+        })
     }
 
     fun editTextSearchOnclickListener(fragmentView: View) {
         val editText: EditText = fragmentView.findViewById(R.id.Tab3etSearch) as EditText
 
-        editText.setOnClickListener {
+        editText.setOnFocusChangeListener { view, b ->
+            Log.d(TAG, "click editText")
             editText.text.clear()
             editText.setTextColor(resources.getColor(R.color.black))
         }
-
 
         editText.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
             val procesado = false
             val sitesAntSize = sitesAnt.size
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                var sitesMostrar = sitesAnt
                 // Mostrar mensaje
                 val listToSearch: List<String> = v.text.toString().split(" ")
                 Log.d(TAG, "sites listtosearch " + listToSearch)
                 var sitesFiltered: Array<Site> = arrayOf()
 
                 for (i in 0..listToSearch.size-1) {
-                    sitesFiltered = sitesAnt.filter{ it.codigo == listToSearch[i].toUpperCase(Locale.ROOT)}.toTypedArray()
+                    sitesFiltered = sitesMostrar.filter{ it.codigo == listToSearch[i].toUpperCase(Locale.ROOT)}.toTypedArray()
                     Log.d(TAG, "sites search #sitesfound cod " + sitesFiltered.size)
-                    if (sitesFiltered.size>0) sitesAnt = sitesFiltered
+                    if (sitesFiltered.size>0) sitesMostrar = sitesFiltered
                 }
                 for (i in 0..listToSearch.size-1) {
-                    sitesFiltered = sitesAnt.filter{ it.direccion.contains(listToSearch[i].toUpperCase(Locale.ROOT))}.toTypedArray()
+                    sitesFiltered = sitesMostrar.filter{ it.direccion.contains(listToSearch[i].toUpperCase(Locale.ROOT))}.toTypedArray()
                     Log.d(TAG, "sites search #sitesfound dir  " + sitesFiltered.size)
-                    if (sitesFiltered.size>0) sitesAnt = sitesFiltered
+                    if (sitesFiltered.size>0) sitesMostrar = sitesFiltered
                 }
                 for (i in 0..listToSearch.size-1) {
-                    sitesFiltered = sitesAnt.filter{ it.frecuencias.contains(listToSearch[i].toUpperCase())}.toTypedArray()
+                    sitesFiltered = sitesMostrar.filter{ it.frecuencias.contains(listToSearch[i].toUpperCase())}.toTypedArray()
                     Log.d(TAG, "sites search #sitesfound frec  " + sitesFiltered.size)
-                    if (sitesFiltered.size>0) sitesAnt = sitesFiltered
+                    if (sitesFiltered.size>0) sitesMostrar = sitesFiltered
                 }
-                if (sitesAnt.size<sitesAntSize) {
+                if (sitesMostrar.size<sitesAntSize) {
+                    hideKeyboard(v, true)
                     mMap.clear()
-                    printSites(sitesAnt, operadorAnt)
+                    markerTotal = mutableListOf()
+                    printSites(sitesMostrar, operadorAnt)
+                    zoomToBounds()
                     // zoom to the selected sites
                 } else Toast.makeText(context, "Sin coincidencias", Toast.LENGTH_LONG).show()
 
             }
             procesado
         })
+
+//        editText.addTextChangedListener(object : TextWatcher {
+//            override fun afterTextChanged(s: Editable) {}
+//            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+//            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
+//        })
+    }
+    
+    fun hideKeyboard(v:View, cerrar:Boolean) {
+        val imm: InputMethodManager = activity?.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        if (cerrar) imm.hideSoftInputFromWindow(v.windowToken, 0)
+        else imm.showSoftInput(v, InputMethodManager.SHOW_FORCED)
     }
 
     override fun onAttach(context: Context) {

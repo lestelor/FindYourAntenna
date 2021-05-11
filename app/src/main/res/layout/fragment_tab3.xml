@@ -73,6 +73,7 @@
 <!--                app:layout_constraintTop_toTopOf="parent"-->
 <!--                app:layout_constraintLeft_toLeftOf="parent">-->
             <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/Tab3LinearLayoutSearch"
                 android:layout_width="280dp"
                 android:layout_height="40dp"
                 android:orientation="horizontal"
@@ -81,7 +82,8 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 android:layout_marginStart="15dp"
                 android:background="@drawable/my_custom_layout"
-                android:clickable="false">
+                android:clickable="true"
+                android:focusable="true">
                 <Button
                     android:backgroundTint="@color/colorPrimary"
                     android:id="@+id/Tab3OperatorButton"
@@ -99,7 +101,8 @@
                     android:layout_gravity="center_vertical"
                     android:background="@color/cpb_white"
                     android:singleLine="true"
-                    android:imeOptions="actionSearch"/>
+                    android:imeOptions="actionSearch"
+                    android:clickable="false"/>
                 <Button
                     android:backgroundTint="@color/colorPrimary"
                     android:id="@+id/Tab3BackButton"
