@@ -2,10 +2,8 @@ package lestelabs.antenna.ui.main
 
 
 import android.Manifest
-import android.R.transition
 import android.content.*
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.location.Location
 import android.os.*
 import android.telephony.TelephonyManager
@@ -14,24 +12,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebView
 import android.widget.*
+import android.widget.AdapterView.OnItemSelectedListener
+import android.widget.ArrayAdapter
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.github.anastr.speedviewlib.SpeedView
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.firestore.FirebaseFirestore
-import fr.bmartel.speedtest.SpeedTestReport
 import fr.bmartel.speedtest.SpeedTestSocket
-import fr.bmartel.speedtest.inter.IRepeatListener
 import kotlinx.android.synthetic.main.fragment_tab1.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.core.Speedtest
 import lestelabs.antenna.ui.main.core.Speedtest.SpeedtestHandler
@@ -60,14 +54,17 @@ import kotlin.collections.ArrayList
  * create an instance of this fragment.
  */
 open class Tab1 : Fragment() {
+
+    private var reinitOnResume = false
+    private var st: Speedtest? = null
+    private val availableServers: ArrayList<TestPoint> = ArrayList()
+    private lateinit var spinner:Spinner
+    
     // TODO: Rename and change types of parameters
     private var mParam1: String? = null
     private var mParam2: String? = null
 
-    //private var mListener: Tab1.OnFragmentInteractionListener? = null
-    private val speedTestSocket = SpeedTestSocket()
-    private var speedTestRunningStep = 0
-    lateinit var mAdView: AdView
+
     private lateinit var fragmentView: View
     private lateinit var connectivity: Connectivity
     private var listener: GetfileState? = null
@@ -156,16 +153,15 @@ open class Tab1 : Fragment() {
 
         // Inflate view
         fragmentView = inflater.inflate(R.layout.fragment_tab1, container, false)
-
         // connectivity context
         connectivity = Connectivity(fragmentView.context)
-        
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-
-        // layout widgets
-        tvDownload = fragmentView.findViewById<View>(R.id.tvSpeedtestDownload) as TextView
+        spinner = fragmentView.findViewById(R.id.serverList)
+        page_init()
+        list_servers()
+        start_onclick()
 
         Log.d("cfauli", "Oncreateview tab1 final")
         return fragmentView
@@ -214,7 +210,7 @@ open class Tab1 : Fragment() {
 
 
     //@RequiresApi(Build.VERSION_CODES.M)
-    fun fillNetworkTextView(view: View) {
+   /* fun fillNetworkTextView(view: View) {
         /// fill the mobile layout --------------------------------------------
         // Lookup view for data population
         //Log.d("cfauli", "fillMobileTextView")
@@ -334,7 +330,7 @@ open class Tab1 : Fragment() {
             tvFrequency.text = "freq: " + freq + " MHz"
         }
         this.context?.let { saveDocument(it) }
-    }
+    }*/
 
 
 fun saveDocument(context: Context) {
@@ -520,54 +516,7 @@ fun saveDocument(context: Context) {
     }
 
 
-    fun startMobileScannerTab1(view: View) {
-        if (!clockTimerHanlerActive) {
-            mHandlerTask = object : Runnable {
-                override fun run() {
-                    fillNetworkTextView(view)
-                    if (speedTestRunningStep != 0) {
-                        val a = testTimeStart
-                        val b = System.currentTimeMillis() % 1000000
-                        var duration:Long
-                        if (b <= a) {
-                            duration = 1000000 - a + b
-                        } else {
-                            duration = b - a
-                        }
-                        if (duration > 11000) stopSpeedTest()
-                    }
-                    mHandler.postDelayed(this, minTime)
-                }
-            }
-        }
-        mHandlerTask.run()
-        clockTimerHanlerActive = true
-        // In case the test does not change status in several sec then abort test
-
-        Log.d("cfauli", "startMobileScanner")
-    }
-
-
-    fun stopSpeedTest(){
-
-        // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-        
-        Log.d("cfauli speedtest step", speedTestRunningStep.toString())
-        speedometer.speedTo(0.0f, 0)
-        speedTestSocket.clearListeners()
-        speedTestSocket.closeSocket()
-        speedTestRunningStep=0
-        ivButton.setImageResource(R.drawable.ic_switch_on_off)
-        tvUpload.text = "-"
-        tvDownload.text = "-"
-        tvLatency.text = "-"
-        speedTestSocket.forceStopTask()
-        Toast.makeText(context, getString(R.string.SpeedTestStoped), Toast.LENGTH_LONG).show()
-        tvTab1StartTest.text = getString(R.string.click_to_start_the_test)
-
-
-    }
+    
     fun getChannel(freq: Int?):Int {
         val channel = if (freq!! > 5000) {
             (freq - 5180) / 5 + 36
@@ -657,78 +606,6 @@ fun saveDocument(context: Context) {
     }
 
 
-
-    suspend fun initSpeedometer(maxSpeed: Float?) {
-        var finalMaxSpeed: Float? = null
-
-        if (maxSpeed !=null)  {
-            finalMaxSpeed = maxSpeed
-        } else {
-            finalMaxSpeed = 50.0f
-        }
-
-        speedometer.speedTo(0.0f)
-        speedometer.unit = "Mbps"
-        speedometer.minSpeed = 0.0f
-        speedometer.maxSpeed = finalMaxSpeed
-        Log.d("cfauli", "setspeedometer maxspeed " + maxSpeed)
-        val ratio = 1f / (speedometer.maxSpeed / 100)
-        // Avoid spurious tick moving when speedtest already finished!!
-        speedometer.withTremble = false
-        speedometer.sections[0].color = Color.RED
-        speedometer.sections[0].endOffset = (ratio) * 0.03f
-        speedometer.sections[1].color = Color.YELLOW
-        speedometer.sections[1].startOffset = (ratio) * 0.03f
-        speedometer.sections[1].endOffset = (ratio) * 0.1f
-        speedometer.sections[2].color = Color.GREEN
-        speedometer.sections[2].startOffset = (ratio) * 0.1f
-
-        //speedometer.visibility = View.VISIBLE
-        //ivButton.visibility = View.VISIBLE
-        //tvTab1StartTest.visibility = View.VISIBLE
-
-
-
-    }
-
-
-
-    fun getMaxDownload(downLoadFile: String, time: Int, callback: (Float?) -> Unit) {
-
-        var maxDownloadSpeed: Float
-        val testTimeFinish = System.currentTimeMillis() % 1000000 + time*1.2
-        var allOk = false
-
-        Log.d("cfauli", "tab1 maxdownspeed downloadFile " + downLoadFile)
-
-        speedTestSocket.startDownloadRepeat(downLoadFile,
-            time, time / 2.toInt(), object : IRepeatListener {
-                override fun onCompletion(report: SpeedTestReport) {
-                    Log.d("cfauli", "tab1 maxdownspeed oncompletion report " + report.transferRateBit)
-                    maxDownloadSpeed = report.transferRateBit.toFloat() / 1000000.0f
-                    Log.d("cfauli", "tab1 maxdownspeed " + maxDownloadSpeed)
-                    allOk = true
-                    callback(((maxDownloadSpeed / 10).toInt() + 1) * 20.toFloat())
-                }
-
-                override fun onReport(report: SpeedTestReport?) {
-                    Log.d("cfauli", "tab1 maxdownspeed onReport report " + report?.transferRateBit)
-                    //TODO("Not yet implemented")
-                }
-            })
-        var testTimeCurrent = System.currentTimeMillis() % 1000000
-        while (testTimeCurrent<testTimeFinish) {
-            Log.d("cfauli", "tab1 maxdownspeed testTimeCurrent testTimeFinish " + testTimeCurrent + " " + testTimeFinish)
-            Thread.sleep(time / 2.toLong())
-            testTimeCurrent = System.currentTimeMillis() % 1000000
-        }
-        if (allOk == false) {
-            speedTestSocket.clearListeners()
-            speedTestSocket.forceStopTask()
-            callback(30.0f)
-        }
-    }
-    private var st: Speedtest? = null
     fun page_init() {
         object : Thread() {
             override fun run() {
@@ -756,70 +633,12 @@ fun saveDocument(context: Context) {
                     st = Speedtest()
                     st?.setSpeedtestConfig(config)
                     st?.setTelemetryConfig(telemetryConfig)
-                    c = readFileFromAssets("ServerList.json")
-                    if (c.startsWith("\"") || c.startsWith("'")) { //fetch server list from URL
-                        if ((st?.loadServerList(c.subSequence(1, c.length - 1).toString()))==null) {
-                            throw java.lang.Exception("Failed to load server list")
-                        }
-                    } else { //use provided server list
-                        val a = JSONArray(c)
-                        if (a.length() == 0) throw java.lang.Exception("No test points")
-                        val s: ArrayList<TestPoint> = ArrayList()
-                        for (i in 0 until a.length()) s.add(TestPoint(a.getJSONObject(i)))
-                        servers = s.toArray(arrayOfNulls<TestPoint>(0))
-                        st?.addTestPoints(servers)
-                    }
-                    val testOrder: String = config.getTest_order()
-                    activity?.runOnUiThread(Runnable {
-                        if (!testOrder.contains("D")) {
-                            hideView(R.id.dlArea)
-                        }
-                        if (!testOrder.contains("U")) {
-                            hideView(R.id.ulArea)
-                        }
-                        if (!testOrder.contains("P")) {
-                            hideView(R.id.pingArea)
-                        }
-                        if (!testOrder.contains("I")) {
-                            hideView(R.id.ipInfo)
-                        }
-                    })
+
                 } catch (e: Throwable) {
                     System.err.println(e)
-                    st = null
-/*,                 transition(R.id.page_fail, TRANSITION_LENGTH)
-                    runOnUiThread(Runnable {
-                        (findViewById(R.id.fail_text) as TextView).text =
-                            getString(R.string.initFail_configError) + ": " + e.message
-                        val b = findViewById(R.id.fail_button) as Button
-                        b.setText(R.string.initFail_retry)
-                        b.setOnClickListener {
-                            page_init()
-                            b.setOnClickListener(null)
-                        }
-                    })*/
+                    reinit()
                     return
                 }
-                activity?.runOnUiThread(Runnable { t.setText(R.string.init_selecting) })
-                st?.selectServer(object : Speedtest.ServerSelectedHandler() {
-                    override fun onServerSelected(server: TestPoint?) {
-                        activity?.runOnUiThread(Runnable {
-                            if (server == null) {
-/*                                transition(R.id.page_fail, TRANSITION_LENGTH)
-                                (fragmentView.findViewById(R.id.fail_text) as TextView).text =
-                                    getString(R.string.initFail_noServers)
-                                val b = fragmentView.findViewById(R.id.fail_button) as Button
-                                b.setText(R.string.initFail_retry)
-                                b.setOnClickListener {
-                                    page_init()
-                                    b.setOnClickListener(null)
-                                }*/
-                            } else {
-                                page_serverSelect(server, st?.getTestPoints())
-                            }
-                        })
-                    }
-                })
             }
         }.start()
     }
@@ -840,120 +659,120 @@ fun saveDocument(context: Context) {
         return (1000 * (1 - 1 / Math.pow(1.3, Math.sqrt(s)))).toInt()
     }
 
-    private open fun page_serverSelect(selected: TestPoint, servers: Array<TestPoint>) {
-        transition(R.id.page_serverSelect, TRANSITION_LENGTH)
+    fun page_serverSelect(selected: TestPoint, servers: Array<TestPoint>) {
+        //transition(R.id.page_serverSelect, TRANSITION_LENGTH)
         reinitOnResume = true
         val availableServers: ArrayList<TestPoint> = ArrayList()
         for (t in servers) {
             if (t.ping != -1f) availableServers.add(t)
         }
         val selectedId = availableServers.indexOf(selected)
-        val spinner = findViewById(R.id.serverList) as Spinner
+        val spinner = fragmentView.findViewById(R.id.serverList) as Spinner
         val options = ArrayList<String>()
         for (t in availableServers) {
             options.add(t.name)
         }
         val adapter: ArrayAdapter<String> = ArrayAdapter<String>(
-            this,
+            requireContext(),
             android.R.layout.simple_spinner_dropdown_item,
             options.toArray(arrayOfNulls<String>(0))
         )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
         spinner.setSelection(selectedId)
-        val b = findViewById(R.id.start) as Button
+        val b = fragmentView.findViewById(R.id.restartButton) as Button
         b.setOnClickListener {
             reinitOnResume = false
             page_test(availableServers[spinner.selectedItemPosition])
             b.setOnClickListener(null)
         }
-        val t = findViewById(R.id.privacy_open) as TextView
-        t.setOnClickListener { page_privacy() }
+        //val t = fragmentView.findViewById(R.id.privacy_open) as TextView
+        //t.setOnClickListener { page_privacy() }
     }
 
-    private open fun page_privacy() {
+/*    fun page_privacy() {
         transition(R.id.page_privacy, TRANSITION_LENGTH)
         reinitOnResume = false
-        (findViewById(R.id.privacy_policy) as WebView).loadUrl(getString(R.string.privacy_policy))
-        val t = findViewById(R.id.privacy_close) as TextView
+        (fragmentView.findViewById(R.id.privacy_policy) as WebView).loadUrl(getString(R.string.privacy_policy))
+        val t = fragmentView.findViewById(R.id.privacy_close) as TextView
         t.setOnClickListener {
             transition(R.id.page_serverSelect, TRANSITION_LENGTH)
             reinitOnResume = true
         }
-    }
+    }*/
 
-    private open fun page_test(selected: TestPoint) {
-        transition(R.id.page_test, TRANSITION_LENGTH)
-        st!!.setSelectedServer(selected)
-        (findViewById(R.id.serverName) as TextView).text = selected.name
-        (findViewById(R.id.dlText) as TextView).setText(format(0.0))
-        (findViewById(R.id.ulText) as TextView).setText(format(0.0))
-        (findViewById(R.id.pingText) as TextView).setText(format(0.0))
-        (findViewById(R.id.jitterText) as TextView).setText(format(0.0))
-        (findViewById(R.id.dlProgress) as ProgressBar).progress = 0
-        (findViewById(R.id.ulProgress) as ProgressBar).progress = 0
-        (findViewById(R.id.dlGauge) as GaugeView).value = 0
-        (findViewById(R.id.ulGauge) as GaugeView).value = 0
-        (findViewById(R.id.ipInfo) as TextView).text = ""
-        (findViewById(R.id.logo_inapp) as ImageView).setOnClickListener(View.OnClickListener {
+    fun page_test(selected: TestPoint) {
+        //transition(R.id.page_test, TRANSITION_LENGTH)
+        st?.setSelectedServer(selected)
+        (fragmentView.findViewById(R.id.serverName) as TextView).text = selected.name
+        (fragmentView.findViewById(R.id.dlText) as TextView).setText(format(0.0))
+        (fragmentView.findViewById(R.id.ulText) as TextView).setText(format(0.0))
+        (fragmentView.findViewById(R.id.pingText) as TextView).setText(format(0.0))
+        (fragmentView.findViewById(R.id.jitterText) as TextView).setText(format(0.0))
+        (fragmentView.findViewById(R.id.dlProgress) as ProgressBar).progress = 0
+        (fragmentView.findViewById(R.id.ulProgress) as ProgressBar).progress = 0
+        (fragmentView.findViewById(R.id.dlGauge) as GaugeView).value = 0
+        (fragmentView.findViewById(R.id.ulGauge) as GaugeView).value = 0
+        (fragmentView.findViewById(R.id.ipInfo) as TextView).text = ""
+/*        (fragmentView.findViewById(R.id.logo_inapp) as ImageView).setOnClickListener(View.OnClickListener {
             val url = getString(R.string.logo_inapp_link)
             if (url.isEmpty()) return@OnClickListener
             val i = Intent(Intent.ACTION_VIEW)
             i.data = Uri.parse(url)
             startActivity(i)
-        })
-        val endTestArea: View = findViewById(R.id.endTestArea)
+        })*/
+        val endTestArea: View = fragmentView.findViewById(R.id.endTestArea)
         val endTestAreaHeight = endTestArea.height
         val p = endTestArea.layoutParams
         p.height = 0
         endTestArea.layoutParams = p
-        findViewById(R.id.shareButton).setVisibility(View.GONE)
-        st!!.start(object : SpeedtestHandler() {
+        (fragmentView.findViewById(R.id.shareButton) as Button).visibility = View.GONE
+        st?.start(object : SpeedtestHandler() {
             override fun onDownloadUpdate(dl: Double, progress: Double) {
-                runOnUiThread(Runnable {
-                    (findViewById(R.id.dlText) as TextView).text =
+                activity?.runOnUiThread(Runnable {
+                    (fragmentView.findViewById(R.id.dlText) as TextView).text =
                         if (progress == 0.0) "..." else format(dl)
-                    (findViewById(R.id.dlGauge) as GaugeView).setValue(
+                    (fragmentView.findViewById(R.id.dlGauge) as GaugeView).setValue(
                         if (progress == 0.0) 0 else mbpsToGauge(
                             dl
                         )
                     )
-                    (findViewById(R.id.dlProgress) as ProgressBar).progress =
+                    (fragmentView.findViewById(R.id.dlProgress) as ProgressBar).progress =
                         (100 * progress).toInt()
                 })
             }
 
             override fun onUploadUpdate(ul: Double, progress: Double) {
-                runOnUiThread(Runnable {
-                    (findViewById(R.id.ulText) as TextView).text =
+                activity?.runOnUiThread(Runnable {
+                    (fragmentView.findViewById(R.id.ulText) as TextView).text =
                         if (progress == 0.0) "..." else format(ul)
-                    (findViewById(R.id.ulGauge) as GaugeView).setValue(
+                    (fragmentView.findViewById(R.id.ulGauge) as GaugeView).setValue(
                         if (progress == 0.0) 0 else mbpsToGauge(
                             ul
                         )
                     )
-                    (findViewById(R.id.ulProgress) as ProgressBar).progress =
+                    (fragmentView.findViewById(R.id.ulProgress) as ProgressBar).progress =
                         (100 * progress).toInt()
                 })
             }
 
             override fun onPingJitterUpdate(ping: Double, jitter: Double, progress: Double) {
-                runOnUiThread(Runnable {
-                    (findViewById(R.id.pingText) as TextView).text =
+                activity?.runOnUiThread(Runnable {
+                    (fragmentView.findViewById(R.id.pingText) as TextView).text =
                         if (progress == 0.0) "..." else format(ping)
-                    (findViewById(R.id.jitterText) as TextView).text =
+                    (fragmentView.findViewById(R.id.jitterText) as TextView).text =
                         if (progress == 0.0) "..." else format(jitter)
                 })
             }
 
             override fun onIPInfoUpdate(ipInfo: String) {
-                runOnUiThread(Runnable { (findViewById(R.id.ipInfo) as TextView).text = ipInfo })
+                activity?.runOnUiThread(Runnable { (fragmentView.findViewById(R.id.ipInfo) as TextView).text = ipInfo })
             }
 
             override fun onTestIDReceived(id: String, shareURL: String) {
                 if (shareURL == null || shareURL.isEmpty() || id == null || id.isEmpty()) return
-                runOnUiThread(Runnable {
-                    val shareButton = findViewById(R.id.shareButton) as Button
+                activity?.runOnUiThread(Runnable {
+                    val shareButton = fragmentView.findViewById(R.id.shareButton) as Button
                     shareButton.visibility = View.VISIBLE
                     shareButton.setOnClickListener {
                         val share = Intent(Intent.ACTION_SEND)
@@ -966,13 +785,8 @@ fun saveDocument(context: Context) {
             }
 
             override fun onEnd() {
-                runOnUiThread(Runnable {
-                    val restartButton = findViewById(R.id.restartButton) as Button
-                    restartButton.setOnClickListener {
-                        page_init()
-                        restartButton.setOnClickListener(null)
-                    }
-                })
+                start_onclick();
+
                 val startT = System.currentTimeMillis()
                 val endT: Long = startT + TRANSITION_LENGTH
                 object : Thread() {
@@ -980,7 +794,7 @@ fun saveDocument(context: Context) {
                         while (System.currentTimeMillis() < endT) {
                             val f =
                                 (System.currentTimeMillis() - startT).toDouble() / (endT - startT).toDouble()
-                            runOnUiThread(Runnable {
+                            activity?.runOnUiThread(Runnable {
                                 val p = endTestArea.layoutParams
                                 p.height = (endTestAreaHeight * f).toInt()
                                 endTestArea.layoutParams = p
@@ -995,16 +809,17 @@ fun saveDocument(context: Context) {
             }
 
             override fun onCriticalFailure(err: String) {
-                runOnUiThread(Runnable {
-                    transition(R.id.page_fail, TRANSITION_LENGTH)
-                    (findViewById(R.id.fail_text) as TextView).text =
+                activity?.runOnUiThread(Runnable {
+                    /*transition(R.id.page_fail, TRANSITION_LENGTH)
+                    (fragmentView.findViewById(R.id.fail_text) as TextView).text =
                         getString(R.string.testFail_err)
-                    val b = findViewById(R.id.fail_button) as Button
+                    val b = fragmentView.findViewById(R.id.fail_button) as Button
                     b.setText(R.string.testFail_retry)
                     b.setOnClickListener {
                         page_init()
                         b.setOnClickListener(null)
                     }
+                     */
                 })
             }
         })
@@ -1029,5 +844,79 @@ fun saveDocument(context: Context) {
         val v: View = fragmentView.findViewById(id)
         if (v != null) v.visibility = View.GONE
     }
+
+    fun start_onclick() {
+        activity?.runOnUiThread(Runnable {
+            val restartButton = fragmentView.findViewById(R.id.restartButton) as Button
+            restartButton.setOnClickListener {
+                Log.d("Tab1", "Start onclick")
+                page_test(availableServers[spinner.selectedItemPosition])
+                restartButton.setOnClickListener(null)
+            }
+        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (reinitOnResume) {
+            reinitOnResume = false
+            page_init()
+        }
+    }
+
+    fun list_servers() {
+        val servers: String = readFileFromAssets("ServerList.json")
+        val serversJASON = JSONArray(servers)
+        val serversList: ArrayList<String> = arrayListOf<String>()
+        for (i in 0..serversJASON.length()-1) {
+            serversList.add ((serversJASON[i] as JSONObject).get("name").toString())
+            availableServers.add(TestPoint(serversJASON[i] as JSONObject?))
+        }
+
+        spinner.adapter = ArrayAdapter<String>(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            serversList
+        )
+        /*spinner.onItemSelectedListener = object : OnItemSelectedListener {
+            override fun onItemSelected(
+                adapterView: AdapterView<*>,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
+                serverSelectedInt = position
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // vacio
+            }
+        }*/
+    }
+
+
+    fun reinit() {
+        st = null
+/*,                 transition(R.id.page_fail, TRANSITION_LENGTH)
+                    runOnUiThread(Runnable {
+                        (fragmentView.findViewById(R.id.fail_text) as TextView).text =
+                            getString(R.string.initFail_configError) + ": " + e.message
+                        val b = fragmentView.findViewById(R.id.fail_button) as Button
+                        b.setText(R.string.initFail_retry)
+                        b.setOnClickListener {
+                            page_init()
+                            b.setOnClickListener(null)
+                        }
+                    })*/
+
+    }
+    //PAGE TRANSITION SYSTEM
+
+    //PAGE TRANSITION SYSTEM
+    private val currentPage = -1
+    private val transitionBusy = false //TODO: improve mutex
+
+    private val TRANSITION_LENGTH = 300
+
 }
 

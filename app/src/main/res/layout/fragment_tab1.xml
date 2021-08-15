@@ -272,13 +272,33 @@
                                 />
                         </RelativeLayout>
                     </LinearLayout>
+
+                    <Spinner
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/serverList"
+                        android:layout_below="@id/gaugeArea"
+                        android:layout_marginTop="@dimen/margin_largeSep"
+                        android:layout_centerHorizontal="true"
+                        android:textSize="@dimen/text"
+                        />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="SERVER NAME"
+                        android:gravity="center"
+                        android:layout_below="@id/serverList"
+                        android:id="@+id/serverName"
+                        android:layout_marginBottom="@dimen/margin_sep"
+                        android:textColor="@color/serverText"
+                        android:textSize="@dimen/serverText"/>
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="IP ADDRESS - ISP NAME (DISTANCE)"
                         android:layout_centerHorizontal="true"
                         android:id="@+id/ipInfo"
-                        android:layout_below="@id/gaugeArea"
+                        android:layout_below="@id/serverList"
                         android:layout_marginTop="@dimen/margin_sep"
                         android:ellipsize="none"
                         android:maxLines="100"
