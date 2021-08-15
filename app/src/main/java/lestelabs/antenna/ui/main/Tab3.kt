@@ -402,7 +402,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             Log.d(TAG, "click layout")
             editText.requestFocus()
             editText.isFocusableInTouchMode = true
-            //hideKeyboard(editText, false)
+            hideKeyboard(editText, false)
         })
     }
 
@@ -416,39 +416,54 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         }
 
         editText.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+            val contieneFrecuencias: MutableList<Boolean> = mutableListOf()
             val procesado = false
-            val sitesAntSize = sitesAnt.size
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 var sitesMostrar = sitesAnt
+                var sitesFiltered: Array<Site> = sitesAnt
+
                 // Mostrar mensaje
                 val listToSearch: List<String> = v.text.toString().split(" ")
+                for (i in 0..listToSearch.size-1) {
+                    contieneFrecuencias.add(false)
+                    for (j in 0..Operators.frecuencias.size-1) {
+                        contieneFrecuencias[i] = contieneFrecuencias[i] || (listToSearch[i] == Operators.frecuencias[j])
+                    }
+                }
                 Log.d(TAG, "sites listtosearch " + listToSearch)
-                var sitesFiltered: Array<Site> = arrayOf()
+                Log.d(TAG, "sites contieneFrecuancias " + contieneFrecuencias)
+
 
                 for (i in 0..listToSearch.size-1) {
-                    sitesFiltered = sitesMostrar.filter{ it.codigo == listToSearch[i].toUpperCase(Locale.ROOT)}.toTypedArray()
-                    Log.d(TAG, "sites search #sitesfound cod " + sitesFiltered.size)
-                    if (sitesFiltered.size>0) sitesMostrar = sitesFiltered
+                    if (listToSearch[i].toUpperCase() != "MHZ" && sitesMostrar.size>0) {
+                        if (!contieneFrecuencias[i]) {
+                            sitesFiltered = sitesMostrar.filter {
+                                it.codigo == listToSearch[i].toUpperCase(Locale.ROOT)
+                            }.toTypedArray()
+                            if (sitesFiltered.size == 0) {
+                                sitesFiltered = sitesMostrar.filter {
+                                    it.direccion.contains(listToSearch[i].toUpperCase(Locale.ROOT))
+                                }.toTypedArray()
+                                sitesMostrar=sitesFiltered
+                            } else {
+                                sitesMostrar = sitesFiltered
+                            }
+                        } else {
+                            sitesFiltered = sitesMostrar.filter {
+                                it.frecuencias.contains(listToSearch[i].toUpperCase(Locale.ROOT))
+                            }.toTypedArray()
+                            sitesMostrar=sitesFiltered
+                        }
+                    }
                 }
-                for (i in 0..listToSearch.size-1) {
-                    sitesFiltered = sitesMostrar.filter{ it.direccion.contains(listToSearch[i].toUpperCase(Locale.ROOT))}.toTypedArray()
-                    Log.d(TAG, "sites search #sitesfound dir  " + sitesFiltered.size)
-                    if (sitesFiltered.size>0) sitesMostrar = sitesFiltered
-                }
-                for (i in 0..listToSearch.size-1) {
-                    sitesFiltered = sitesMostrar.filter{ it.frecuencias.contains(listToSearch[i].toUpperCase())}.toTypedArray()
-                    Log.d(TAG, "sites search #sitesfound frec  " + sitesFiltered.size)
-                    if (sitesFiltered.size>0) sitesMostrar = sitesFiltered
-                }
-                if (sitesMostrar.size<sitesAntSize) {
-                    hideKeyboard(v, true)
+                if (sitesMostrar.size>0 && sitesMostrar.size<sitesAnt.size) {
                     mMap.clear()
                     markerTotal = mutableListOf()
                     printSites(sitesMostrar, operadorAnt)
                     zoomToBounds()
                     // zoom to the selected sites
                 } else Toast.makeText(context, "Sin coincidencias", Toast.LENGTH_LONG).show()
-
+                hideKeyboard(v, true)
             }
             procesado
         })

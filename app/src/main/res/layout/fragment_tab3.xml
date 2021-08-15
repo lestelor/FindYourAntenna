@@ -86,15 +86,16 @@
                 android:focusable="true">
                 <Button
                     android:backgroundTint="@color/colorPrimary"
-                    android:id="@+id/Tab3OperatorButton"
+                    android:id="@+id/Tab3BackButton"
                     android:layout_width="40dp"
                     android:layout_height="match_parent"
-                    android:background="@drawable/ic_arrow_down"
+                    android:background="@drawable/ic_back_button"
                     android:drawableTint="@color/colorPrimary">
                 </Button>
+
                 <EditText
                     android:id="@+id/Tab3etSearch"
-                    android:text="ej: Salou 800 MHz"
+                    android:text="ej: cambrils 2600 mhz"
                     android:textColor="@color/grey"
                     android:layout_width="200dp"
                     android:layout_height="20dp"
@@ -105,10 +106,10 @@
                     android:clickable="false"/>
                 <Button
                     android:backgroundTint="@color/colorPrimary"
-                    android:id="@+id/Tab3BackButton"
+                    android:id="@+id/Tab3OperatorButton"
                     android:layout_width="40dp"
                     android:layout_height="match_parent"
-                    android:background="@drawable/ic_back_button"
+                    android:background="@drawable/ic_arrow_down"
                     android:drawableTint="@color/colorPrimary">
                 </Button>
             </androidx.appcompat.widget.LinearLayoutCompat>
