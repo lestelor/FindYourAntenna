@@ -2,52 +2,48 @@ package lestelabs.antenna.ui.main
 
 
 import android.Manifest
-import android.content.*
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.*
 import android.telephony.TelephonyManager
 import android.text.format.DateFormat
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getColor
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
-import com.github.anastr.speedviewlib.SpeedView
+import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.android.synthetic.main.fragment_tab1.*
 import kotlinx.android.synthetic.main.fragment_tab1.view.*
+import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
+import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 import lestelabs.antenna.ui.main.core.Speedtest
 import lestelabs.antenna.ui.main.core.Speedtest.SpeedtestHandler
 import lestelabs.antenna.ui.main.core.config.SpeedtestConfig
 import lestelabs.antenna.ui.main.core.config.TelemetryConfig
 import lestelabs.antenna.ui.main.core.serverSelector.TestPoint
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
+import lestelabs.antenna.ui.main.data.*
 import lestelabs.antenna.ui.main.scanner.*
 import lestelabs.antenna.ui.main.ui.GaugeView
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.EOFException
-import java.io.IOException
 import java.io.InputStreamReader
 import java.util.*
 import kotlin.collections.ArrayList
-import android.util.DisplayMetrics
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.location.LocationServices
-import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 
 
 /*
@@ -79,31 +75,7 @@ open class Tab1 : Fragment() {
     private lateinit var fragmentView: View
     private lateinit var connectivity: Connectivity
     val db = FirebaseFirestore.getInstance()
-    private var listener: GetfileState? = null
 
-    private lateinit var speedometer: SpeedView
-
-    //private val speedTestType = 2 // ikoula/scaleway/tele2
-    //private val speedTestFile = 2 // 1/10/1000MB
-    private var lastUpload = 0.0f
-    private var lastDownload = 0.0f
-
-    var mHandler: Handler = Handler()
-
-    var clockTimerHanlerActive = false
-    private lateinit var mHandlerTask: Runnable
-    private lateinit var mHandlerRater: Runnable
-    private var firstOnResume = true
-    private var minTime: Long = 30000
-
-    private lateinit var tvDownload: TextView
-    private lateinit var tvUpload: TextView
-    private lateinit var tvLatency: TextView
-    private lateinit var ivButton: ImageView
-    private lateinit var ibCopyToClipboard: ImageButton
-
-    private var testTimeStart: Long = 0
-    private var timeAnt: Long = 0
 
     private lateinit var telephonyManager: TelephonyManager
     private var pDevice: DevicePhone? = DevicePhone()
@@ -111,7 +83,6 @@ open class Tab1 : Fragment() {
     private var deviceWifi: DeviceWiFi = DeviceWiFi()
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
-    private lateinit var firebaseAnalytics: FirebaseAnalytics
     private val tabName = "Tab1"
     private var crashlyticsKeyAnt = ""
 
@@ -149,8 +120,6 @@ open class Tab1 : Fragment() {
         // Persist all edits or state changes
         // as after this call the process is likely to be killed.
         super.onPause()
-        if (this::mHandlerTask.isInitialized) mHandler.removeCallbacks(mHandlerTask)
-        clockTimerHanlerActive = false
         Log.d("cfauli", "OnPause Tab1")
     }
 
@@ -164,6 +133,9 @@ open class Tab1 : Fragment() {
 
         // Inflate view
         fragmentView = inflater.inflate(R.layout.fragment_tab1, container, false)
+
+
+
         // connectivity context
         connectivity = Connectivity(fragmentView.context)
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -201,6 +173,8 @@ open class Tab1 : Fragment() {
         private const val ARG_PARAM1 = "param1"
         private const val ARG_PARAM2 = "param2"
         private const val MIN_HEIGHT_ADS = 2000
+        private const val TRANSITION_LENGTH = 300
+        private const val TAG = "TAB1"
 
         /**
          * Use this factory method to create a new instance of
@@ -222,19 +196,6 @@ open class Tab1 : Fragment() {
     }
 
 
-
-    /*@RequiresApi(Build.VERSION_CODES.M)
-    fun setNetworkType(context:Context):List<Any?> {
-        var type:String = ""
-     if (connectivity.isConnectedWifi(context)){
-         type = connectivity.getWifiParam(context).toString()
-     } else if (connectivity.isConnected(context)) {
-         type = listOf(connectivity.connectionType(connectivity.networkType(context), connectivity.networkSubtype(context)).toString()).toString()
-     } else type =""
-        return listOf(type)
-    }*/
-
-
     private fun isConnectedMobile(): Boolean {
         return  connectivity.isConnectedMobile()
     }
@@ -242,8 +203,6 @@ open class Tab1 : Fragment() {
         return  connectivity.isConnectedWifi()
     }
 
-
-    
     fun getChannel(freq: Int?):Int {
         val channel = if (freq!! > 5000) {
             (freq - 5180) / 5 + 36
@@ -294,8 +253,6 @@ open class Tab1 : Fragment() {
                 speedTestSample["downlink"] = downlink
                 speedTestSample["uplink"] = uplink
                 speedTestSample["latency"] = latency
-
-
                 speedTestSample["MobileNetwork"] = pDevice?.type
                 speedTestSample["MobileMcc"] = pDevice?.mcc
                 speedTestSample["MobileMnc"] = pDevice?.mnc
@@ -304,8 +261,6 @@ open class Tab1 : Fragment() {
                 speedTestSample["MobileCh"] = pDevice?.band
                 speedTestSample["MobileFreq"] = calculateFreq(pDevice?.type, pDevice?.band)
                 speedTestSample["MobiledBm"] = pDevice?.dbm
-
-
                 speedTestSample["WifiNetwork"] = deviceWifi.ssid
                 speedTestSample["WifiFreq"] = deviceWifi.centerFreq
                 speedTestSample["WifiCh"] = getChannel(deviceWifi.centerFreq)
@@ -326,13 +281,11 @@ open class Tab1 : Fragment() {
     }
 
 
-
     fun page_init() {
         object : Thread() {
             override fun run() {
                 var config: SpeedtestConfig? = null
                 var telemetryConfig: TelemetryConfig? = null
-                var servers: Array<TestPoint?>? = null
                 try {
                     var c: String = readFileFromAssets("SpeedtestConfig.json")
                     var o = JSONObject(c)
@@ -550,10 +503,10 @@ open class Tab1 : Fragment() {
         }
         return ret
     }
-    fun hideView(id: Int) {
+/*    fun hideView(id: Int) {
         val v: View = fragmentView.findViewById(id)
         if (v != null) v.visibility = View.GONE
-    }
+    }*/
 
     fun start_onclick() {
         startButton.setOnClickListener {
@@ -607,21 +560,33 @@ open class Tab1 : Fragment() {
         }
     }
 
-    fun list_servers() {
-        val servers: String = readFileFromAssets("ServerList.json")
-        val serversJASON = JSONArray(servers)
-        val serversList: ArrayList<String> = arrayListOf<String>()
-        for (i in 0..serversJASON.length()-1) {
-            serversList.add ((serversJASON[i] as JSONObject).get("name").toString())
-            availableServers.add(TestPoint(serversJASON[i] as JSONObject?))
+    fun parseServersToTestPoint(servers:MutableList<Server>): ArrayList<TestPoint> {
+        val testPoints: ArrayList<TestPoint> = arrayListOf()
+        for (i in 0..servers.size-1) {
+            val testPoint:TestPoint = TestPoint(servers[i].name,servers[i].server, servers[i].dlURL,servers[i].ulURL,servers[i].pingURL,servers[i].getIpURL,servers[i].sponsorName,servers[i].sponsorURL)
+            testPoints.add(testPoint)
         }
+        return testPoints
+    }
 
-        spinner.adapter = ArrayAdapter<String>(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            serversList
-        )
-        /*spinner.onItemSelectedListener = object : OnItemSelectedListener {
+    fun list_servers() {
+        // val servers: String = readFileFromAssets("ServerList.json")
+        // val serversJASON = JSONArray(servers)
+
+       getServers() {
+           val testPoints: ArrayList<TestPoint> = parseServersToTestPoint(it)
+           val serversList: ArrayList<String> = arrayListOf()
+           for (i in 0..testPoints.size - 1) {
+               serversList.add(testPoints[i].name)
+               availableServers.add(testPoints[i])
+           }
+
+           spinner.adapter = ArrayAdapter<String>(
+               requireContext(),
+               android.R.layout.simple_spinner_item,
+               serversList
+           )
+           /*spinner.onItemSelectedListener = object : OnItemSelectedListener {
             override fun onItemSelected(
                 adapterView: AdapterView<*>,
                 view: View,
@@ -635,6 +600,7 @@ open class Tab1 : Fragment() {
                 // vacio
             }
         }*/
+       }
     }
 
 
@@ -661,11 +627,65 @@ open class Tab1 : Fragment() {
         return Pair(height,width)
     }
 
-    //PAGE TRANSITION SYSTEM
-    private val currentPage = -1
-    private val transitionBusy = false //TODO: improve mutex
 
-    private val TRANSITION_LENGTH = 300
+    // Get Servers and Update UI
+    private fun getServers(callback: (MutableList<Server>) -> Unit) {
+        // First load whatever is stored locally
+        loadServersFromLocalDb() {
+            var servers : MutableList<Server> = mutableListOf()
+            servers = it
+            // check internet connection
+            if (MyApplication.internetOn as Boolean)  {
+                if (servers.count() == 0) {
+                    FirestoreDB.loadServersFromFirestore() {
+                        if (it.count() ==0) {
+                            //use provided server list in JSON file
+                            val c = readFileFromAssets("ServerList.json")
+                            val a = JSONArray(c)
+                            if (a.length() == 0) throw Exception("No test points")
+                            for (i in 0 .. a.length()-1) {
+                                val server = TestPoint(a.getJSONObject(i))
+                                servers.add(Server(i, server.name, server.server, server.dlURL, server.ulURL, server.pingURL, server.getIpURL, server.getsponsorName(), server.getsponsorURL()))
+                            }
+                            Log.d(TAG, "finish loading #sites from JSON file " + servers.count())
+                            callback(servers)
+                        } else {
+                            servers = it
+                            saveServersToLocalDatabase(servers.toTypedArray())
+                            callback(servers)
+                        }
+                    }
+                } else callback (servers)
+            } else {
+                Toast.makeText(this.context, "Sin conexión a internet", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    // Load Books from Room
+    private fun loadServersFromLocalDb(callback: (MutableList<Server>) -> Unit) {
+        val serversInteractor: ServersInteractor = MyApplication.serversInteractor
+        // Run in Background, accessing the local database is a memory-expensive operation
+        AsyncTask.execute {
+            // Get Books
+            val servers: MutableList<Server> = serversInteractor.getAllServers()
+
+            Log.d(TAG, "found #servers in local dB " + servers?.count())
+            if (servers != null) {
+                callback(servers)
+            } else callback(mutableListOf())
+        }
+    }
+
+    // Save Books to Local Storage
+    private fun saveServersToLocalDatabase(servers: Array<Server>) {
+        val serversInteractor: ServersInteractor = MyApplication.serversInteractor
+        // Run in Background; accessing the local database is a memory-expensive operation
+        AsyncTask.execute {
+            serversInteractor.saveServers(*servers)
+            Log.d(TAG, "finish saving #sites in local database " + servers.count())
+        }
+    }
 
 }
 

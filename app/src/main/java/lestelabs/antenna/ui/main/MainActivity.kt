@@ -22,6 +22,9 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
+import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
@@ -33,9 +36,10 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics
+import lestelabs.antenna.ui.main.data.ApplicationDatabase
+import lestelabs.antenna.ui.main.data.UpdateApplicationDatabase
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
-
 import lestelabs.antenna.ui.main.scanner.waitGPS
 
 interface GetfileState {
@@ -44,6 +48,9 @@ interface GetfileState {
 
 
  class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
+
+
+
 
      private var getFileStateButtonPressed: Int = 0
      private lateinit var toggle: ActionBarDrawerToggle
@@ -74,6 +81,9 @@ interface GetfileState {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //Use when updating Room Database, one time
+        //UpdateApplicationDatabase.getDatabase(this)
+
         val navigationView: NavigationView = findViewById(R.id.nav_view)
 
         // In order to show custom items in the navigationview menu
@@ -88,10 +98,8 @@ interface GetfileState {
             navigationView.menu.getItem(0).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_email))
             navigationView.menu.getItem(1).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_speed_dark))
             navigationView.menu.getItem(2).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_network_dark))
-
             navigationView.menu.getItem(4).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_contribute))
             navigationView.menu.getItem(5).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_exit))
-
             // Control point for Crashlitycs
             crashlyticsKeyAnt = Crashlytics.controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
         } catch (e: FileSystemException) {
@@ -169,7 +177,7 @@ interface GetfileState {
         // nevertheless in this case since the activity destroys the app, basecontext and applicationcontexts are the same.
         //Moreover, this in this case is the same as activity.basecontext
 
-        val sharedPreferences = this.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
+        val sharedPreferences = this.getSharedPreferences("sharedpreferences", MODE_PRIVATE)
         val pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
         checkBox.isChecked = pleaseContribute
 
@@ -191,7 +199,7 @@ interface GetfileState {
         // needed to wait until location is enabled, otherwhise the wifi networks dont appear
         waitGPS(this)
         Log.d("cfauli", "MainApplication waiting permissions ok 0 ")
-        telephonyManager = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        telephonyManager = this.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
         pDevice = loadCellInfo(telephonyManager)
 
 
@@ -418,6 +426,7 @@ interface GetfileState {
              }*/
          }
      }
+
 
  }
 

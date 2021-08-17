@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import androidx.room.Room
 import lestelabs.antenna.ui.main.data.ApplicationDatabase
+import lestelabs.antenna.ui.main.data.ServersInteractor
 import lestelabs.antenna.ui.main.data.SitesInteractor
 
 class MyApplication : Application() {
@@ -15,6 +16,7 @@ class MyApplication : Application() {
         var ctx: Context? = null
         var internetOn: Boolean? = null
         lateinit var sitesInteractor: SitesInteractor
+        lateinit var serversInteractor: ServersInteractor
     }
 
     override fun onCreate() {
@@ -26,8 +28,10 @@ class MyApplication : Application() {
         // Init Database
         val database = Room.databaseBuilder(applicationContext,
             ApplicationDatabase::class.java, "app_database").build()
-        // Init BooksInteractor
+        // Init SitesInteractor
         sitesInteractor = SitesInteractor(database.siteDao())
+        // Init ServersInteractor
+        serversInteractor = ServersInteractor(database.serverDao())
     }
 
 
