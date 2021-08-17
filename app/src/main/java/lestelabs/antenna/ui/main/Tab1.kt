@@ -134,8 +134,6 @@ open class Tab1 : Fragment() {
         // Inflate view
         fragmentView = inflater.inflate(R.layout.fragment_tab1, container, false)
 
-
-
         // connectivity context
         connectivity = Connectivity(fragmentView.context)
         telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
