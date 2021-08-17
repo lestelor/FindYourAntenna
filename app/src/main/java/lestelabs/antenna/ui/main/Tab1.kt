@@ -581,11 +581,16 @@ open class Tab1 : Fragment() {
                availableServers.add(testPoints[i])
            }
 
-           spinner.adapter = ArrayAdapter<String>(
-               requireContext(),
-               android.R.layout.simple_spinner_item,
-               serversList
-           )
+           activity?.runOnUiThread(Runnable {
+               spinner.adapter = ArrayAdapter<String>(
+                   requireContext(),
+                   android.R.layout.simple_spinner_item,
+                   serversList
+               )
+               startButton.visibility = View.VISIBLE
+           })
+
+
            /*spinner.onItemSelectedListener = object : OnItemSelectedListener {
             override fun onItemSelected(
                 adapterView: AdapterView<*>,
@@ -630,36 +635,37 @@ open class Tab1 : Fragment() {
 
     // Get Servers and Update UI
     private fun getServers(callback: (MutableList<Server>) -> Unit) {
-        // First load whatever is stored locally
-        loadServersFromLocalDb() {
-            var servers : MutableList<Server> = mutableListOf()
-            servers = it
-            // check internet connection
-            if (MyApplication.internetOn as Boolean)  {
-                if (servers.count() == 0) {
-                    FirestoreDB.loadServersFromFirestore() {
-                        if (it.count() ==0) {
-                            //use provided server list in JSON file
-                            val c = readFileFromAssets("ServerList.json")
-                            val a = JSONArray(c)
-                            if (a.length() == 0) throw Exception("No test points")
-                            for (i in 0 .. a.length()-1) {
-                                val server = TestPoint(a.getJSONObject(i))
-                                servers.add(Server(i, server.name, server.server, server.dlURL, server.ulURL, server.pingURL, server.getIpURL, server.getsponsorName(), server.getsponsorURL()))
-                            }
-                            Log.d(TAG, "finish loading #sites from JSON file " + servers.count())
-                            callback(servers)
-                        } else {
-                            servers = it
-                            saveServersToLocalDatabase(servers.toTypedArray())
-                            callback(servers)
-                        }
-                    }
-                } else callback (servers)
+        var servers: MutableList<Server> = mutableListOf()
+        FirestoreDB.loadServersFromFirestore() {
+            if (it.count() > 0) {
+                saveServersToLocalDatabase(it.toTypedArray())
+                Log.d(TAG, "finish loading #sites from Firestore " + it.count())
+                callback(it)
             } else {
-                Toast.makeText(this.context, "Sin conexión a internet", Toast.LENGTH_LONG).show()
+                // Load whatever is stored locally
+                loadServersFromLocalDb() {
+                    if (it.count()>0) {
+                        callback(it)
+                        Log.d(TAG, "finish loading #sites from local db " + it.count())
+                    } else {
+                        //use provided server list in JSON file
+                        val c = readFileFromAssets("ServerList.json")
+                        val a = JSONArray(c)
+                        if (a.length() == 0) throw Exception("No test points")
+                        for (i in 0..a.length() - 1) {
+                            val server = TestPoint(a.getJSONObject(i))
+                            servers.add(Server(i, server.name,server.server, server.dlURL,
+                                    server.ulURL, server.pingURL, server.getIpURL,
+                                    server.getsponsorName(), server.getsponsorURL()))
+                        }
+                        Log.d(TAG, "finish loading #sites from JSON file " + servers.count())
+                        callback(servers)
+                    }
+                }
             }
         }
+
+
     }
 
     // Load Books from Room
