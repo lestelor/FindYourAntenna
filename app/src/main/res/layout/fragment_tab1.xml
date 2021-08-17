@@ -272,26 +272,26 @@
                                 />
                         </RelativeLayout>
                     </LinearLayout>
-
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/serverSelect_message"
+                        android:gravity="center"
+                        android:layout_below="@id/gaugeArea"
+                        android:id="@+id/Tab1Comments"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        android:textColor="@color/commentsText"
+                        android:textSize="@dimen/serverText"/>
                     <Spinner
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:id="@+id/serverList"
-                        android:layout_below="@id/gaugeArea"
-                        android:layout_marginTop="@dimen/margin_largeSep"
+                        android:layout_below="@id/Tab1Comments"
+
                         android:layout_centerHorizontal="true"
                         android:textSize="@dimen/text"
                         />
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="SERVER NAME"
-                        android:gravity="center"
-                        android:layout_below="@id/serverList"
-                        android:id="@+id/serverName"
-                        android:layout_marginBottom="@dimen/margin_sep"
-                        android:textColor="@color/serverText"
-                        android:textSize="@dimen/serverText"/>
+
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -306,6 +306,7 @@
                         android:textSize="@dimen/ipInfoText"
                         android:gravity="center"
                         android:textColor="@color/textColor"
+                        android:visibility="gone"
                         />
 
                     <LinearLayout
@@ -316,38 +317,66 @@
                         android:layout_marginTop="@dimen/margin_sep"
                         android:gravity="center">
 
-                        <Button
+                        <FrameLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="@dimen/restartButton_text"
-                            android:id="@+id/restartButton"
-                            android:background="@color/restartButton_background"
-                            android:textColor="@color/restartButton_text"
-                            android:text="@string/test_restart"
-                            android:paddingLeft="@dimen/restartButton_hPadding"
-                            android:paddingRight="@dimen/restartButton_hPadding"
-                            android:paddingTop="@dimen/restartButton_vPadding"
-                            android:paddingBottom="@dimen/restartButton_vPadding"
-                            android:layout_marginRight="@dimen/margin_smallSep"
-                            android:layout_marginEnd="@dimen/margin_smallSep"
-                            />
+                            android:layout_gravity="bottom|right"
+                            android:id="@+id/restartButton">
 
-                        <Button
+                            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@android:color/transparent"
+                                app:elevation="0dp"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="@string/test_restart"
+                                android:elevation="16dp"
+                                android:textColor="@color/restartButton_text"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+                        </FrameLayout>
+
+                        <FrameLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="@dimen/shareButton_text"
-                            android:id="@+id/shareButton"
-                            android:background="@color/shareButton_background"
-                            android:textColor="@color/shareButton_text"
-                            android:text="@string/test_share"
-                            android:paddingLeft="@dimen/shareButton_hPadding"
-                            android:paddingRight="@dimen/shareButton_hPadding"
-                            android:paddingTop="@dimen/shareButton_vPadding"
-                            android:paddingBottom="@dimen/shareButton_vPadding"
-                            />
+                            android:layout_gravity="bottom|right"
+                            android:id="@+id/restopButton"
+                            android:visibility="gone"
+                            >
+
+                            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@android:color/transparent"
+                                app:backgroundTint="@color/stopButton_background"
+                                app:elevation="0dp"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="@string/test_restop"
+                                android:elevation="16dp"
+                                android:textColor="@color/restartButton_text"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+                        </FrameLayout>
+
                     </LinearLayout>
                 </RelativeLayout>
             </ScrollView>
+
+            <com.google.android.gms.ads.AdView
+                xmlns:ads="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/adViewFragment1"
+                ads:adSize="LARGE_BANNER"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                ads:adUnitId="@string/BannerID">
+            </com.google.android.gms.ads.AdView>
         </RelativeLayout>
 
 

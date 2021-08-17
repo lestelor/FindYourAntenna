@@ -47,8 +47,8 @@ android {
         applicationId "lestelabs.antenna"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 42
-        versionName "5.1"
+        versionCode 44
+        versionName "6.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true

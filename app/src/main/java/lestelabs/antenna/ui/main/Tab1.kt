@@ -12,11 +12,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.*
-import android.widget.AdapterView.OnItemSelectedListener
-import android.widget.ArrayAdapter
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.getColor
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.github.anastr.speedviewlib.SpeedView
@@ -24,8 +24,8 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.firestore.FirebaseFirestore
-import fr.bmartel.speedtest.SpeedTestSocket
 import kotlinx.android.synthetic.main.fragment_tab1.*
+import kotlinx.android.synthetic.main.fragment_tab1.view.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.core.Speedtest
 import lestelabs.antenna.ui.main.core.Speedtest.SpeedtestHandler
@@ -43,6 +43,11 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.util.*
 import kotlin.collections.ArrayList
+import android.util.DisplayMetrics
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.location.LocationServices
+import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 
 
 /*
@@ -59,14 +64,21 @@ open class Tab1 : Fragment() {
     private var st: Speedtest? = null
     private val availableServers: ArrayList<TestPoint> = ArrayList()
     private lateinit var spinner:Spinner
-    
+    private lateinit var startButton:FrameLayout
+    private lateinit var stopButton:FrameLayout
+    private lateinit var tvComments:  TextView
+    private  var download_value: Double = 0.0
+    private  var upload_value: Double = 0.0
+    private  var ping_value: Double = 0.0
+
     // TODO: Rename and change types of parameters
     private var mParam1: String? = null
     private var mParam2: String? = null
 
-
+    lateinit var mAdView : AdView
     private lateinit var fragmentView: View
     private lateinit var connectivity: Connectivity
+    val db = FirebaseFirestore.getInstance()
     private var listener: GetfileState? = null
 
     private lateinit var speedometer: SpeedView
@@ -97,7 +109,6 @@ open class Tab1 : Fragment() {
     private var pDevice: DevicePhone? = DevicePhone()
     private var networkType: String = ""
     private var deviceWifi: DeviceWiFi = DeviceWiFi()
-    private lateinit var db: FirebaseFirestore
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
     private lateinit var firebaseAnalytics: FirebaseAnalytics
@@ -155,10 +166,25 @@ open class Tab1 : Fragment() {
         fragmentView = inflater.inflate(R.layout.fragment_tab1, container, false)
         // connectivity context
         connectivity = Connectivity(fragmentView.context)
+        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+        // Adds -------------------------------------------------------------------------------------
+        mAdView = fragmentView.findViewById(R.id.adViewFragment1)
+        MobileAds.initialize(context)
+        val adRequest = AdRequest.Builder().build()
+        mAdView.loadAd(adRequest)
 
         spinner = fragmentView.findViewById(R.id.serverList)
+        startButton = fragmentView.findViewById(R.id.restartButton)
+        stopButton = fragmentView.findViewById(R.id.restopButton)
+        tvComments = fragmentView.findViewById(R.id.Tab1Comments)
+
+        val screenSize = getScreenSize()
+        Log.d("Tab1", screenSize.first.toString())
+        if (screenSize.first < MIN_HEIGHT_ADS) {
+            fragmentView.adViewFragment1.visibility = View.GONE
+        }
         page_init()
         list_servers()
         start_onclick()
@@ -174,6 +200,7 @@ open class Tab1 : Fragment() {
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
         private const val ARG_PARAM1 = "param1"
         private const val ARG_PARAM2 = "param2"
+        private const val MIN_HEIGHT_ADS = 2000
 
         /**
          * Use this factory method to create a new instance of
@@ -208,306 +235,6 @@ open class Tab1 : Fragment() {
     }*/
 
 
-
-    //@RequiresApi(Build.VERSION_CODES.M)
-   /* fun fillNetworkTextView(view: View) {
-        /// fill the mobile layout --------------------------------------------
-        // Lookup view for data population
-        //Log.d("cfauli", "fillMobileTextView")
-        // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-
-        val ivType = view.findViewById<View>(R.id.ivTab1Type) as ImageView
-        val ivLevel = view.findViewById<View>(R.id.ivTab1Level) as ImageView
-
-        val tvStart = view.findViewById<View>(R.id.tvTab1StartTest) as TextView
-        val tvType = view.findViewById<View>(R.id.tvTab1Type) as TextView
-        val tvName = view.findViewById<View>(R.id.tvTab1Name) as TextView
-        val tvMCC = view.findViewById<View>(R.id.tvTab1MCC) as TextView
-        val tvMNC = view.findViewById<View>(R.id.tvTab1MNC) as TextView
-        val tvLAC = view.findViewById<View>(R.id.tvTab1LAC) as TextView
-        val tvCID = view.findViewById<View>(R.id.tvTab1CID) as TextView
-        val tvSignal = view.findViewById<View>(R.id.tvTab1Signal) as TextView
-        val tvChannel = view.findViewById<View>(R.id.tvTab1Channel) as TextView
-        val tvFrequency = view.findViewById<View>(R.id.tvTab1Frequency) as TextView
-
-
-
-        if (isConnectedMobile()) networkType = "MOBILE"
-        if (isConnectedWifi()) networkType = "WIFI"
-
-
-        if (firstOnResume)   telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-
-        pDevice = loadCellInfo(telephonyManager)
-        deviceWifi = context?.let { connectivity.getWifiParam(it) } ?: DeviceWiFi()
-
-        if (isConnectedMobile()) {
-            //listNetwork = pDevice?.type + " " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + "MHz " + pDevice?.dbm + "dBm id: " + pDevice?.mcc + "-" + pDevice?.mnc + "-" + pDevice?.lac + "-" + pDevice?.cid
-            tvType.text = pDevice?.type ?: ""
-            when (pDevice?.type) {
-                "2G" -> ivType.setImageResource(R.drawable.icon_2g_48)
-                "3G" -> ivType.setImageResource(R.drawable.icon_3g_48)
-                "4G" -> ivType.setImageResource(R.drawable.icon_4g_48)
-                "5G" -> ivType.setImageResource(R.drawable.icon_5g_48)
-            }
-
-            lifecycleScope.launch(Dispatchers.IO) {
-                findOperatorName(pDevice) { it ->
-                    tvName.text = it
-                }
-            }
-
-            tvName.text = ""
-            tvMCC.text = "MCC: " + pDevice?.mcc ?: ""
-            tvMNC.text = "MNC: " + pDevice?.mnc ?: ""
-            tvLAC.text = "LAC: " + pDevice?.lac ?: ""
-            tvCID.text = "CID: " + pDevice?.cid ?: ""
-
-            val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-
-            val thresMobBlack = sharedPreferences?.getString("thres_mob_black", Constants.MINMOBILESIGNALBLACK)?.toInt() ?: Constants.MINMOBILESIGNALBLACK.toInt()
-            val thresMobRed = sharedPreferences?.getString("thres_mob_red", Constants.MINMOBILESIGNALRED)?.toInt() ?: Constants.MINMOBILESIGNALRED.toInt()
-            val thresMobYellow = sharedPreferences?.getString("thres_mob_yellow", Constants.MINMOBILESIGNALYELLOW)?.toInt() ?: Constants.MINMOBILESIGNALYELLOW.toInt()
-            val thresMobGreen = Constants.MINMOBILESIGNALGREEN.toInt()
-
-            try {
-                pDevice?.let {
-                    if (it.dbm!! >= (-1 * thresMobYellow)) {
-                        ivLevel.setImageResource(R.drawable.ic_network_green)
-                    } else if (pDevice?.dbm!! >= (-1 * thresMobRed)) {
-                        ivLevel.setImageResource(R.drawable.ic_network_yellow)
-                    } else if (pDevice?.dbm!! >= (-1 * thresMobBlack)) {
-                        ivLevel.setImageResource(R.drawable.ic_network_red)
-                    } else {
-                        ivLevel.setImageResource(R.drawable.ic_network_black)
-                    }
-                }
-
-                tvSignal.text = pDevice?.dbm.toString() + " dBm"
-                tvChannel.text = "arfcn: " + pDevice?.band.toString()
-                tvFrequency.text = "freq: " + "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
-                //tvTab1MobileNetworkType.text = ""
-            } catch (e: Exception) {
-                Log.d("cfauli", "Tab1 FillNetworkTextView exception")
-            }
-
-        } else if (isConnectedWifi()) {
-
-            Log.d("cfauli deviceWifi ", deviceWifi.toString())
-            val freq = deviceWifi.centerFreq
-            val channel: Int = getChannel(freq)
-
-            //listNetwork = deviceWifi.ssid + " ch: " + channel + " " + deviceWifi.centerFreq + "MHz " + deviceWifi.level + "dBm"
-            tvType.text = ""
-            ivType.setImageResource(R.drawable.icon_wifi_48)
-
-            tvName.text = ""
-            tvMCC.text = ""
-            tvMNC.text = ""
-            tvLAC.text = "WIFI"
-            tvCID.text = deviceWifi.ssid
-
-            val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-            val thresWifiBlack = sharedPreferences?.getString("thres_wifi_black", Constants.MINWIFISIGNALBLACK) ?: Constants.MINWIFISIGNALBLACK
-            val thresWifiRed = sharedPreferences?.getString("thres_wifi_red", Constants.MINWIFISIGNALRED) ?: Constants.MINWIFISIGNALRED
-            val thresWifiYellow = sharedPreferences?.getString("thres_wifi_yellow", Constants.MINWIFISIGNALYELLOW) ?: Constants.MINWIFISIGNALYELLOW
-            val thresWifiGreen = Constants.MINWIFISIGNALGREEN
-
-
-            if (deviceWifi.level!! >= -1 * thresWifiYellow.toInt()) {
-                ivLevel.setImageResource(R.drawable.ic_network_green)
-            } else if (deviceWifi.level!! >= -1 * thresWifiRed.toInt()) {
-                ivLevel.setImageResource(R.drawable.ic_network_yellow)
-            } else if (deviceWifi.level!! >= -1 * thresWifiBlack.toInt()) {
-                ivLevel.setImageResource(R.drawable.ic_network_red)
-            } else {
-                ivLevel.setImageResource(R.drawable.ic_network_black)
-            }
-
-            tvSignal.text = deviceWifi.level.toString() + " dBm"
-            tvChannel.text = "ch:" + channel
-            tvFrequency.text = "freq: " + freq + " MHz"
-        }
-        this.context?.let { saveDocument(it) }
-    }*/
-
-
-fun saveDocument(context: Context) {
-    // Control point for Crashlitycs
-    crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-
-        try {
-            //Thread.sleep(1000)
-            if ((ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) ||
-                (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            ) {
-                activity?.let { ActivityCompat.requestPermissions(it, arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE) }
-            }
-            var lat = 0.0
-            var lon = 0.0
-            fusedLocationClient?.lastLocation
-                ?.addOnSuccessListener { location: Location? ->
-
-                    // Control point for Crashlitycs
-                    crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-                    
-                    if (location != null) {
-                        lat = location.latitude
-                        lon = location.longitude
-                        val dateNow = Date()
-                        val dateFormated = DateFormat.format("yyyy/MM/dd HH:mm:ss", dateNow)
-
-                        // Create a new user with a first and last name
-                        val speedTestSample: MutableMap<String, Any?> = HashMap()
-
-                        speedTestSample["date"] = dateFormated
-                        speedTestSample["lat"] = lat
-                        speedTestSample["lon"] = lon
-                        speedTestSample["type"] = networkType
-                        speedTestSample["MobileNetwork"] = pDevice?.type
-                        speedTestSample["MobileMcc"] = pDevice?.mcc
-                        speedTestSample["MobileMnc"] = pDevice?.mnc
-                        speedTestSample["MobileLac"] = pDevice?.lac
-                        speedTestSample["MobileCid"] = pDevice?.cid
-                        speedTestSample["MobiledBm"] = pDevice?.dbm
-                        speedTestSample["WifiNetwork"] = deviceWifi.ssid
-                        speedTestSample["WifidBm"] = deviceWifi.level
-
-                        var pleaseContribute = false
-                        val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-                        if (sharedPreferences != null) {
-                            pleaseContribute = sharedPreferences.getBoolean("please_contribute", true)
-                        }
-
-
-                        if (networkType != "" && pleaseContribute) {
-
-                            // Control point for Crashlitycs
-                            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-                            
-                            val documentId = DateFormat.format("yyyyMMdd", dateNow).toString() + "/" + DateFormat.format("HHmmss", dateNow).toString() + "/" + pDevice?.cid + ";" + deviceWifi.ssid
-                            // Add a new document with a generated ID
-                            db.collection("Samples").document(documentId)
-                                .set(speedTestSample)
-                                .addOnSuccessListener {
-                                    Log.d("cfauli", "DocumentSnapshot added with ID: " + documentId)
-                                }
-
-                                .addOnFailureListener {
-
-                                    Log.d("cfauli", "Error adding document: " + it)
-                                }
-                        }
-                    }
-
-                }
-        } catch (npe: NullPointerException) {
-            Log.d("cfauli", "saveDoument: Unable to save samples: ", npe)
-        }
-        catch (e: IOException) {
-            Log.d("cfauli", "saveDoument: Unable to save samples: ", e)
-        }
-
-}
-
-
-
-    fun fillSpeedList(new: Boolean, network: String, download: String, upload: String, ping: String): List<SpeedTest> {
-
-        // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-
-        val sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
-        val listOfSpeedTest: ArrayList<SpeedTest> = arrayListOf()
-
-        var textDate: String
-        var textNetwork: String
-        var textSpeedUp: String
-        var textSpeedDown: String
-        var textLatency: String
-
-
-        if (sharedPreferences !=null) {
-
-            val editor: SharedPreferences.Editor = sharedPreferences.edit()
-            var numSpeedTest = sharedPreferences.getInt("num_speed_test", 0)
-
-
-            if (new) {
-                val dateNow = Date()
-                val dateFormated = DateFormat.format("dd/MM/yyy HH:mm", dateNow)
-                val day =
-                    dateFormated.toString() +
-                            if (isConnectedWifi()) {
-                                " WIFI " + deviceWifi.ssid + " ch: " + getChannel(deviceWifi.centerFreq) + " " + deviceWifi.level + "dBm"
-                            }
-                            else {
-                                " " + pDevice?.type + " " + "%.1f".format(pDevice?.freq) + "MHz " + pDevice?.dbm.toString() + "dBm"
-                            }
-
-
-                Log.d("cfauli", "numspeedtest " + numSpeedTest)
-                numSpeedTest += 1
-
-                editor.putInt("num_speed_test", numSpeedTest)
-                editor.apply()
-
-                textDate = "speed_test_date" + numSpeedTest
-                textNetwork = "speed_test_network" + numSpeedTest
-                textSpeedUp = "speed_test_speedUp" + numSpeedTest
-                textSpeedDown = "speed_test_speedDown" + numSpeedTest
-                textLatency = "speed_test_latency" + numSpeedTest
-
-                editor.putString(textDate, day)
-                editor.apply()
-
-                editor.putString(textNetwork, network)
-                editor.apply()
-
-                editor.putString(textSpeedUp, upload)
-                editor.apply()
-
-                editor.putString(textSpeedDown, download)
-                editor.apply()
-
-                editor.putString(textLatency, ping)
-                editor.apply()
-
-                editor.commit()
-
-            }
-
-            if (numSpeedTest >= 1) {
-                for (i in 1..numSpeedTest) {
-                    textNetwork = "speed_test_network" + i
-                    textSpeedUp = "speed_test_speedUp" + i
-                    textSpeedDown = "speed_test_speedDown" + i
-                    textLatency = "speed_test_latency" + i
-                    textDate = "speed_test_date" + i
-
-                    Log.d("cfauli", "textNetwork " + textNetwork)
-
-
-                    listOfSpeedTest.add(
-                        0, SpeedTest(
-                            sharedPreferences.getString(textDate, ""), sharedPreferences.getString(textNetwork, ""), sharedPreferences.getString(textSpeedUp, ""), sharedPreferences.getString(
-                                textSpeedDown,
-                                ""
-                            ), sharedPreferences.getString(textLatency, "")
-                        )
-                    )
-                }
-            }
-            // Control point for Crashlitycs
-            crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-        }
-        //return listOfSpeedTest.sortedByDescending { it.date }
-        return listOfSpeedTest
-
-    }
-
-
     private fun isConnectedMobile(): Boolean {
         return  connectivity.isConnectedMobile()
     }
@@ -529,10 +256,16 @@ fun saveDocument(context: Context) {
 
 
     }
-    fun writeCloudFirestoreDB(downlink: String, uplink: String, latency: String) {
+    fun writeCloudFirestoreDB(downlink: String?, uplink: String?, latency: String?) {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-        
+
+        pDevice = loadCellInfo(telephonyManager)
+        deviceWifi = context?.let { connectivity.getWifiParam(it) } ?: DeviceWiFi()
+        if (isConnectedMobile()) networkType = "MOBILE"
+        if (isConnectedWifi()) networkType = "WIFI"
+
+        Log.d("TAB1", "network type " + networkType + " " + downlink + " " + uplink + " " + ping_value)
         var lat: Double? = 0.0
         var lon: Double? = 0.0
         if ((context?.let { ActivityCompat.checkSelfPermission(it, Manifest.permission.READ_PHONE_STATE) } != PackageManager.PERMISSION_GRANTED) ||
@@ -540,7 +273,7 @@ fun saveDocument(context: Context) {
             activity?.let { ActivityCompat.requestPermissions(it, arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE) }
             //Thread.sleep(1000)
         }
-
+        fusedLocationClient = context?.let { LocationServices.getFusedLocationProviderClient(it) }
         fusedLocationClient?.lastLocation
             ?.addOnSuccessListener { location: Location? ->
 
@@ -563,20 +296,20 @@ fun saveDocument(context: Context) {
                 speedTestSample["latency"] = latency
 
 
-                    speedTestSample["MobileNetwork"] = pDevice?.type
-                    speedTestSample["MobileMcc"] = pDevice?.mcc
-                    speedTestSample["MobileMnc"] = pDevice?.mnc
-                    speedTestSample["MobileLac"] = pDevice?.lac
-                    speedTestSample["MobileCid"] = pDevice?.cid
-                    speedTestSample["MobileCh"] = pDevice?.band
-                    speedTestSample["MobileFreq"] = calculateFreq(pDevice?.type, pDevice?.band)
-                    speedTestSample["MobiledBm"] = pDevice?.dbm
+                speedTestSample["MobileNetwork"] = pDevice?.type
+                speedTestSample["MobileMcc"] = pDevice?.mcc
+                speedTestSample["MobileMnc"] = pDevice?.mnc
+                speedTestSample["MobileLac"] = pDevice?.lac
+                speedTestSample["MobileCid"] = pDevice?.cid
+                speedTestSample["MobileCh"] = pDevice?.band
+                speedTestSample["MobileFreq"] = calculateFreq(pDevice?.type, pDevice?.band)
+                speedTestSample["MobiledBm"] = pDevice?.dbm
 
 
-                    speedTestSample["WifiNetwork"] = deviceWifi.ssid
-                    speedTestSample["WifiFreq"] = deviceWifi.centerFreq
-                    speedTestSample["WifiCh"] = getChannel(deviceWifi.centerFreq)
-                    speedTestSample["WifidBm"] = deviceWifi.level
+                speedTestSample["WifiNetwork"] = deviceWifi.ssid
+                speedTestSample["WifiFreq"] = deviceWifi.centerFreq
+                speedTestSample["WifiCh"] = getChannel(deviceWifi.centerFreq)
+                speedTestSample["WifidBm"] = deviceWifi.level
 
                 if (networkType!="") {
                     // Add a new document with a generated ID
@@ -592,18 +325,6 @@ fun saveDocument(context: Context) {
             }
     }
 
-    fun copyToClipboardOnClickListener() {
-
-            val clipboard = context?.let { getSystemService(it, ClipboardManager::class.java) }
-            val listSpeedTest = fillSpeedList(false, "", "", "", "")
-            var text = ""
-            for (list in listSpeedTest) {
-                text = text + " " + list.date + " " + list.network + " Down: " + list.speedDown + " Mbps Up: " + list.speedUp + " Mbps Ping: " + list.latency + " ms" + "\n"
-            }
-            val clip: ClipData = ClipData.newPlainText("Network Test", text)
-            clipboard?.setPrimaryClip(clip)
-            Toast.makeText(context, getString(R.string.CopiedToClipboard), Toast.LENGTH_SHORT).show()
-    }
 
 
     fun page_init() {
@@ -624,12 +345,7 @@ fun saveDocument(context: Context) {
                     ) {
                         //activity?.runOnUiThread(Runnable { hideView(R.id.privacy_open) })
                     }
-                    if (st != null) {
-                        try {
-                            st?.abort()
-                        } catch (e: Throwable) {
-                        }
-                    }
+                    abort_test()
                     st = Speedtest()
                     st?.setSpeedtestConfig(config)
                     st?.setTelemetryConfig(telemetryConfig)
@@ -659,36 +375,7 @@ fun saveDocument(context: Context) {
         return (1000 * (1 - 1 / Math.pow(1.3, Math.sqrt(s)))).toInt()
     }
 
-    fun page_serverSelect(selected: TestPoint, servers: Array<TestPoint>) {
-        //transition(R.id.page_serverSelect, TRANSITION_LENGTH)
-        reinitOnResume = true
-        val availableServers: ArrayList<TestPoint> = ArrayList()
-        for (t in servers) {
-            if (t.ping != -1f) availableServers.add(t)
-        }
-        val selectedId = availableServers.indexOf(selected)
-        val spinner = fragmentView.findViewById(R.id.serverList) as Spinner
-        val options = ArrayList<String>()
-        for (t in availableServers) {
-            options.add(t.name)
-        }
-        val adapter: ArrayAdapter<String> = ArrayAdapter<String>(
-            requireContext(),
-            android.R.layout.simple_spinner_dropdown_item,
-            options.toArray(arrayOfNulls<String>(0))
-        )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
-        spinner.setSelection(selectedId)
-        val b = fragmentView.findViewById(R.id.restartButton) as Button
-        b.setOnClickListener {
-            reinitOnResume = false
-            page_test(availableServers[spinner.selectedItemPosition])
-            b.setOnClickListener(null)
-        }
-        //val t = fragmentView.findViewById(R.id.privacy_open) as TextView
-        //t.setOnClickListener { page_privacy() }
-    }
+
 
 /*    fun page_privacy() {
         transition(R.id.page_privacy, TRANSITION_LENGTH)
@@ -704,7 +391,6 @@ fun saveDocument(context: Context) {
     fun page_test(selected: TestPoint) {
         //transition(R.id.page_test, TRANSITION_LENGTH)
         st?.setSelectedServer(selected)
-        (fragmentView.findViewById(R.id.serverName) as TextView).text = selected.name
         (fragmentView.findViewById(R.id.dlText) as TextView).setText(format(0.0))
         (fragmentView.findViewById(R.id.ulText) as TextView).setText(format(0.0))
         (fragmentView.findViewById(R.id.pingText) as TextView).setText(format(0.0))
@@ -721,12 +407,11 @@ fun saveDocument(context: Context) {
             i.data = Uri.parse(url)
             startActivity(i)
         })*/
-        val endTestArea: View = fragmentView.findViewById(R.id.endTestArea)
+/*        val endTestArea: View = fragmentView.findViewById(R.id.endTestArea)
         val endTestAreaHeight = endTestArea.height
         val p = endTestArea.layoutParams
         p.height = 0
-        endTestArea.layoutParams = p
-        (fragmentView.findViewById(R.id.shareButton) as Button).visibility = View.GONE
+        endTestArea.layoutParams = p*/
         st?.start(object : SpeedtestHandler() {
             override fun onDownloadUpdate(dl: Double, progress: Double) {
                 activity?.runOnUiThread(Runnable {
@@ -740,6 +425,7 @@ fun saveDocument(context: Context) {
                     (fragmentView.findViewById(R.id.dlProgress) as ProgressBar).progress =
                         (100 * progress).toInt()
                 })
+                download_value = dl
             }
 
             override fun onUploadUpdate(ul: Double, progress: Double) {
@@ -754,6 +440,7 @@ fun saveDocument(context: Context) {
                     (fragmentView.findViewById(R.id.ulProgress) as ProgressBar).progress =
                         (100 * progress).toInt()
                 })
+                upload_value = ul
             }
 
             override fun onPingJitterUpdate(ping: Double, jitter: Double, progress: Double) {
@@ -762,7 +449,9 @@ fun saveDocument(context: Context) {
                         if (progress == 0.0) "..." else format(ping)
                     (fragmentView.findViewById(R.id.jitterText) as TextView).text =
                         if (progress == 0.0) "..." else format(jitter)
+                    Log.d("TAB1", "Ping " + ping + "Jitter " + jitter)
                 })
+                ping_value = ping
             }
 
             override fun onIPInfoUpdate(ipInfo: String) {
@@ -771,45 +460,66 @@ fun saveDocument(context: Context) {
 
             override fun onTestIDReceived(id: String, shareURL: String) {
                 if (shareURL == null || shareURL.isEmpty() || id == null || id.isEmpty()) return
-                activity?.runOnUiThread(Runnable {
-                    val shareButton = fragmentView.findViewById(R.id.shareButton) as Button
-                    shareButton.visibility = View.VISIBLE
-                    shareButton.setOnClickListener {
-                        val share = Intent(Intent.ACTION_SEND)
-                        share.type = "text/plain"
-                        share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET)
-                        share.putExtra(Intent.EXTRA_TEXT, shareURL)
-                        startActivity(Intent.createChooser(share, getString(R.string.test_share)))
-                    }
-                })
+
             }
 
             override fun onEnd() {
-                start_onclick();
-
+                Log.d("Tab1", "onEnd")
                 val startT = System.currentTimeMillis()
                 val endT: Long = startT + TRANSITION_LENGTH
+                var first = true
+
                 object : Thread() {
                     override fun run() {
                         while (System.currentTimeMillis() < endT) {
-                            val f =
-                                (System.currentTimeMillis() - startT).toDouble() / (endT - startT).toDouble()
-                            activity?.runOnUiThread(Runnable {
-                                val p = endTestArea.layoutParams
-                                p.height = (endTestAreaHeight * f).toInt()
-                                endTestArea.layoutParams = p
-                            })
-                            try {
-                                sleep(10)
-                            } catch (t: Throwable) {
-                            }
+                            val f = (System.currentTimeMillis() - startT).toDouble() / (endT - startT).toDouble()
                         }
+
+                        activity?.runOnUiThread(Runnable {
+                            stopButton.visibility = View.GONE
+                            startButton.visibility = View.VISIBLE
+
+                            if (tvComments.currentTextColor == getColor(requireContext(), R.color.commentsTextAlert)) {
+                                download_value = 0.0
+                                upload_value = 0.0
+                                ping_value = 0.0
+                                tvComments.text = getString(R.string.testFail_err)
+                            } else {
+                                tvComments.setTextColor(getColor(requireContext(),R.color.commentsText))
+                                tvComments.text = getString(R.string.serverSelect_message)
+                            }
+                            stopButton.setOnClickListener(null)
+                            start_onclick()
+                            if (download_value > 2.0 && upload_value > 2.0 && ping_value > 0.0) {
+                                Log.d("TAB1", "evaluate")
+                                Handler(Looper.getMainLooper()).postDelayed({
+                                    ctx?.let { it1 -> InAppReview.inAppReview(it1, requireActivity()) }
+                                }, 7000)
+                            }
+
+/*                                val p = endTestArea.layoutParams
+                            p.height = (endTestAreaHeight * f).toInt()
+                            endTestArea.layoutParams = p*/
+                            //Write data to firestore
+                            writeCloudFirestoreDB(format(download_value),format(upload_value),format(ping_value))
+                        })
+                        try {
+                            sleep(10)
+                        } catch (t: Throwable) {
+                        }
+
                     }
                 }.start()
             }
 
             override fun onCriticalFailure(err: String) {
                 activity?.runOnUiThread(Runnable {
+                    tvComments.setTextColor(getColor(requireContext(), R.color.commentsTextAlert))
+                    tvComments.text = getString(R.string.testFail_err)
+                    stopButton.visibility = View.GONE
+                    startButton.visibility = View.VISIBLE
+                    stopButton.setOnClickListener(null)
+                    start_onclick()
                     /*transition(R.id.page_fail, TRANSITION_LENGTH)
                     (fragmentView.findViewById(R.id.fail_text) as TextView).text =
                         getString(R.string.testFail_err)
@@ -846,14 +556,47 @@ fun saveDocument(context: Context) {
     }
 
     fun start_onclick() {
-        activity?.runOnUiThread(Runnable {
-            val restartButton = fragmentView.findViewById(R.id.restartButton) as Button
-            restartButton.setOnClickListener {
-                Log.d("Tab1", "Start onclick")
+        startButton.setOnClickListener {
+            Log.d("Tab1", "Start onclick")
+            activity?.runOnUiThread(Runnable {
                 page_test(availableServers[spinner.selectedItemPosition])
-                restartButton.setOnClickListener(null)
+            })
+            startButton.setOnClickListener(null)
+            stopButton.visibility = View.VISIBLE
+            startButton.visibility = View.GONE
+            tvComments.setTextColor(getColor(requireContext(), R.color.commentsText))
+            tvComments.text = getString(R.string.testStarted)
+            stop_onclick()
+        }
+
+
+    }
+
+    fun stop_onclick() {
+            stopButton.setOnClickListener {
+                Log.d("Tab1", "Stop onclick")
+                activity?.runOnUiThread(Runnable {
+                    abort_test()
+                })
+                download_value = 0.0
+                upload_value = 0.0
+                ping_value = 0.0
+                stopButton.setOnClickListener(null)
+                stopButton.visibility = View.GONE
+                startButton.visibility = View.VISIBLE
+                tvComments.setTextColor(getColor(requireContext(), R.color.commentsText))
+                tvComments.text = getString(R.string.serverSelect_message)
+                start_onclick()
+        }
+    }
+
+    fun abort_test() {
+        if (st != null) {
+            try {
+                st?.abort()
+            } catch (e: Throwable) {
             }
-        })
+        }
     }
 
     override fun onResume() {
@@ -910,7 +653,13 @@ fun saveDocument(context: Context) {
                     })*/
 
     }
-    //PAGE TRANSITION SYSTEM
+    fun getScreenSize(): Pair<Int, Int> {
+        val displayMetrics = DisplayMetrics()
+        requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val height = displayMetrics.heightPixels
+        val width = displayMetrics.widthPixels
+        return Pair(height,width)
+    }
 
     //PAGE TRANSITION SYSTEM
     private val currentPage = -1

@@ -255,6 +255,7 @@ class Tab2 : Fragment() {
         Log.d("cfauli", "fillMobileTextView")
         val tvLevel = view.findViewById<View>(R.id.tv_mobile_level) as TextView
         val tvOperator = view.findViewById<View>(R.id.tv_mobile_operator) as TextView
+        val tvOperatorValue = view.findViewById<View>(R.id.tv_mobile_operator_values) as TextView
         val tvOperatorName = view.findViewById<View>(R.id.tv_mobile_operator_name) as TextView
         val tvNetwork = view.findViewById<View>(R.id.tv_mobile_network) as TextView
         val tvNetworkType = view.findViewById<View>(R.id.tv_mobile_networkType) as TextView
@@ -277,8 +278,12 @@ class Tab2 : Fragment() {
         tvMobile.text = getString(R.string.MobileTxt)
         tvLevel.text = pDevice?.dbm.toString() + "dBm"
         if (pDevice?.mcc == 0) {
-            tvOperator.text = getString(R.string.MobileDetected)
-        } else tvOperator.text = getString(R.string.Operator) + pDevice?.mcc.toString() + "-" + pDevice?.mnc.toString()
+            tvOperator.text = ""
+            tvOperatorValue.text = ""
+        } else {
+            tvOperator.text = getString(R.string.Operator)
+            tvOperatorValue.text = pDevice?.mcc.toString() + "-" + pDevice?.mnc.toString() + "-" + pDevice?.cid.toString()
+        }
 
         tvNetwork.text = getString(R.string.Network)
         tvNetworkType.text = pDevice?.type

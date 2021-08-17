@@ -19,8 +19,10 @@
     <color name="ulText">#616161</color>
     <color name="pingText">#AA6060</color>
     <color name="jitterText">#AA6060</color>
-    <color name="serverText">#808080</color>
-    <color name="startButton_background">#6060AA</color>
+    <color name="commentsText">#808080</color>
+    <color name="commentsTextAlert">#FF0000</color>
+    <color name="startButton_background">#00FF00</color>
+    <color name="stopButton_background">#FF0000</color>
     <color name="startButton_text">#FFFFFF</color>
     <color name="failButton_background">#6060AA</color>
     <color name="failButton_text">#FFFFFF</color>
