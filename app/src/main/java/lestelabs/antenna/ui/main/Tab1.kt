@@ -624,18 +624,22 @@ open class Tab1 : Fragment() {
 
     private fun orderServersByPing(testPoints: ArrayList<TestPoint>, callback: (ArrayList<TestPoint>) -> Unit) {
 
-        var testPointsPing = ArrayList<Long>()
+        var testPointsPing = ArrayList<Pair<Int,Long>>()
+        var testPointsOrdered: ArrayList<TestPoint> = ArrayList()
 
         for (i in 0..testPoints.size-1) {
             pingg("https:" + testPoints[i].server + "/" + testPoints[i].pingURL) {
                 if (it != null) {
-                    testPointsPing.add(it)
-                } else testPointsPing.add(10000)
-                Log.d(TAG, "TestPointsPings " + i + " " + testPointsPing[i])
+                    testPointsPing.add(Pair(i,it))
+                } else testPointsPing.add(Pair(i,10000))
+                Log.d(TAG, "TestPointsPings " + i + " " + testPointsPing[i].second)
             }
         }
-
-        callback(testPoints)
+        val result = testPointsPing.sortedWith(compareBy({it.second }))
+        for (i in 0..testPoints.size-1) {
+            testPointsOrdered.add (testPoints[result[i].first])
+        }
+        callback(testPointsOrdered)
     }
 
 
