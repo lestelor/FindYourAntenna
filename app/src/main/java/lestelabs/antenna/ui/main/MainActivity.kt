@@ -22,9 +22,6 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
-import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
@@ -36,7 +33,6 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics
-import lestelabs.antenna.ui.main.data.ApplicationDatabase
 import lestelabs.antenna.ui.main.data.UpdateApplicationDatabase
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
@@ -82,7 +78,7 @@ interface GetfileState {
         setContentView(R.layout.activity_main)
 
         //Use when updating Room Database, one time
-        //UpdateApplicationDatabase.getDatabase(this)
+        UpdateApplicationDatabase.getDatabase(this)
 
         val navigationView: NavigationView = findViewById(R.id.nav_view)
 

@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import androidx.room.Room
-import lestelabs.antenna.ui.main.data.ApplicationDatabase
+import lestelabs.antenna.ui.main.data.ApplicationDatabaseFinal
 import lestelabs.antenna.ui.main.data.ServersInteractor
 import lestelabs.antenna.ui.main.data.SitesInteractor
 
@@ -27,7 +27,7 @@ class MyApplication : Application() {
 
         // Init Database
         val database = Room.databaseBuilder(applicationContext,
-            ApplicationDatabase::class.java, "app_database").build()
+            ApplicationDatabaseFinal::class.java, "app_database").build()
         // Init SitesInteractor
         sitesInteractor = SitesInteractor(database.siteDao())
         // Init ServersInteractor

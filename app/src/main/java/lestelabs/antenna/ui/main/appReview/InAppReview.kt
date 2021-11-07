@@ -28,7 +28,7 @@ object InAppReview {
             if (task.isSuccessful) {
                 // We got the ReviewInfo object
                 val reviewInfo = task.result
-                Log.d("cfauli", "inAppReview reviewinfo " + reviewInfo)
+                Log.d("cfauli", "inAppReview reviewinfo ")
 
                 val flow = manager.launchReviewFlow(activity, reviewInfo)
                 flow.addOnCompleteListener { _ ->

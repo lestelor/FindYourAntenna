@@ -223,8 +223,7 @@ open class Tab1 : Fragment() {
         if (isConnectedWifi()) networkType = "WIFI"
 
         Log.d("TAB1", "network type " + networkType + " " + downlink + " " + uplink + " " + ping_value)
-        var lat: Double? = 0.0
-        var lon: Double? = 0.0
+
         if ((context?.let { ActivityCompat.checkSelfPermission(it, Manifest.permission.READ_PHONE_STATE) } != PackageManager.PERMISSION_GRANTED) ||
             (context?.let { ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) } != PackageManager.PERMISSION_GRANTED)) {
             activity?.let { ActivityCompat.requestPermissions(it, arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE) }
@@ -234,13 +233,20 @@ open class Tab1 : Fragment() {
         fusedLocationClient?.lastLocation
             ?.addOnSuccessListener { location: Location? ->
 
+                val lat = location?.latitude
+                val lon = location?.longitude
+
                 // Control point for Crashlitycs
-                crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-                
-                lat = location?.latitude
-                lon = location?.longitude
+                crashlyticsKeyAnt = controlPointCrashlytics(
+                    tabName,
+                    Thread.currentThread().stackTrace,
+                    crashlyticsKeyAnt
+                )
+
                 val dateNow = Date()
-                val documentId = DateFormat.format("yyyyMMdd", dateNow).toString() + "/" +  DateFormat.format("HHmmss", dateNow).toString() + "/"  + pDevice?.cid + ";" + deviceWifi.ssid
+                val documentId = DateFormat.format("yyyyMMdd", dateNow)
+                    .toString() + "/" + DateFormat.format("HHmmss", dateNow)
+                    .toString() + "/" + pDevice?.cid + ";" + deviceWifi.ssid
 
                 val speedTestSample: MutableMap<String, Any?> = HashMap()
 
@@ -264,18 +270,22 @@ open class Tab1 : Fragment() {
                 speedTestSample["WifiCh"] = getChannel(deviceWifi.centerFreq)
                 speedTestSample["WifidBm"] = deviceWifi.level
 
-                if (networkType!="") {
+                if (networkType != "") {
                     // Add a new document with a generated ID
                     db.collection("SpeedTest").document(documentId)
                         .set(speedTestSample)
                         .addOnSuccessListener {
-                                Log.d("cfauli", "DocumentSnapshot SpeedTest added with ID: " + documentId)
+                            Log.d(
+                                "cfauli",
+                                "DocumentSnapshot SpeedTest added with ID: " + documentId
+                            )
                         }
                         .addOnFailureListener {
                             Log.d("cfauli", "Error adding SpeedTest document ", it)
                         }
                 }
             }
+
     }
 
 
@@ -441,10 +451,13 @@ open class Tab1 : Fragment() {
                             }
                             stopButton.setOnClickListener(null)
                             start_onclick()
-                            if (download_value > 2.0 && upload_value > 2.0 && ping_value > 0.0) {
-                                Log.d("TAB1", "evaluate")
+                            if (download_value > 0.5 && upload_value > 0.5 && ping_value > 0.0) {
+                                Log.d("TAB1", "inapp review evaluate")
                                 Handler(Looper.getMainLooper()).postDelayed({
-                                    ctx?.let { it1 -> InAppReview.inAppReview(it1, requireActivity()) }
+                                    ctx?.let { it1 -> run(){
+                                        Log.d("TAB1", "inappreview evaluate")
+                                        InAppReview.inAppReview(it1, requireActivity())
+                                    } }
                                 }, 7000)
                             }
 
@@ -574,36 +587,55 @@ open class Tab1 : Fragment() {
        getServers() {
            val testPoints: ArrayList<TestPoint> = parseServersToTestPoint(it)
            val serversList: ArrayList<String> = arrayListOf()
-           for (i in 0..testPoints.size - 1) {
-               serversList.add(testPoints[i].name)
-               availableServers.add(testPoints[i])
+
+           orderServersByPing(testPoints) { testPointsOrdered:ArrayList<TestPoint> ->
+               for (i in 0..testPoints.size - 1) {
+                   serversList.add(testPointsOrdered[i].name)
+                   availableServers.add(testPoints[i])
+               }
+
+               activity?.runOnUiThread(Runnable {
+                   spinner.adapter = ArrayAdapter<String>(
+                       requireContext(),
+                       android.R.layout.simple_spinner_item,
+                       serversList
+                   )
+                   startButton.visibility = View.VISIBLE
+               })
+
+
+               /*spinner.onItemSelectedListener = object : OnItemSelectedListener {
+                override fun onItemSelected(
+                    adapterView: AdapterView<*>,
+                    view: View,
+                    position: Int,
+                    id: Long
+                ) {
+                    serverSelectedInt = position
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    // vacio
+                }
+            }*/
            }
-
-           activity?.runOnUiThread(Runnable {
-               spinner.adapter = ArrayAdapter<String>(
-                   requireContext(),
-                   android.R.layout.simple_spinner_item,
-                   serversList
-               )
-               startButton.visibility = View.VISIBLE
-           })
-
-
-           /*spinner.onItemSelectedListener = object : OnItemSelectedListener {
-            override fun onItemSelected(
-                adapterView: AdapterView<*>,
-                view: View,
-                position: Int,
-                id: Long
-            ) {
-                serverSelectedInt = position
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // vacio
-            }
-        }*/
        }
+    }
+
+    private fun orderServersByPing(testPoints: ArrayList<TestPoint>, callback: (ArrayList<TestPoint>) -> Unit) {
+
+        var testPointsPing = ArrayList<Long>()
+
+        for (i in 0..testPoints.size-1) {
+            pingg("https:" + testPoints[i].server + "/" + testPoints[i].pingURL) {
+                if (it != null) {
+                    testPointsPing.add(it)
+                } else testPointsPing.add(10000)
+                Log.d(TAG, "TestPointsPings " + i + " " + testPointsPing[i])
+            }
+        }
+
+        callback(testPoints)
     }
 
 
@@ -689,6 +721,30 @@ open class Tab1 : Fragment() {
             serversInteractor.saveServers(*servers)
             Log.d(TAG, "finish saving #sites in local database " + servers.count())
         }
+    }
+
+
+    fun pingg(domain: String, callback: (Long?) -> Unit) {
+        // Control point for Crashlitycs
+        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
+
+        val runtime = Runtime.getRuntime()
+        var timeofping: Array<Long> = arrayOf(0)
+        try {
+            for (i in 0..0) {
+                var a = System.currentTimeMillis() % 1000000
+                var ipProcess = runtime.exec("/system/bin/ping -c 1 $domain")
+                ipProcess.waitFor()
+                var b = System.currentTimeMillis() % 1000000
+                timeofping[i] = if (b <= a) {
+                    1000000 - a + b
+                } else {
+                    b - a
+                }
+            }
+        } catch (e: Exception) {
+        }
+        callback(timeofping.min()?.toLong())
     }
 
 }
