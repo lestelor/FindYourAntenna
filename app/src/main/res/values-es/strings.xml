@@ -50,7 +50,7 @@
     <string name="initFail_retry">Inténtalo de nuevo</string>
     <string name="init_selecting">Seleccionando servidor</string>
     <string name="initFail_noServers">No hay servidores disponibles</string>
-    <string name="serverSelect_message">Selecciona un servidor</string>
+    <string name="serverSelect_message">Selecciona un servidor y presiona Inicio</string>
     <string name="start">Inicio</string>
     <string name="test_dl">Download</string>
     <string name="test_ul">Upload</string>
@@ -61,11 +61,13 @@
     <string name="test_share">Comparte</string>
     <string name="test_restart">Inicio</string>
     <string name="test_restop">Parar</string>
-    <string name="testFail_err">Error. Por favor comprueba la conexión de internet y/o selecciona otro servidor</string>
+    <string name="testFail_err">Algo sucedió mal. Prueba este nuevo servidor y/o comprueba la conexión de internet</string>
     <string name="testStarted">El test ha empezado. Por favor, espera ...</string>
     <string name="testFail_retry">Inténtalo de nuevo</string>
     <string name="privacy_open"><u>Privacidad</u></string>
     <string name="privacy_close"><u>Atrás</u></string>
+    <string name="SelectingServers">Selecting best servers, please wait</string>
+    <string name="PressStartButton">Presiona Inicio</string>
 
 
 </resources>

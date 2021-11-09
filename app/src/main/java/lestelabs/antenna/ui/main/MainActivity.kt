@@ -9,6 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.MenuItem
@@ -37,6 +39,7 @@ import lestelabs.antenna.ui.main.data.UpdateApplicationDatabase
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import lestelabs.antenna.ui.main.scanner.waitGPS
+
 
 interface GetfileState {
     fun getFileState():List<Int>
@@ -76,6 +79,9 @@ interface GetfileState {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val policy = ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
 
         //Use when updating Room Database, one time
         UpdateApplicationDatabase.getDatabase(this)

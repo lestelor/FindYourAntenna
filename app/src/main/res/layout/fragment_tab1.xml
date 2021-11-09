@@ -237,6 +237,7 @@
                                 />
 
                             <ProgressBar
+
                                 android:layout_width="@dimen/progressSize"
                                 android:layout_height="wrap_content"
                                 style="@android:style/Widget.DeviceDefault.ProgressBar.Horizontal"
@@ -273,22 +274,34 @@
                                 />
                         </RelativeLayout>
                     </LinearLayout>
-                    <TextView
+                    <LinearLayout
+                        android:id="@+id/lycomments"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/serverSelect_message"
-                        android:gravity="center"
                         android:layout_below="@id/gaugeArea"
-                        android:id="@+id/Tab1Comments"
-                        android:layout_marginTop="@dimen/margin_medium"
-                        android:textColor="@color/commentsText"
-                        android:textSize="@dimen/serverText"/>
+                        android:orientation="horizontal">
+
+                        <ProgressBar
+                            android:id="@+id/Tab1ProgressBar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/serverSelect_message"
+                            android:gravity="left"
+
+                            android:id="@+id/Tab1Comments"
+                            android:layout_marginTop="@dimen/margin_medium"
+                            android:textColor="@color/commentsText"
+                            android:textSize="@dimen/serverText"/>
+                    </LinearLayout>
                     <Spinner
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:id="@+id/serverList"
-                        android:layout_below="@id/Tab1Comments"
-
+                        android:layout_below="@id/lycomments"
+                        android:textAlignment="center"
                         android:layout_centerHorizontal="true"
                         android:textSize="@dimen/text"
                         />

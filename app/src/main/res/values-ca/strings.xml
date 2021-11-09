@@ -68,6 +68,8 @@
     <string name="testFail_retry">Try again</string>
     <string name="privacy_open"><u>Privacy</u></string>
     <string name="privacy_close"><u>Back</u></string>
+    <string name="SelectingServers">Selecting best servers, please wait</string>
+    <string name="PressStartButton">Press Start Button</string>
 
 
 </resources>

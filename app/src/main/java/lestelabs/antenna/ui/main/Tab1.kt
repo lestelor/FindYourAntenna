@@ -10,6 +10,7 @@ import android.telephony.TelephonyManager
 import android.text.format.DateFormat
 import android.util.DisplayMetrics
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +25,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.android.synthetic.main.fragment_tab1.*
 import kotlinx.android.synthetic.main.fragment_tab1.view.*
 import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
@@ -42,6 +44,7 @@ import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.EOFException
 import java.io.InputStreamReader
+import java.net.InetAddress
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -63,6 +66,7 @@ open class Tab1 : Fragment() {
     private lateinit var startButton:FrameLayout
     private lateinit var stopButton:FrameLayout
     private lateinit var tvComments:  TextView
+    private lateinit var progress: ProgressBar
     private  var download_value: Double = 0.0
     private  var upload_value: Double = 0.0
     private  var ping_value: Double = 0.0
@@ -149,6 +153,8 @@ open class Tab1 : Fragment() {
         startButton = fragmentView.findViewById(R.id.restartButton)
         stopButton = fragmentView.findViewById(R.id.restopButton)
         tvComments = fragmentView.findViewById(R.id.Tab1Comments)
+        progress = fragmentView.findViewById(R.id.Tab1ProgressBar)
+
 
         val screenSize = getScreenSize()
         Log.d("Tab1", screenSize.first.toString())
@@ -437,6 +443,7 @@ open class Tab1 : Fragment() {
                         }
 
                         activity?.runOnUiThread(Runnable {
+                            progress.visibility = View.GONE
                             stopButton.visibility = View.GONE
                             startButton.visibility = View.VISIBLE
 
@@ -444,9 +451,11 @@ open class Tab1 : Fragment() {
                                 download_value = 0.0
                                 upload_value = 0.0
                                 ping_value = 0.0
+                                tvComments.gravity = Gravity.CENTER
                                 tvComments.text = getString(R.string.testFail_err)
                             } else {
                                 tvComments.setTextColor(getColor(requireContext(),R.color.commentsText))
+                                tvComments.gravity = Gravity.CENTER
                                 tvComments.text = getString(R.string.serverSelect_message)
                             }
                             stopButton.setOnClickListener(null)
@@ -479,12 +488,18 @@ open class Tab1 : Fragment() {
             override fun onCriticalFailure(err: String) {
                 activity?.runOnUiThread(Runnable {
                     tvComments.setTextColor(getColor(requireContext(), R.color.commentsTextAlert))
+                    tvComments.gravity = Gravity.CENTER
                     tvComments.text = getString(R.string.testFail_err)
+                    spinner.setSelection(spinner.selectedItemPosition+1)
+
+                    progress.visibility = View.GONE
                     stopButton.visibility = View.GONE
                     startButton.visibility = View.VISIBLE
                     stopButton.setOnClickListener(null)
                     start_onclick()
-                    /*transition(R.id.page_fail, TRANSITION_LENGTH)
+
+
+                /*transition(R.id.page_fail, TRANSITION_LENGTH)
                     (fragmentView.findViewById(R.id.fail_text) as TextView).text =
                         getString(R.string.testFail_err)
                     val b = fragmentView.findViewById(R.id.fail_button) as Button
@@ -523,6 +538,7 @@ open class Tab1 : Fragment() {
         startButton.setOnClickListener {
             Log.d("Tab1", "Start onclick")
             activity?.runOnUiThread(Runnable {
+                progress.visibility = View.VISIBLE
                 page_test(availableServers[spinner.selectedItemPosition])
             })
             startButton.setOnClickListener(null)
@@ -540,6 +556,7 @@ open class Tab1 : Fragment() {
             stopButton.setOnClickListener {
                 Log.d("Tab1", "Stop onclick")
                 activity?.runOnUiThread(Runnable {
+                    progress.visibility = View.GONE
                     abort_test()
                 })
                 download_value = 0.0
@@ -549,6 +566,7 @@ open class Tab1 : Fragment() {
                 stopButton.visibility = View.GONE
                 startButton.visibility = View.VISIBLE
                 tvComments.setTextColor(getColor(requireContext(), R.color.commentsText))
+                tvComments.gravity = Gravity.CENTER
                 tvComments.text = getString(R.string.serverSelect_message)
                 start_onclick()
         }
@@ -584,6 +602,9 @@ open class Tab1 : Fragment() {
         // val servers: String = readFileFromAssets("ServerList.json")
         // val serversJASON = JSONArray(servers)
 
+        progress.visibility = View.VISIBLE
+        tvComments.text = getString(R.string.SelectingServers)
+
        getServers() {
            val testPoints: ArrayList<TestPoint> = parseServersToTestPoint(it)
            val serversList: ArrayList<String> = arrayListOf()
@@ -591,7 +612,7 @@ open class Tab1 : Fragment() {
            orderServersByPing(testPoints) { testPointsOrdered:ArrayList<TestPoint> ->
                for (i in 0..testPoints.size - 1) {
                    serversList.add(testPointsOrdered[i].name)
-                   availableServers.add(testPoints[i])
+                   availableServers.add(testPointsOrdered[i])
                }
 
                activity?.runOnUiThread(Runnable {
@@ -600,7 +621,11 @@ open class Tab1 : Fragment() {
                        android.R.layout.simple_spinner_item,
                        serversList
                    )
+                   Log.d(TAG, "ping first server " + serversList[0] + " posicion " + spinner.selectedItemPosition)
+                   tvComments.text = getString(R.string.PressStartButton)
+                   tvComments.gravity = Gravity.CENTER
                    startButton.visibility = View.VISIBLE
+                   progress.visibility = View.GONE
                })
 
 
@@ -620,19 +645,24 @@ open class Tab1 : Fragment() {
             }*/
            }
        }
+
     }
 
     private fun orderServersByPing(testPoints: ArrayList<TestPoint>, callback: (ArrayList<TestPoint>) -> Unit) {
 
-        var testPointsPing = ArrayList<Pair<Int,Long>>()
-        var testPointsOrdered: ArrayList<TestPoint> = ArrayList()
+        val testPointsPing = ArrayList<Pair<Int,Long>>()
+        val testPointsOrdered: ArrayList<TestPoint> = ArrayList()
 
         for (i in 0..testPoints.size-1) {
-            pingg("https:" + testPoints[i].server + "/" + testPoints[i].pingURL) {
+            //pingg("https:" + testPoints[i].server + "/" + testPoints[i].pingURL) {
+            //val server = testPoints[i].server.replace("https://","").replace("http://","").replace("//","").split("/")
+                val server = "https:" + testPoints[i].server
+
+            pingg(server) {
                 if (it != null) {
                     testPointsPing.add(Pair(i,it))
                 } else testPointsPing.add(Pair(i,10000))
-                Log.d(TAG, "TestPointsPings " + i + " " + testPointsPing[i].second)
+                Log.d(TAG, "TestPointsPings " + i + " " + testPointsPing[i].second + " " + testPoints[testPointsPing[i].first].name)
             }
         }
         val result = testPointsPing.sortedWith(compareBy({it.second }))
@@ -734,21 +764,35 @@ open class Tab1 : Fragment() {
 
         val runtime = Runtime.getRuntime()
         var timeofping: Array<Long> = arrayOf(0)
-        try {
-            for (i in 0..0) {
-                var a = System.currentTimeMillis() % 1000000
-                var ipProcess = runtime.exec("/system/bin/ping -c 1 $domain")
-                ipProcess.waitFor()
-                var b = System.currentTimeMillis() % 1000000
-                timeofping[i] = if (b <= a) {
-                    1000000 - a + b
-                } else {
-                    b - a
+        val domainTriggered = domain.replace("https://","").replace("http://","").replace("//","").split("/")[0]
+        val inetAddress: InetAddress = InetAddress.getAllByName(domainTriggered)[0]
+        val inetAddressIp = inetAddress.toString().split("/")[1]
+            Log.d(TAG, "ping server "+ inetAddress + " ip " + inetAddressIp)
+
+        if (inetAddress.isReachable(80)) {
+            try {
+                for (i in 0..0) {
+                    var a = System.currentTimeMillis() % 1000000
+                    //var ipProcess = runtime.exec("/system/bin/ping -c 1 $domain")
+                    var ipProcess = runtime.exec("/system/bin/ping -c 1 $inetAddressIp")
+                    val exitvalue: Int = ipProcess.waitFor()
+                    var b = System.currentTimeMillis() % 1000000
+                    Log.d(TAG, "ping errorstream " + exitvalue)
+                    timeofping[i] = if(exitvalue != 0) {
+                       10000
+                    } else if(b <= a) {
+                        1000000 - a + b
+                    } else {
+                        b - a
+                    }
                 }
+            } catch (e: Exception) {
             }
-        } catch (e: Exception) {
+        } else {
+            timeofping[0] = 10000
         }
-        callback(timeofping.min()?.toLong())
+        callback(timeofping.maxOrNull()?.toLong())
+        //callback(timeofping[0].toLong())
     }
 
 }
