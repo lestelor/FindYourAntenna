@@ -43,8 +43,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.EOFException
+import java.io.IOException
 import java.io.InputStreamReader
 import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketAddress
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -769,31 +773,48 @@ open class Tab1 : Fragment() {
         val inetAddressIp = inetAddress.toString().split("/")[1]
             Log.d(TAG, "ping server "+ inetAddress + " ip " + inetAddressIp)
 
-        if (inetAddress.isReachable(80)) {
-            try {
-                for (i in 0..0) {
-                    var a = System.currentTimeMillis() % 1000000
-                    //var ipProcess = runtime.exec("/system/bin/ping -c 1 $domain")
-                    var ipProcess = runtime.exec("/system/bin/ping -c 1 $inetAddressIp")
-                    val exitvalue: Int = ipProcess.waitFor()
-                    var b = System.currentTimeMillis() % 1000000
-                    Log.d(TAG, "ping errorstream " + exitvalue)
-                    timeofping[i] = if(exitvalue != 0) {
-                       10000
-                    } else if(b <= a) {
-                        1000000 - a + b
-                    } else {
-                        b - a
-                    }
-                }
-            } catch (e: Exception) {
-            }
-        } else {
-            timeofping[0] = 10000
+
+        try {
+            val timeoutMs = 80
+            val sock = Socket()
+            val sockaddr: SocketAddress = InetSocketAddress(inetAddressIp, 443)
+            sock.connect(sockaddr, timeoutMs)
+            sock.close()
+            callback(100)
+
+        } catch (e: IOException) {
+            callback(1000)
         }
-        callback(timeofping.maxOrNull()?.toLong())
+
+        //callback(timeofping.maxOrNull()?.toLong())
         //callback(timeofping[0].toLong())
     }
 
+
+/*    if (inetAddress.isReachable(80)) {
+
+        //timeofping[0] = 10
+        //Use this below if want to minimize ping otherwise use above
+        try {
+            for (i in 0..0) {
+                var a = System.currentTimeMillis() % 1000000
+                //var ipProcess = runtime.exec("/system/bin/ping -c 1 $domain")
+                var ipProcess = runtime.exec("/system/bin/ping -c 1 -W 100 $inetAddressIp")
+                val exitvalue: Int = ipProcess.waitFor()
+                var b = System.currentTimeMillis() % 1000000
+                Log.d(TAG, "ping errorstream " + exitvalue)
+                timeofping[i] = if(exitvalue != 0) {
+                    10000
+                } else if(b <= a) {
+                    1000000 - a + b
+                } else {
+                    b - a
+                }
+            }
+        } catch (e: Exception) {
+        }
+    } else {
+        timeofping[0] = 10000
+    }*/
 }
 
