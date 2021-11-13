@@ -39,6 +39,7 @@ import lestelabs.antenna.ui.main.data.UpdateApplicationDatabase
 import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import lestelabs.antenna.ui.main.scanner.waitGPS
+import java.util.*
 
 
 interface GetfileState {
@@ -58,15 +59,15 @@ interface GetfileState {
      private var mFileList: Array<String>? = null
      private var mChosenFile: String? = null
      private val DIALOG_LOAD_FILE = 1000
-     var gps_enabled:Boolean = false
+
 
 
      private lateinit var checkBox: CheckBox
 
      private lateinit var firebaseAnalytics: FirebaseAnalytics
 
-     private lateinit var telephonyManager: TelephonyManager
-     private var pDevice:DevicePhone? = DevicePhone()
+     //private lateinit var telephonyManager: TelephonyManager
+     //private var pDevice:DevicePhone? = DevicePhone()
 
 
      private val tabName = "MainActivity"
@@ -80,6 +81,9 @@ interface GetfileState {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val language = Locale.getDefault().language
+
+        // Something needed for checkin server status in TAB1
         val policy = ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
@@ -201,8 +205,8 @@ interface GetfileState {
         // needed to wait until location is enabled, otherwhise the wifi networks dont appear
         waitGPS(this)
         Log.d("cfauli", "MainApplication waiting permissions ok 0 ")
-        telephonyManager = this.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
-        pDevice = loadCellInfo(telephonyManager)
+/*        telephonyManager = this.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+        pDevice = loadCellInfo(telephonyManager)*/
 
 
 
@@ -213,7 +217,7 @@ interface GetfileState {
 
         tabLayout.addTab(tabLayout.newTab())
         tabLayout.addTab(tabLayout.newTab())
-        if (pDevice?.mcc == 214) {
+        if (language == "es") {
             tabLayout.addTab(tabLayout.newTab())
         }
 
@@ -228,7 +232,7 @@ interface GetfileState {
         tabLayout.getTabAt(0)?.setIcon(R.drawable.ic_speed)
         tabLayout.getTabAt(1)?.setIcon(R.drawable.ic_coverage)
 
-        if (pDevice?.mcc == 214) {
+        if (language == "es") {
             tabLayout.getTabAt(2)?.setIcon(R.drawable.ic_map)
             navigationView.menu.getItem(3).setIcon(ContextCompat.getDrawable(this, R.drawable.ic_map_dark))
         } else {
@@ -245,7 +249,7 @@ interface GetfileState {
         // offscreenlimit =1 means that only the adjacent tab is preloaded, =2 all tabs are preloaded (they do not go to onpause when deselected)
         // Choose =2 since =1 leaks and performs bad. Keep an eye on battery performance.
 
-//        if (pDevice?.mcc == 214) {
+//        if (language == "es") {
 //            viewPager.offscreenPageLimit = 3
 //        } else {
 //            viewPager.offscreenPageLimit = 2
@@ -298,7 +302,7 @@ interface GetfileState {
             R.id.nav_email -> {
                 val intent = Intent(Intent.ACTION_SEND)
                 intent.putExtra(Intent.EXTRA_EMAIL, arrayOf("shinnystar.labs@gmail.com"))
-                intent.putExtra(Intent.EXTRA_TEXT, "Comments for cid:" + pDevice?.cid.toString() + "\n")
+                //intent.putExtra(Intent.EXTRA_TEXT, "Comments for cid:" + pDevice?.cid.toString() + "\n")
                 intent.putExtra(Intent.EXTRA_SUBJECT, "Comments Network Test")
 
                 intent.type = "text/plain"
@@ -348,12 +352,12 @@ interface GetfileState {
         val outputListener: MutableList<Int> = mutableListOf(0, 0, 0, 0)
         outputListener[0] = getFileStateButtonPressed
         outputListener[1] = tabSelectedInt
-        pDevice?.mcc?.let{
+/*        pDevice?.mcc?.let{
             outputListener[2] = it
         }
         pDevice?.mnc?.let{
             outputListener[3] = it
-        }
+        }*/
         return outputListener
     }
 

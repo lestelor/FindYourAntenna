@@ -775,7 +775,7 @@ open class Tab1 : Fragment() {
 
 
         try {
-            val timeoutMs = 80
+            val timeoutMs = 60
             val sock = Socket()
             val sockaddr: SocketAddress = InetSocketAddress(inetAddressIp, 443)
             sock.connect(sockaddr, timeoutMs)

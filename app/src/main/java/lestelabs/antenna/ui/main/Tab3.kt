@@ -4,10 +4,12 @@ package lestelabs.antenna.ui.main
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
+import android.content.Context.TELEPHONY_SERVICE
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
+import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -46,6 +48,8 @@ import lestelabs.antenna.ui.main.data.Operators
 import lestelabs.antenna.ui.main.data.Site
 import lestelabs.antenna.ui.main.data.SitesInteractor
 import lestelabs.antenna.ui.main.map.MyInfoWindowAdapter
+import lestelabs.antenna.ui.main.scanner.DevicePhone
+import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import java.lang.reflect.Method
 import java.util.*
 
@@ -79,6 +83,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var operadorAnt: String = ""
     private var sitesAnt: Array<Site> = arrayOf()
     var markerTotal:MutableList<Marker?> = mutableListOf()
+    private lateinit var telephonyManager: TelephonyManager
+    private var pDevice: DevicePhone? = DevicePhone()
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -90,9 +96,12 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         crashlyticsKeyAnt =
             controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        mcc = listener?.getFileState()?.get(2)
-        mnc = listener?.getFileState()?.get(3)
-
+        //mcc = listener?.getFileState()?.get(2)
+        //mnc = listener?.getFileState()?.get(3)
+        telephonyManager = activity?.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+        pDevice = loadCellInfo(telephonyManager)
+        mcc = pDevice?.mcc
+        mnc = pDevice?.mnc
 
     }
 
