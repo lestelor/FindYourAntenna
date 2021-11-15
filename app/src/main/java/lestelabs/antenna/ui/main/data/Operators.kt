@@ -15,7 +15,7 @@ object Operators {
     )
 
     val mvnos: Array<String> = arrayOf("Euskaltel","Aire","Cota","Laurentino", "Tele Caravaca", "TeleAst" )
-    val frecuencias: Array<String> = arrayOf("700","800","900","1800","2100","2600","3400")
+    val frecuencias: Array<String> = arrayOf("700","800","900","1800","2100","2600","3500")
 
     fun getOperatorByMnc (mnc:Int):String {
         val find = pairList.first { it.mnc==mnc}

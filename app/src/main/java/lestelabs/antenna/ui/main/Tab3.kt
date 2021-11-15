@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.content.Context.TELEPHONY_SERVICE
+import android.content.SharedPreferences
 import android.location.Location
 import android.os.AsyncTask
 import android.os.Build
@@ -85,6 +86,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     var markerTotal:MutableList<Marker?> = mutableListOf()
     private lateinit var telephonyManager: TelephonyManager
     private var pDevice: DevicePhone? = DevicePhone()
+    private var sharedPreferences: SharedPreferences? = null
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -121,6 +123,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         MobileAds.initialize(context)
         val adRequest = AdRequest.Builder().build()
         mAdView?.loadAd(adRequest)
+
+        sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
 
         //initialitze maps
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
@@ -184,28 +188,38 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // start progress bar
         progressBarTab3.visibility = View.VISIBLE
         Tab3tvCargando.text = getString(R.string.Loading)
-        // Find operator
-        // First load whatever is stored locally
-        loadSitesFromLocalDb(operador) {
-            var sites : Array<Site> = arrayOf()
-            sites = it
-            sitesAnt = sites
-            Log.d(TAG, "finish loading local db #sites " + sites.count())
-            // check internet connection
-            if (internetOn as Boolean)  {
-                if (sites.count() == 0) {
-                    loadSitesFromFirestore(operador)
+
+        //Check local version vs Firestore version
+        val localDbVersion = sharedPreferences?.getInt("local_db_version_$operador", 0)?: 0
+
+        db.collection("sites").document("version")
+            .get()
+            .addOnSuccessListener { document ->
+                val firestoreDbVersion = document.data?.get("version").toString().toInt()?: 0
+                if (localDbVersion >= firestoreDbVersion) {
+                    loadSitesFromLocalDb(operador) {
+                        var sites : Array<Site> = arrayOf()
+                        sites = it
+                        sitesAnt = sites
+                        Log.d(TAG, "finish loading local db #sites " + sites.count())
+                        printSites(sites, operador)
+                    }
                 } else {
-                    printSites(sites, operador)
+                    if (internetOn as Boolean) {
+                        loadSitesFromFirestore(operador, firestoreDbVersion)
+                    }
                 }
-            } else {
-                progressBarTab3.visibility = View.GONE
-                Toast.makeText(this.context, "Sin conexión a internet", Toast.LENGTH_LONG).show()
             }
-        }
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Firestore Error getting version: ", exception)
+            }
+
+        // First load whatever is stored locally
+        progressBarTab3.visibility = View.GONE
     }
 
-    private fun loadSitesFromFirestore(operador: String) {
+    private fun loadSitesFromFirestore(operador: String, firestoreVersion: Int) {
+        progressBarTab3.visibility = View.VISIBLE
         Log.d(TAG, "load firestore sites operador " + operador)
         var sites : Array<Site> = arrayOf()
         // Internet connection is available, get remote data
@@ -228,11 +242,15 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                 sites = tempList.toTypedArray()
                 sitesAnt = sites
                 saveSitesToLocalDatabase(sites)
-                printSites(sites, operador)
                 Log.d(TAG, "sites guardados " + sites.count())
+                printSites(sites, operador)
+                // actualiza # version de localdatabase
+                val editor = sharedPreferences?.edit()
+                editor?.putInt("local_db_version_$operador", firestoreVersion)
+                editor?.commit()
             }
             .addOnFailureListener { exception ->
-                Log.e(TAG, "Error getting documents: ", exception)
+                Log.e(TAG, "Firestore Error getting documents: ", exception)
             }
     }
 
