@@ -768,7 +768,7 @@ open class Tab1 : Fragment() {
 
         val runtime = Runtime.getRuntime()
         var timeofping: Array<Long> = arrayOf(0)
-        val domainTriggered = domain.replace("https://","").replace("http://","").replace("//","").split("/")[0]
+        val domainTriggered = domain.replace("https://","").replace("http://","").replace("//","").split("/")[0].split(":")[0]
         val inetAddress: InetAddress = InetAddress.getAllByName(domainTriggered)[0]
         val inetAddressIp = inetAddress.toString().split("/")[1]
             Log.d(TAG, "ping server "+ inetAddress + " ip " + inetAddressIp)

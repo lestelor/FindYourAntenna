@@ -263,7 +263,7 @@ class Tab2 : Fragment() {
         val tvFreqNum = view.findViewById<View>(R.id.tv_mobile_freq_num) as TextView
         val ivIconLevel = view.findViewById<View>(R.id.iv_mobile_signalIcon) as ImageView
         val tvMobile = view.findViewById<View>(R.id.tv_mobile_txt) as TextView
-        val tvIccId = view.findViewById<View>(R.id.tv_iccid) as TextView
+        //val tvIccId = view.findViewById<View>(R.id.tv_iccid) as TextView
 
 
         val pDevice = loadCellInfo(telephonyManager)
@@ -271,9 +271,10 @@ class Tab2 : Fragment() {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        findOperatorName(pDevice) { it ->
+/*        findOperatorName(pDevice) { it ->
             tvOperatorName.text = it
-        }
+        }*/
+        tvOperatorName.text = connectivity.getOperatorName()
 
         tvMobile.text = getString(R.string.MobileTxt)
         tvLevel.text = pDevice?.dbm.toString() + "dBm"
@@ -290,7 +291,7 @@ class Tab2 : Fragment() {
         tvFreq.text = getString(R.string.Frequency)
         tvFreqNum.text = "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
 
-        tvIccId.text = connectivity.getIccId()
+        //tvIccId.text = connectivity.getIccId()
 
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)

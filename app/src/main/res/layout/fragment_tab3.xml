@@ -95,7 +95,7 @@
 
                 <EditText
                     android:id="@+id/Tab3etSearch"
-                    android:text="ej: cambrils 2600 mhz"
+                    android:text="ej: barcelona 3500"
                     android:textColor="@color/grey"
                     android:layout_width="200dp"
                     android:layout_height="20dp"

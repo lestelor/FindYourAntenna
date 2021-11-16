@@ -10,9 +10,12 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.getSystemService
+import android.telephony.SubscriptionInfo
+
+
+
 
 
 class Connectivity(context: Context) {
@@ -58,27 +61,45 @@ class Connectivity(context: Context) {
         return info != null && info.isConnected && info.type == ConnectivityManager.TYPE_MOBILE
     }
 
-    fun getIccId():String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            val sm = SubscriptionManager.from(mContext)
-            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                return ""
-            }  else {
-                val sis = sm.activeSubscriptionInfoList
-                return try {
-                    val si = sis[0]
-                    var iccId = si.iccId
-                    if (iccId.length == 20) {
-                        if (iccId[19].isLetter()) iccId = iccId.take(19)
-                    }
-                    iccId
-                } catch(e: Exception) {
-                    ""
-                }
-
+    fun getOperatorName():String {
+        val sm = SubscriptionManager.from(mContext)
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            return ""
+        }  else {
+            val sis = sm.activeSubscriptionInfoList
+            return try {
+                val si = sis[0]
+                si.displayName.toString()
+            } catch(e: Exception) {
+                ""
             }
-        } else return ""
+
+        }
     }
+
+    // No longer possible from android 10 onwards
+    /*fun getIccId():String {
+        val sm = SubscriptionManager.from(mContext)
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            return ""
+        }  else {
+            val sis = sm.activeSubscriptionInfoList
+            return try {
+                val si = sis[0]
+                var iccId = si.iccId
+                if (iccId.length == 20) {
+                    if (iccId[19].isLetter()) iccId = iccId.take(19)
+                }
+                iccId
+            } catch(e: Exception) {
+                ""
+            }
+
+        }
+    }*/
+
+
+
 
 /*
     fun networkType(context: Context): Int? {
