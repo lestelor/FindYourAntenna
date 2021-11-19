@@ -4,7 +4,6 @@ package lestelabs.antenna.ui.main
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
-import android.content.Context.TELEPHONY_SERVICE
 import android.content.SharedPreferences
 import android.location.Location
 import android.os.AsyncTask
@@ -26,7 +25,6 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
@@ -50,7 +48,7 @@ import lestelabs.antenna.ui.main.data.Site
 import lestelabs.antenna.ui.main.data.SitesInteractor
 import lestelabs.antenna.ui.main.map.MyInfoWindowAdapter
 import lestelabs.antenna.ui.main.scanner.DevicePhone
-import lestelabs.antenna.ui.main.scanner.loadCellInfo
+import lestelabs.antenna.ui.main.ui.Tools
 import java.lang.reflect.Method
 import java.util.*
 
@@ -80,7 +78,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     private var crashlyticsKeyAnt = ""
     val db = FirebaseFirestore.getInstance()
     private var sitesListener: ListenerRegistration? = null
-    private var listener: GetfileState? = null
+    private var listenerConnectivity: GetConnectivity? = null
     private var operadorAnt: String = ""
     private var sitesAnt: Array<Site> = arrayOf()
     var markerTotal:MutableList<Marker?> = mutableListOf()
@@ -100,8 +98,9 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         //mcc = listener?.getFileState()?.get(2)
         //mnc = listener?.getFileState()?.get(3)
-        telephonyManager = activity?.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
-        pDevice = loadCellInfo(telephonyManager)
+        //telephonyManager = activity?.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+        //pDevice = listeloadCellInfo(telephonyManager, requireContext())
+        pDevice = listenerConnectivity?.getConnectivity()?.loadCellInfo()?: DevicePhone()
         mcc = pDevice?.mcc
         mnc = pDevice?.mnc
 
@@ -118,11 +117,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         // prevent window from going to sleep
         fragmentView.keepScreenOn = true
 
-        // Initialize ads
-        mAdView = fragmentView.findViewById(R.id.adViewFragment3)
-        MobileAds.initialize(context)
-        val adRequest = AdRequest.Builder().build()
-        mAdView?.loadAd(adRequest)
+        // Adds -------------------------------------------------------------------------------------
+        Tools().loadAdds(fragmentView, R.id.adViewFragment3)
 
         sharedPreferences = activity?.getSharedPreferences("sharedpreferences", Context.MODE_PRIVATE)
 
@@ -512,7 +508,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         super.onAttach(context)
         Log.d("cfauli", "OnAtach Tab3")
         try {
-            listener = activity as GetfileState
+            listenerConnectivity = activity as GetConnectivity
             // listener.showFormula(show?);
         } catch (castException: ClassCastException) {
             /** The activity does not implement the listener.  */

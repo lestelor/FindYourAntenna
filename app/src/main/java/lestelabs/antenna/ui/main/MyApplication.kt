@@ -23,7 +23,7 @@ class MyApplication : Application() {
         super.onCreate()
 
         ctx = applicationContext
-        internetOn = hasInternetConnection()
+        //internetOn = hasInternetConnection()
 
         // Init Database
         val database = Room.databaseBuilder(applicationContext,
@@ -34,11 +34,11 @@ class MyApplication : Application() {
         serversInteractor = ServersInteractor(database.serverDao())
     }
 
-
-    fun hasInternetConnection(): Boolean? {
+    // Not working
+/*    fun hasInternetConnection(): Boolean? {
         // Check Internet Check connection
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         val activeNetwork = cm?.activeNetwork
         return (activeNetwork != null)
-    }
+    }*/
 }

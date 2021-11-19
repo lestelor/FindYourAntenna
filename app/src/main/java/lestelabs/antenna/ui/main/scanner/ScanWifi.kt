@@ -13,7 +13,7 @@ import androidx.fragment.app.FragmentActivity
 import java.util.*
 
 
-object scanWifi {
+object ScanWifi {
 
     var wifiScanReceiver: BroadcastReceiver? = null
     var devices: MutableList<DeviceWiFi> = mutableListOf()

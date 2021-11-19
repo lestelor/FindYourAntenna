@@ -169,8 +169,6 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        ads:adUnitId="@string/BannerID">
-    </com.google.android.gms.ads.AdView>
-
+        ads:adUnitId="@string/BannerID"/>
 
 </LinearLayout>

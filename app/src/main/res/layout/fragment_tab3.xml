@@ -32,9 +32,7 @@
                 ads:adSize="LARGE_BANNER"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                ads:adUnitId="@string/BannerID">
-
-            </com.google.android.gms.ads.AdView>
+                ads:adUnitId="@string/BannerID" />
         </LinearLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout

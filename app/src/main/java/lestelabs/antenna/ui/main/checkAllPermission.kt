@@ -14,7 +14,6 @@ import androidx.core.content.ContextCompat
 import lestelabs.antenna.ui.main.MainActivity.Companion.PERMISSION_REQUEST_CODE
 import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 import lestelabs.antenna.ui.main.scanner.DevicePhone
-import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import java.util.*
 import kotlin.coroutines.coroutineContext
 import kotlin.system.exitProcess

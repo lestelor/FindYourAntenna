@@ -24,6 +24,7 @@
     <string name="tvWIFIwithoutSSID">WIFI     No WIFI network detected</string>
 
     <string name="BannerID" translatable="false">ca-app-pub-8346072505648333/5715495023</string>
+    <string name="BannerIDTest" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
     <string name="AddsId" translatable="false">ca-app-pub-8346072505648333~1653829654</string>
     <string name="SpeedTestStarted">Please wait. The test started …</string>
     <string name="SpeedTestStoped">Test aborted!</string>

@@ -1,13 +1,11 @@
 package lestelabs.antenna.ui.main
 
 
-import android.app.Activity
 import android.content.Context
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Handler
-import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,15 +14,13 @@ import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
-import lestelabs.antenna.ui.main.rest.findTower
-import lestelabs.antenna.ui.main.rest.retrofitFactory
 import lestelabs.antenna.ui.main.scanner.*
+import lestelabs.antenna.ui.main.ui.Tools
 
 
 /*
@@ -52,12 +48,10 @@ class Tab2 : Fragment() {
     var clockTimerHanlerActive = false
     private lateinit var mHandlerTask: Runnable
     private var totalCidAnt = ""
-    private var listener: GetfileState? = null
+    private var listenerConnectivity: GetConnectivity? = null
+    private var connectivity: Connectivity? = null
     private lateinit var fragmentView: View
     private lateinit var wifiManager: WifiManager
-
-    private lateinit var telephonyManager:TelephonyManager
-    private lateinit var connectivity: Connectivity
 
     private val tabName = "Tab2"
     private var crashlyticsKeyAnt = ""
@@ -96,23 +90,21 @@ class Tab2 : Fragment() {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
+
         val size = 0
         var results: List<ScanResult?>
         val arrayList: ArrayList<String> = ArrayList()
-        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
         //val listView: ListView = view.findViewById<View>((R.id.wifiList)) as ListView
+        connectivity = listenerConnectivity?.getConnectivity()
         wifiManager = context?.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
         fragmentView= inflater.inflate(R.layout.fragment_tab2, container, false)
 
-        connectivity = Connectivity(fragmentView.context)
+        //connectivity = Connectivity(fragmentView.context)
         Log.d("cfauli", "OnCreateView Tab2")
         // Adds -------------------------------------------------------------------------------------
-        mAdView = fragmentView.findViewById(R.id.adViewFragment2)
-        MobileAds.initialize(context)
-        val adRequest = AdRequest.Builder().build()
-        mAdView.loadAd(adRequest)
+        Tools().loadAdds(fragmentView, R.id.adViewFragment2)
 
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
@@ -139,7 +131,7 @@ class Tab2 : Fragment() {
 
 
 
-        scanWifi.scanwifi(activity, wifiManager) {
+        ScanWifi.scanwifi(activity, wifiManager) {
 
             // Control point for Crashlitycs
             crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
@@ -147,7 +139,7 @@ class Tab2 : Fragment() {
             tvWifi.text = "WIFI"
             adapter.clear()
 
-            val showedWiFiList: MutableList<DeviceWiFi> = scanWifi.devices.sortedByDescending { it.level }.toMutableList()
+            val showedWiFiList: MutableList<DeviceWiFi> = ScanWifi.devices.sortedByDescending { it.level }.toMutableList()
             showedWiFiList.removeIf { device:DeviceWiFi -> device.ssid?.length == 0 }
             Log.d("cfauli size", showedWiFiList.size.toString())
             /*for (i in showedWiFiList.indices) {
@@ -195,7 +187,7 @@ class Tab2 : Fragment() {
 
 
         try {
-            listener = activity as GetfileState
+            listenerConnectivity = activity as GetConnectivity
             // listener.showFormula(show?);
         } catch (castException: ClassCastException) {
             /** The activity does not implement the listener.  */
@@ -204,7 +196,7 @@ class Tab2 : Fragment() {
 
     override fun onDetach() {
         super.onDetach()
-        listener = null
+        listenerConnectivity = null
         Log.d("cfauli", "OnDetach TAB2")
     }
 
@@ -249,6 +241,9 @@ class Tab2 : Fragment() {
 
 
     fun fillMobileTextView(view: View) {
+
+        val pDevice = connectivity?.loadCellInfo()
+
     try {
         /// fill the mobile layout --------------------------------------------
         // Lookup view for data population
@@ -266,7 +261,8 @@ class Tab2 : Fragment() {
         //val tvIccId = view.findViewById<View>(R.id.tv_iccid) as TextView
 
 
-        val pDevice = loadCellInfo(telephonyManager)
+        //val pDevice = loadCellInfo(telephonyManager, requireContext())
+
 
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
@@ -274,7 +270,7 @@ class Tab2 : Fragment() {
 /*        findOperatorName(pDevice) { it ->
             tvOperatorName.text = it
         }*/
-        tvOperatorName.text = connectivity.getOperatorName()
+        tvOperatorName.text = connectivity?.getOperatorName()
 
         tvMobile.text = getString(R.string.MobileTxt)
         tvLevel.text = pDevice?.dbm.toString() + "dBm"
@@ -289,7 +285,7 @@ class Tab2 : Fragment() {
         tvNetwork.text = getString(R.string.Network)
         tvNetworkType.text = pDevice?.type
         tvFreq.text = getString(R.string.Frequency)
-        tvFreqNum.text = "%.1f".format(calculateFreq(pDevice?.type, pDevice?.band)) + " MHz"
+        tvFreqNum.text = "%.1f".format(pDevice?.freq) + " MHz"
 
         //tvIccId.text = connectivity.getIccId()
 

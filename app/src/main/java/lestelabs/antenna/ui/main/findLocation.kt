@@ -7,7 +7,6 @@ import android.location.LocationManager
 import android.telephony.TelephonyManager
 import com.google.android.gms.location.LocationServices
 import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
-import lestelabs.antenna.ui.main.scanner.loadCellInfo
 
 private lateinit var lm:LocationManager
 private lateinit var fusedLocationClient: FusedLocationProviderClient

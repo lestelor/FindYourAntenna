@@ -1,13 +1,8 @@
 package lestelabs.antenna.ui.main
 
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import android.location.Location
 import android.os.*
-import android.telephony.TelephonyManager
-import android.text.format.DateFormat
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
@@ -16,18 +11,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getColor
 import androidx.fragment.app.Fragment
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.android.synthetic.main.fragment_tab1.*
 import kotlinx.android.synthetic.main.fragment_tab1.view.*
-import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 import lestelabs.antenna.ui.main.core.Speedtest
@@ -36,9 +25,12 @@ import lestelabs.antenna.ui.main.core.config.SpeedtestConfig
 import lestelabs.antenna.ui.main.core.config.TelemetryConfig
 import lestelabs.antenna.ui.main.core.serverSelector.TestPoint
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
-import lestelabs.antenna.ui.main.data.*
-import lestelabs.antenna.ui.main.scanner.*
+import lestelabs.antenna.ui.main.data.Server
+import lestelabs.antenna.ui.main.data.ServersInteractor
+import lestelabs.antenna.ui.main.scanner.Connectivity
+import lestelabs.antenna.ui.main.scanner.DeviceWiFi
 import lestelabs.antenna.ui.main.ui.GaugeView
+import lestelabs.antenna.ui.main.ui.Tools
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -81,15 +73,13 @@ open class Tab1 : Fragment() {
 
     lateinit var mAdView : AdView
     private lateinit var fragmentView: View
-    private lateinit var connectivity: Connectivity
-    val db = FirebaseFirestore.getInstance()
+    private var connectivity: Connectivity?= null
 
 
-    private lateinit var telephonyManager: TelephonyManager
-    private var pDevice: DevicePhone? = DevicePhone()
+    private var listenerConnectivity: GetConnectivity? = null
     private var networkType: String = ""
     private var deviceWifi: DeviceWiFi = DeviceWiFi()
-    private var fusedLocationClient: FusedLocationProviderClient? = null
+
 
     private val tabName = "Tab1"
     private var crashlyticsKeyAnt = ""
@@ -113,6 +103,22 @@ open class Tab1 : Fragment() {
         super.onStart()
 
         Log.d("cfauli", "OnStart Tab1")
+    }
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        Log.d("cfauli", "OnAttach Tab1")
+        try {
+            listenerConnectivity = activity as GetConnectivity
+            // listener.showFormula(show?);
+        } catch (castException: ClassCastException) {
+            /** The activity does not implement the listener.  */
+        }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        listenerConnectivity = null
+        Log.d("cfauli", "OnDetach TAB1")
     }
 
     override fun onStop() {
@@ -143,15 +149,11 @@ open class Tab1 : Fragment() {
         fragmentView = inflater.inflate(R.layout.fragment_tab1, container, false)
 
         // connectivity context
-        connectivity = Connectivity(fragmentView.context)
-        telephonyManager = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        connectivity = listenerConnectivity?.getConnectivity()
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
         // Adds -------------------------------------------------------------------------------------
-        mAdView = fragmentView.findViewById(R.id.adViewFragment1)
-        MobileAds.initialize(context)
-        val adRequest = AdRequest.Builder().build()
-        mAdView.loadAd(adRequest)
+        Tools().loadAdds(fragmentView, R.id.adViewFragment1)
 
         spinner = fragmentView.findViewById(R.id.serverList)
         startButton = fragmentView.findViewById(R.id.restartButton)
@@ -204,101 +206,6 @@ open class Tab1 : Fragment() {
     }
 
 
-    private fun isConnectedMobile(): Boolean {
-        return  connectivity.isConnectedMobile()
-    }
-    private fun isConnectedWifi(): Boolean {
-        return  connectivity.isConnectedWifi()
-    }
-
-    fun getChannel(freq: Int?):Int {
-        val channel = if (freq!! > 5000) {
-            (freq - 5180) / 5 + 36
-        } else {
-            (freq - 2412) / 5 + 1
-        }
-        // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-        return channel
-
-
-    }
-    fun writeCloudFirestoreDB(downlink: String?, uplink: String?, latency: String?) {
-        // Control point for Crashlitycs
-        crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
-
-        pDevice = loadCellInfo(telephonyManager)
-        deviceWifi = context?.let { connectivity.getWifiParam(it) } ?: DeviceWiFi()
-        if (isConnectedMobile()) networkType = "MOBILE"
-        if (isConnectedWifi()) networkType = "WIFI"
-
-        Log.d("TAB1", "network type " + networkType + " " + downlink + " " + uplink + " " + ping_value)
-
-        if ((context?.let { ActivityCompat.checkSelfPermission(it, Manifest.permission.READ_PHONE_STATE) } != PackageManager.PERMISSION_GRANTED) ||
-            (context?.let { ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) } != PackageManager.PERMISSION_GRANTED)) {
-            activity?.let { ActivityCompat.requestPermissions(it, arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE) }
-            //Thread.sleep(1000)
-        }
-        fusedLocationClient = context?.let { LocationServices.getFusedLocationProviderClient(it) }
-        fusedLocationClient?.lastLocation
-            ?.addOnSuccessListener { location: Location? ->
-
-                val lat = location?.latitude
-                val lon = location?.longitude
-
-                // Control point for Crashlitycs
-                crashlyticsKeyAnt = controlPointCrashlytics(
-                    tabName,
-                    Thread.currentThread().stackTrace,
-                    crashlyticsKeyAnt
-                )
-
-                val dateNow = Date()
-                val documentId = DateFormat.format("yyyyMMdd", dateNow)
-                    .toString() + "/" + DateFormat.format("HHmmss", dateNow)
-                    .toString() + "/" + pDevice?.cid + ";" + deviceWifi.ssid
-
-                val speedTestSample: MutableMap<String, Any?> = HashMap()
-
-                speedTestSample["date"] = DateFormat.format("yyyy/MM/dd HH:mm:ss", dateNow)
-                speedTestSample["type"] = networkType
-                speedTestSample["lat"] = lat
-                speedTestSample["lon"] = lon
-                speedTestSample["downlink"] = downlink
-                speedTestSample["uplink"] = uplink
-                speedTestSample["latency"] = latency
-                speedTestSample["MobileNetwork"] = pDevice?.type
-                speedTestSample["MobileMcc"] = pDevice?.mcc
-                speedTestSample["MobileMnc"] = pDevice?.mnc
-                speedTestSample["MobileLac"] = pDevice?.lac
-                speedTestSample["MobileCid"] = pDevice?.cid
-                speedTestSample["MobileCh"] = pDevice?.band
-                speedTestSample["MobileFreq"] = calculateFreq(pDevice?.type, pDevice?.band)
-                speedTestSample["MobiledBm"] = pDevice?.dbm
-                speedTestSample["WifiNetwork"] = deviceWifi.ssid
-                speedTestSample["WifiFreq"] = deviceWifi.centerFreq
-                speedTestSample["WifiCh"] = getChannel(deviceWifi.centerFreq)
-                speedTestSample["WifidBm"] = deviceWifi.level
-
-                if (networkType != "") {
-                    // Add a new document with a generated ID
-                    db.collection("SpeedTest").document(documentId)
-                        .set(speedTestSample)
-                        .addOnSuccessListener {
-                            Log.d(
-                                "cfauli",
-                                "DocumentSnapshot SpeedTest added with ID: " + documentId
-                            )
-                        }
-                        .addOnFailureListener {
-                            Log.d("cfauli", "Error adding SpeedTest document ", it)
-                        }
-                }
-            }
-
-    }
-
-
     fun page_init() {
         object : Thread() {
             override fun run() {
@@ -331,7 +238,7 @@ open class Tab1 : Fragment() {
     }
 
 
-    fun format(d: Double): String? {
+    fun format(d: Double): String {
         var l: Locale? = null
         l = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             resources.configuration.locales[0]
@@ -477,8 +384,8 @@ open class Tab1 : Fragment() {
 /*                                val p = endTestArea.layoutParams
                             p.height = (endTestAreaHeight * f).toInt()
                             endTestArea.layoutParams = p*/
-                            //Write data to firestore
-                            writeCloudFirestoreDB(format(download_value),format(upload_value),format(ping_value))
+                            //Write data to Firestore ***********************************************
+                            context?.let { activity?.let {it2 -> FirestoreDB.writeCloudFirestoredB(it, it2, connectivity,format(download_value),format(upload_value),format(ping_value)) }}
                         })
                         try {
                             sleep(10)
@@ -766,15 +673,14 @@ open class Tab1 : Fragment() {
         // Control point for Crashlitycs
         crashlyticsKeyAnt = controlPointCrashlytics(tabName, Thread.currentThread().stackTrace, crashlyticsKeyAnt)
 
-        val runtime = Runtime.getRuntime()
-        var timeofping: Array<Long> = arrayOf(0)
-        val domainTriggered = domain.replace("https://","").replace("http://","").replace("//","").split("/")[0].split(":")[0]
-        val inetAddress: InetAddress = InetAddress.getAllByName(domainTriggered)[0]
-        val inetAddressIp = inetAddress.toString().split("/")[1]
-            Log.d(TAG, "ping server "+ inetAddress + " ip " + inetAddressIp)
-
-
         try {
+            val runtime = Runtime.getRuntime()
+            var timeofping: Array<Long> = arrayOf(0)
+            val domainTriggered = domain.replace("https://","").replace("http://","").replace("//","").split("/")[0].split(":")[0]
+            val inetAddress: InetAddress? = InetAddress.getAllByName(domainTriggered)[0]
+            val inetAddressIp = inetAddress.toString().split("/")[1]
+                Log.d(TAG, "ping server "+ inetAddress + " ip " + inetAddressIp)
+
             val timeoutMs = 60
             val sock = Socket()
             val sockaddr: SocketAddress = InetSocketAddress(inetAddressIp, 443)

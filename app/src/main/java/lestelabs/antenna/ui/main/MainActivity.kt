@@ -36,18 +36,18 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.crashlytics.Crashlytics
 import lestelabs.antenna.ui.main.data.UpdateApplicationDatabase
+import lestelabs.antenna.ui.main.scanner.Connectivity
 import lestelabs.antenna.ui.main.scanner.DevicePhone
-import lestelabs.antenna.ui.main.scanner.loadCellInfo
 import lestelabs.antenna.ui.main.scanner.waitGPS
 import java.util.*
 
 
-interface GetfileState {
-    fun getFileState():List<Int>
+interface GetConnectivity {
+    fun getConnectivity():Connectivity
 }
 
 
- class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, NavigationView.OnNavigationItemSelectedListener, GetfileState {
+ class MainActivity : AppCompatActivity(), FragmentManager.OnBackStackChangedListener, NavigationView.OnNavigationItemSelectedListener, GetConnectivity {
 
 
 
@@ -74,6 +74,8 @@ interface GetfileState {
      private var crashlyticsKeyAnt = ""
 
      private lateinit var viewPager:ViewPager
+     private lateinit var connectivity: Connectivity
+     private lateinit var tm: TelephonyManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -82,6 +84,10 @@ interface GetfileState {
         setContentView(R.layout.activity_main)
 
         val language = Locale.getDefault().language
+
+        tm = this.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        connectivity = Connectivity(this, tm)
+
 
         // Something needed for checkin server status in TAB1
         val policy = ThreadPolicy.Builder().permitAll().build()
@@ -142,16 +148,13 @@ interface GetfileState {
         // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
 
         MobileAds.initialize(this)
-        RequestConfiguration.Builder().setTestDeviceIds(listOf("9E4FF26E78ADE9DFD73A3F51A0D208CA"))
+        //RequestConfiguration.Builder().setTestDeviceIds(listOf("9E4FF26E78ADE9DFD73A3F51A0D208CA"))
         //val adRequest  =  AdRequest.Builder()
         //adRequest.addTestDevice("9E4FF26E78ADE9DFD73A3F51A0D208CA")
-
-
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(true)
         supportActionBar?.setDisplayUseLogoEnabled(true)
-
 
         toggle = ActionBarDrawerToggle(
             this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
@@ -348,18 +351,7 @@ interface GetfileState {
         return true
     }
 
-    override fun getFileState():List<Int> {
-        val outputListener: MutableList<Int> = mutableListOf(0, 0, 0, 0)
-        outputListener[0] = getFileStateButtonPressed
-        outputListener[1] = tabSelectedInt
-/*        pDevice?.mcc?.let{
-            outputListener[2] = it
-        }
-        pDevice?.mnc?.let{
-            outputListener[3] = it
-        }*/
-        return outputListener
-    }
+
 
     override fun onBackStackChanged() {
         toggle.syncState();
@@ -434,5 +426,21 @@ interface GetfileState {
      }
 
 
+     override fun getConnectivity(): Connectivity {
+         return connectivity
+     }
+
+     /* override fun getFileState():List<Int> {
+          val outputListener: MutableList<Int> = mutableListOf(0, 0, 0, 0)
+          outputListener[0] = getFileStateButtonPressed
+          outputListener[1] = tabSelectedInt
+ *//*        pDevice?.mcc?.let{
+            outputListener[2] = it
+        }
+        pDevice?.mnc?.let{
+            outputListener[3] = it
+        }*//*
+         return outputListener
+     }*/
  }
 
