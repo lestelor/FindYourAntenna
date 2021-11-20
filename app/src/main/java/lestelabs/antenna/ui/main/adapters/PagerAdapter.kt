@@ -1,8 +1,11 @@
-package lestelabs.antenna.ui.main
+package lestelabs.antenna.ui.main.adapters
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
+import lestelabs.antenna.ui.main.Tab1
+import lestelabs.antenna.ui.main.Tab2
+import lestelabs.antenna.ui.main.Tab3
 
 
 /**

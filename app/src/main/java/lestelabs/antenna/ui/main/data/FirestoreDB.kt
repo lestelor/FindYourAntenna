@@ -1,24 +1,18 @@
-package lestelabs.antenna.ui.main
+package lestelabs.antenna.ui.main.data
 
 import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.os.Build
 import android.text.format.DateFormat
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.android.synthetic.main.fragment_tab3.*
-import lestelabs.antenna.ui.main.crashlytics.Crashlytics
-import lestelabs.antenna.ui.main.data.Server
-import lestelabs.antenna.ui.main.data.Site
+import lestelabs.antenna.ui.main.MainActivity
 import lestelabs.antenna.ui.main.scanner.Connectivity
-import lestelabs.antenna.ui.main.scanner.DevicePhone
-import lestelabs.antenna.ui.main.scanner.DeviceWiFi
 import java.util.*
 
 object FirestoreDB {
@@ -46,7 +40,7 @@ object FirestoreDB {
 
     }
 
-    fun writeCloudFirestoredB(context: Context, activity: Activity, connectivity: Connectivity?, downlink:String, uplink:String, latency:String)  {
+    fun writeSampleToFirestore(context: Context, activity: Activity, connectivity: Connectivity?, downlink:String, uplink:String, latency:String, server:String)  {
 
         var fusedLocationClient: FusedLocationProviderClient? = null
         val db = FirebaseFirestore.getInstance()
@@ -59,7 +53,9 @@ object FirestoreDB {
 
         if ((context?.let { ActivityCompat.checkSelfPermission(it, Manifest.permission.READ_PHONE_STATE) } != PackageManager.PERMISSION_GRANTED) ||
             (context?.let { ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) } != PackageManager.PERMISSION_GRANTED)) {
-            activity?.let { ActivityCompat.requestPermissions(it, arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION), MainActivity.PERMISSION_REQUEST_CODE) }
+            activity?.let { ActivityCompat.requestPermissions(it, arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION),
+                MainActivity.PERMISSION_REQUEST_CODE
+            ) }
             //Thread.sleep(1000)
         }
         fusedLocationClient = context?.let { LocationServices.getFusedLocationProviderClient(it) }
@@ -93,6 +89,8 @@ object FirestoreDB {
                 speedTestSample["WifiFreq"] = deviceWifi?.centerFreq
                 speedTestSample["WifiCh"] = connectivity?.getWifiChannel((deviceWifi?.centerFreq))
                 speedTestSample["WifidBm"] = deviceWifi?.level
+                speedTestSample["Server"] = server
+
 
                 if (networkType != "") {
                     // Add a new document with a generated ID

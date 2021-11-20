@@ -3,7 +3,6 @@ package lestelabs.antenna.ui.main
 
 import android.content.Context
 import android.os.*
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -13,9 +12,6 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat.getColor
 import androidx.fragment.app.Fragment
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
 import kotlinx.android.synthetic.main.fragment_tab1.view.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
@@ -24,13 +20,14 @@ import lestelabs.antenna.ui.main.core.Speedtest.SpeedtestHandler
 import lestelabs.antenna.ui.main.core.config.SpeedtestConfig
 import lestelabs.antenna.ui.main.core.config.TelemetryConfig
 import lestelabs.antenna.ui.main.core.serverSelector.TestPoint
-import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
+import lestelabs.antenna.ui.main.data.FirestoreDB
+import lestelabs.antenna.ui.main.tools.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.data.Server
 import lestelabs.antenna.ui.main.data.ServersInteractor
 import lestelabs.antenna.ui.main.scanner.Connectivity
-import lestelabs.antenna.ui.main.scanner.DeviceWiFi
-import lestelabs.antenna.ui.main.ui.GaugeView
-import lestelabs.antenna.ui.main.ui.Tools
+import lestelabs.antenna.ui.main.adapters.GaugeView
+import lestelabs.antenna.ui.main.tools.InAppReview
+import lestelabs.antenna.ui.main.tools.Tools
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -41,7 +38,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
-import java.util.*
 import kotlin.collections.ArrayList
 
 
@@ -71,15 +67,11 @@ open class Tab1 : Fragment() {
     private var mParam1: String? = null
     private var mParam2: String? = null
 
-    lateinit var mAdView : AdView
     private lateinit var fragmentView: View
     private var connectivity: Connectivity?= null
 
 
     private var listenerConnectivity: GetConnectivity? = null
-    private var networkType: String = ""
-    private var deviceWifi: DeviceWiFi = DeviceWiFi()
-
 
     private val tabName = "Tab1"
     private var crashlyticsKeyAnt = ""
@@ -162,7 +154,7 @@ open class Tab1 : Fragment() {
         progress = fragmentView.findViewById(R.id.Tab1ProgressBar)
 
 
-        val screenSize = getScreenSize()
+        val screenSize = Tools().getScreenSize(requireActivity())
         Log.d("Tab1", screenSize.first.toString())
         if (screenSize.first < MIN_HEIGHT_ADS) {
             fragmentView.adViewFragment1.visibility = View.GONE
@@ -238,20 +230,7 @@ open class Tab1 : Fragment() {
     }
 
 
-    fun format(d: Double): String {
-        var l: Locale? = null
-        l = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            resources.configuration.locales[0]
-        } else {
-            resources.configuration.locale
-        }
-        if (d < 10) return java.lang.String.format(l, "%.2f", d)
-        return if (d < 100) java.lang.String.format(l, "%.1f", d) else "" + Math.round(d)
-    }
 
-     fun mbpsToGauge(s: Double): Int {
-        return (1000 * (1 - 1 / Math.pow(1.3, Math.sqrt(s)))).toInt()
-    }
 
 
 
@@ -269,10 +248,10 @@ open class Tab1 : Fragment() {
     fun page_test(selected: TestPoint) {
         //transition(R.id.page_test, TRANSITION_LENGTH)
         st?.setSelectedServer(selected)
-        (fragmentView.findViewById(R.id.dlText) as TextView).setText(format(0.0))
-        (fragmentView.findViewById(R.id.ulText) as TextView).setText(format(0.0))
-        (fragmentView.findViewById(R.id.pingText) as TextView).setText(format(0.0))
-        (fragmentView.findViewById(R.id.jitterText) as TextView).setText(format(0.0))
+        (fragmentView.findViewById(R.id.dlText) as TextView).text = Tools().format(resources,0.0)
+        (fragmentView.findViewById(R.id.ulText) as TextView).text = Tools().format(resources,0.0)
+        (fragmentView.findViewById(R.id.pingText) as TextView).text = Tools().format(resources,0.0)
+        (fragmentView.findViewById(R.id.jitterText) as TextView).text = Tools().format(resources,0.0)
         (fragmentView.findViewById(R.id.dlProgress) as ProgressBar).progress = 0
         (fragmentView.findViewById(R.id.ulProgress) as ProgressBar).progress = 0
         (fragmentView.findViewById(R.id.dlGauge) as GaugeView).value = 0
@@ -294,9 +273,9 @@ open class Tab1 : Fragment() {
             override fun onDownloadUpdate(dl: Double, progress: Double) {
                 activity?.runOnUiThread(Runnable {
                     (fragmentView.findViewById(R.id.dlText) as TextView).text =
-                        if (progress == 0.0) "..." else format(dl)
+                        if (progress == 0.0) "..." else Tools().format(resources,dl)
                     (fragmentView.findViewById(R.id.dlGauge) as GaugeView).setValue(
-                        if (progress == 0.0) 0 else mbpsToGauge(
+                        if (progress == 0.0) 0 else Tools().mbpsToGauge(
                             dl
                         )
                     )
@@ -309,9 +288,9 @@ open class Tab1 : Fragment() {
             override fun onUploadUpdate(ul: Double, progress: Double) {
                 activity?.runOnUiThread(Runnable {
                     (fragmentView.findViewById(R.id.ulText) as TextView).text =
-                        if (progress == 0.0) "..." else format(ul)
+                        if (progress == 0.0) "..." else Tools().format(resources, ul)
                     (fragmentView.findViewById(R.id.ulGauge) as GaugeView).setValue(
-                        if (progress == 0.0) 0 else mbpsToGauge(
+                        if (progress == 0.0) 0 else Tools().mbpsToGauge(
                             ul
                         )
                     )
@@ -324,9 +303,9 @@ open class Tab1 : Fragment() {
             override fun onPingJitterUpdate(ping: Double, jitter: Double, progress: Double) {
                 activity?.runOnUiThread(Runnable {
                     (fragmentView.findViewById(R.id.pingText) as TextView).text =
-                        if (progress == 0.0) "..." else format(ping)
+                        if (progress == 0.0) "..." else Tools().format(resources, ping)
                     (fragmentView.findViewById(R.id.jitterText) as TextView).text =
-                        if (progress == 0.0) "..." else format(jitter)
+                        if (progress == 0.0) "..." else Tools().format(resources, jitter)
                     Log.d("TAB1", "Ping " + ping + "Jitter " + jitter)
                 })
                 ping_value = ping
@@ -385,7 +364,11 @@ open class Tab1 : Fragment() {
                             p.height = (endTestAreaHeight * f).toInt()
                             endTestArea.layoutParams = p*/
                             //Write data to Firestore ***********************************************
-                            context?.let { activity?.let {it2 -> FirestoreDB.writeCloudFirestoredB(it, it2, connectivity,format(download_value),format(upload_value),format(ping_value)) }}
+                            context?.let { activity?.let {it2 -> FirestoreDB.writeSampleToFirestore(it, it2,
+                                connectivity,
+                                Tools().format(resources,download_value),
+                                Tools().format(resources, upload_value),
+                                Tools().format(resources, ping_value), spinner.selectedItem.toString()) }}
                         })
                         try {
                             sleep(10)
@@ -397,16 +380,22 @@ open class Tab1 : Fragment() {
             }
 
             override fun onCriticalFailure(err: String) {
+                context?.let { activity?.let {it2 -> FirestoreDB.writeSampleToFirestore(it, it2,
+                        connectivity,
+                        Tools().format(resources,download_value),
+                        Tools().format(resources, upload_value),
+                        Tools().format(resources, ping_value), spinner.selectedItem.toString()) }}
+
                 activity?.runOnUiThread(Runnable {
                     tvComments.setTextColor(getColor(requireContext(), R.color.commentsTextAlert))
                     tvComments.gravity = Gravity.CENTER
                     tvComments.text = getString(R.string.testFail_err)
                     spinner.setSelection(spinner.selectedItemPosition+1)
-
                     progress.visibility = View.GONE
                     stopButton.visibility = View.GONE
                     startButton.visibility = View.VISIBLE
                     stopButton.setOnClickListener(null)
+
                     start_onclick()
 
 
@@ -599,13 +588,7 @@ open class Tab1 : Fragment() {
                     })*/
 
     }
-    fun getScreenSize(): Pair<Int, Int> {
-        val displayMetrics = DisplayMetrics()
-        requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val height = displayMetrics.heightPixels
-        val width = displayMetrics.widthPixels
-        return Pair(height,width)
-    }
+
 
 
     // Get Servers and Update UI

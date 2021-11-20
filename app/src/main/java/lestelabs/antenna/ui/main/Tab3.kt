@@ -3,7 +3,6 @@ package lestelabs.antenna.ui.main
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Context.INPUT_METHOD_SERVICE
 import android.content.SharedPreferences
 import android.location.Location
 import android.os.AsyncTask
@@ -16,7 +15,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView.OnEditorActionListener
@@ -26,9 +24,7 @@ import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -40,15 +36,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.android.synthetic.main.fragment_tab3.*
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.MyApplication.Companion.internetOn
 import lestelabs.antenna.ui.main.MyApplication.Companion.sitesInteractor
-import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
+import lestelabs.antenna.ui.main.tools.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.data.Operators
 import lestelabs.antenna.ui.main.data.Site
 import lestelabs.antenna.ui.main.data.SitesInteractor
 import lestelabs.antenna.ui.main.map.MyInfoWindowAdapter
 import lestelabs.antenna.ui.main.scanner.DevicePhone
-import lestelabs.antenna.ui.main.ui.Tools
+import lestelabs.antenna.ui.main.tools.Tools
 import java.lang.reflect.Method
 import java.util.*
 
@@ -124,6 +119,8 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 
         //initialitze maps
         mapFragment = (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
+
+        // Only load map if Tab visible, see setUserVisibleHint
         mapFragment.getMapAsync(this)
 
         // Set menu settings
@@ -201,7 +198,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                         printSites(sites, operador)
                     }
                 } else {
-                    if (internetOn as Boolean) {
+                    if (listenerConnectivity?.getConnectivity()?.isConnected() == true) {
                         loadSitesFromFirestore(operador, firestoreDbVersion)
                     }
                 }
@@ -425,7 +422,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
             Log.d(TAG, "click layout")
             editText.requestFocus()
             editText.isFocusableInTouchMode = true
-            hideKeyboard(editText, false)
+            activity?.let { it1 -> Tools(). hideKeyboard(it1, editText, false) }
         })
     }
 
@@ -486,7 +483,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     zoomToBounds()
                     // zoom to the selected sites
                 } else Toast.makeText(context, "Sin coincidencias", Toast.LENGTH_LONG).show()
-                hideKeyboard(v, true)
+                activity?.let { Tools().hideKeyboard(it, v, true) }
             }
             procesado
         })
@@ -498,11 +495,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 //        })
     }
     
-    fun hideKeyboard(v:View, cerrar:Boolean) {
-        val imm: InputMethodManager = activity?.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        if (cerrar) imm.hideSoftInputFromWindow(v.windowToken, 0)
-        else imm.showSoftInput(v, InputMethodManager.SHOW_FORCED)
-    }
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)

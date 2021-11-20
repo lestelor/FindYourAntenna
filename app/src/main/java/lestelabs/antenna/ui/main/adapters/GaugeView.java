@@ -1,4 +1,4 @@
-package lestelabs.antenna.ui.main.ui;
+package lestelabs.antenna.ui.main.adapters;
 
 import android.content.Context;
 import android.content.res.TypedArray;

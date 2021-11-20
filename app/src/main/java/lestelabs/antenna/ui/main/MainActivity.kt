@@ -26,7 +26,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
@@ -34,11 +33,11 @@ import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
 import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.android.synthetic.main.app_bar_main.*
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.crashlytics.Crashlytics
+import lestelabs.antenna.ui.main.tools.Crashlytics
 import lestelabs.antenna.ui.main.data.UpdateApplicationDatabase
 import lestelabs.antenna.ui.main.scanner.Connectivity
-import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.scanner.waitGPS
+import lestelabs.antenna.ui.main.adapters.PagerAdapter
 import java.util.*
 
 

@@ -14,13 +14,13 @@ import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
 import lestelabs.antenna.R
-import lestelabs.antenna.ui.main.crashlytics.Crashlytics.controlPointCrashlytics
+import lestelabs.antenna.ui.main.tools.Crashlytics.controlPointCrashlytics
 import lestelabs.antenna.ui.main.scanner.*
-import lestelabs.antenna.ui.main.ui.Tools
+import lestelabs.antenna.ui.main.tools.Tools
+import lestelabs.antenna.ui.main.adapters.WifiAdapter
+import lestelabs.antenna.ui.main.tools.Constants
 
 
 /*
@@ -117,7 +117,8 @@ class Tab2 : Fragment() {
         // Construct the data source
         val arrayOfWifis: ArrayList<DeviceWiFi> = ArrayList<DeviceWiFi>()
         // Create the adapter to convert the array to views
-        var adapter = WifiAdapter(activity, arrayOfWifis)
+        var adapter =
+            WifiAdapter(activity, arrayOfWifis)
         // Attach the adapter to a ListView
         val listView = fragmentView.findViewById(R.id.wifiList) as ListView
         listView.adapter = adapter

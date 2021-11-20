@@ -1,4 +1,4 @@
-package lestelabs.antenna.ui.main.crashlytics
+package lestelabs.antenna.ui.main.tools
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 

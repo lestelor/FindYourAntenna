@@ -4,19 +4,12 @@ package lestelabs.antenna.ui.main
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
 import android.telephony.TelephonyManager
-import android.util.Log
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import lestelabs.antenna.ui.main.MainActivity.Companion.PERMISSION_REQUEST_CODE
 import lestelabs.antenna.ui.main.MyApplication.Companion.ctx
 import lestelabs.antenna.ui.main.scanner.DevicePhone
-import java.util.*
-import kotlin.coroutines.coroutineContext
-import kotlin.system.exitProcess
 
 
 private lateinit var telephonyManager: TelephonyManager

@@ -151,7 +151,7 @@
                             android:textColor="@color/textColor"
                             />
 
-                        <lestelabs.antenna.ui.main.ui.GaugeView
+                        <lestelabs.antenna.ui.main.adapters.GaugeView
                             android:layout_width="match_parent"
                             android:layout_height="@dimen/gaugeSize"
                             android:id="@+id/dlGauge"
@@ -219,7 +219,7 @@
                             android:textColor="@color/textColor"
                             />
 
-                        <lestelabs.antenna.ui.main.ui.GaugeView
+                        <lestelabs.antenna.ui.main.adapters.GaugeView
                             android:layout_width="match_parent"
                             android:layout_height="@dimen/gaugeSize"
                             android:id="@+id/ulGauge"

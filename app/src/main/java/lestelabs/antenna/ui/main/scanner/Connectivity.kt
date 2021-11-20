@@ -13,8 +13,6 @@ import android.os.Build
 import android.telephony.*
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.getSystemService
-import lestelabs.antenna.ui.main.crashlytics.Crashlytics
 import java.lang.Error
 
 

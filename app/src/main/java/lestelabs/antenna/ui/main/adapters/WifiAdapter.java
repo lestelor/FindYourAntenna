@@ -1,5 +1,5 @@
 
-package lestelabs.antenna.ui.main.scanner;
+package lestelabs.antenna.ui.main.adapters;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,7 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 
 import lestelabs.antenna.R;
-import lestelabs.antenna.ui.main.Constants;
+import lestelabs.antenna.ui.main.tools.Constants;
+import lestelabs.antenna.ui.main.scanner.DeviceWiFi;
 
 public class WifiAdapter extends ArrayAdapter<DeviceWiFi> {
 
