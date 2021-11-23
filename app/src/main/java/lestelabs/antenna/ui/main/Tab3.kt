@@ -24,6 +24,8 @@ import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.work.ListenableWorker
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -35,6 +37,7 @@ import com.google.android.gms.maps.model.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.android.synthetic.main.fragment_tab3.*
+import kotlinx.coroutines.*
 import lestelabs.antenna.R
 import lestelabs.antenna.ui.main.MyApplication.Companion.sitesInteractor
 import lestelabs.antenna.ui.main.tools.Crashlytics.controlPointCrashlytics
@@ -46,6 +49,7 @@ import lestelabs.antenna.ui.main.scanner.DevicePhone
 import lestelabs.antenna.ui.main.tools.Tools
 import java.lang.reflect.Method
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 
 /*
@@ -149,6 +153,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
         mMapInitialized = true
         mMap.isMyLocationEnabled = true
 
+
         fusedLocationClient = context?.let { LocationServices.getFusedLocationProviderClient(it) }
         fusedLocationClient?.lastLocation
             ?.addOnSuccessListener { location: Location? ->
@@ -179,43 +184,38 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
     // Get Books and Update UI
     private fun getSites(operador: String) {
         // start progress bar
-        progressBarTab3.visibility = View.VISIBLE
-        Tab3tvCargando.text = getString(R.string.Loading)
+        enableProgressBar()
+
 
         //Check local version vs Firestore version
         val localDbVersion = sharedPreferences?.getInt("local_db_version_$operador", 0)?: 0
-
-        db.collection("sites").document("version")
-            .get()
-            .addOnSuccessListener { document ->
-                val firestoreDbVersion = document.data?.get("version").toString().toInt()?: 0
-                if (localDbVersion >= firestoreDbVersion) {
-                    loadSitesFromLocalDb(operador) {
-                        var sites : Array<Site> = arrayOf()
-                        sites = it
-                        sitesAnt = sites
-                        Log.d(TAG, "finish loading local db #sites " + sites.count())
-                        printSites(sites, operador)
+        // Internet connection is available, get remote data
+        lifecycleScope.launch(Dispatchers.IO) {
+            if (listenerConnectivity?.getConnectivity()?.isConnected() == true) {
+                db.collection("sites").document("version")
+                    .get()
+                    .addOnSuccessListener { document ->
+                        val firestoreDbVersion =
+                            document.data?.get("version").toString().toInt() ?: 0
+                        if (localDbVersion >= firestoreDbVersion) {
+                            loadSitesFromLocalDb(operador)
+                        } else {
+                            loadSitesFromFirestore(operador, firestoreDbVersion)
+                        }
                     }
-                } else {
-                    if (listenerConnectivity?.getConnectivity()?.isConnected() == true) {
-                        loadSitesFromFirestore(operador, firestoreDbVersion)
+                    .addOnFailureListener { exception ->
+                        Log.e(TAG, "Firestore Error getting version: ", exception)
+                        loadSitesFromLocalDb(operador)
                     }
-                }
+            } else {
+                loadSitesFromLocalDb(operador)
             }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Firestore Error getting version: ", exception)
-            }
-
-        // First load whatever is stored locally
-        progressBarTab3.visibility = View.GONE
+        }
     }
 
     private fun loadSitesFromFirestore(operador: String, firestoreVersion: Int) {
-        progressBarTab3.visibility = View.VISIBLE
-        Log.d(TAG, "load firestore sites operador " + operador)
+        enableProgressBar()
         var sites : Array<Site> = arrayOf()
-        // Internet connection is available, get remote data
         db.collection("sites").document("sites").collection(operador)
             .get()
             .addOnSuccessListener { documents ->
@@ -231,41 +231,62 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     site.frecuencias = document.data["frecuencias"].toString()
                     tempList.add(site)
                 }
-                Log.d(TAG, "Found #sites in firestore for " + operador+ " " + tempList.size)
-                sites = tempList.toTypedArray()
-                sitesAnt = sites
-                saveSitesToLocalDatabase(sites)
-                Log.d(TAG, "sites guardados " + sites.count())
-                printSites(sites, operador)
-                // actualiza # version de localdatabase
-                val editor = sharedPreferences?.edit()
-                editor?.putInt("local_db_version_$operador", firestoreVersion)
-                editor?.commit()
+                Log.d(TAG, "Found #sites in firestore for " + operador + " " + tempList.size)
+                if (tempList.size > 0) {
+                    sites = tempList.toTypedArray()
+                    sitesAnt = sites
+                    saveSitesToLocalDatabase(sites)
+                    Log.d(TAG, "sites guardados " + sites.count())
+                    printSites(sites, operador)
+                    // actualiza # version de localdatabase
+                    val editor = sharedPreferences?.edit()
+                    editor?.putInt("local_db_version_$operador", firestoreVersion)
+                    editor?.commit()
+                }
+                disableProgressBar()
             }
             .addOnFailureListener { exception ->
+                disableProgressBar()
                 Log.e(TAG, "Firestore Error getting documents: ", exception)
             }
+
     }
 
+
     // Load Books from Room
-    private fun loadSitesFromLocalDb(operador: String, callback: (Array<Site>) -> Unit) {
+    private fun loadSitesFromLocalDb(operador: String)  {
+        enableProgressBar()
         val sitesInteractor: SitesInteractor = sitesInteractor
         // Run in Background, accessing the local database is a memory-expensive operation
-        AsyncTask.execute {
-            // Get Books
-            val sites: Array<Site>? = sitesInteractor.getSiteByOperador(operador)
 
-            Log.d(TAG, "found #sites in local dB for" + operador + " " + sites?.count())
-            if (sites != null) {
-                callback(sites)
-            } else callback(arrayOf())
+        lifecycleScope.launch(Dispatchers.IO) {
+            //AsyncTask.execute {
+                // Get Books
+                val sites: Array<Site> = sitesInteractor.getSiteByOperador(operador)?: arrayOf(Site())
+                Log.d(TAG, "found #sites in local dB for " + operador + " " + sites.count())
+               if(sites.size >0) {
+                   sitesAnt = sites
+                   Log.d(TAG, "finish loading local db #sites " + sites.count())
+                   printSites(sites, operador)
+               } else {
+                   disableProgressBar()
+               }
+            }
         }
+
+    fun disableProgressBar() {
+        progressBarTab3.visibility = View.GONE
+        Tab3tvCargando.text = ""
+    }
+
+    fun enableProgressBar() {
+        progressBarTab3.visibility = View.VISIBLE
+        Tab3tvCargando.text = getString(R.string.Loading)
     }
 
     private fun printSites(sites: Array<Site>, operador: String) {
         var marker: Marker? = null
-
-        activity?.runOnUiThread {
+        lifecycleScope.launch(Dispatchers.Main) {
             Tab3tvCargando.text = ""
             val iconOperatorSelected = Operators.getIconoByOperator(operador)
             Log.d(TAG, "Printing #sites " + sites.size + " site " + sites[0])
@@ -283,7 +304,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
                     }
                 }
             }
-            progressBarTab3.visibility = View.GONE
+            disableProgressBar()
         }
     }
 
@@ -366,25 +387,25 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 //                popup.setForceShowIcon(true)
 //            }else{
-                try {
-                    val fields = popup.javaClass.declaredFields
-                    for (field in fields) {
-                        if ("mPopup" == field.name) {
-                            field.isAccessible = true
-                            val menuPopupHelper = field[popup]
-                            val classPopupHelper =
-                                Class.forName(menuPopupHelper.javaClass.name)
-                            val setForceIcons: Method = classPopupHelper.getMethod(
-                                "setForceShowIcon",
-                                Boolean::class.javaPrimitiveType
-                            )
-                            setForceIcons.invoke(menuPopupHelper, true)
-                            break
-                        }
+            try {
+                val fields = popup.javaClass.declaredFields
+                for (field in fields) {
+                    if ("mPopup" == field.name) {
+                        field.isAccessible = true
+                        val menuPopupHelper = field[popup]
+                        val classPopupHelper =
+                            Class.forName(menuPopupHelper.javaClass.name)
+                        val setForceIcons: Method = classPopupHelper.getMethod(
+                            "setForceShowIcon",
+                            Boolean::class.javaPrimitiveType
+                        )
+                        setForceIcons.invoke(menuPopupHelper, true)
+                        break
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             //}
             popup.show()
         }
@@ -494,7 +515,7 @@ open class Tab3 : Fragment() , OnMapReadyCallback {
 //            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
 //        })
     }
-    
+
 
 
     override fun onAttach(context: Context) {
